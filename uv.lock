@@ -782,7 +782,7 @@ wheels = [
 
 [[package]]
 name = "indikator"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "hipr" },
@@ -1826,7 +1826,7 @@ wheels = [
 
 [[package]]
 name = "pdval"
-version = "0.1.9"
+version = "0.1.10"
 source = { editable = "../pdval" }
 dependencies = [
     { name = "loguru" },
