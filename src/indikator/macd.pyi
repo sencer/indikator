@@ -6,7 +6,7 @@ Do not edit manually - changes will be overwritten.
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Finite, NonEmpty, Validated
+from pdval import Finite, Validated
 
 class MacdConfig(MakeableModel[pd.DataFrame]):
     fast_period: int
@@ -20,7 +20,7 @@ class _MacdConfigurable:
     Config: type[MacdConfig]
     def __call__(
         self,
-        data: Validated[pd.Series, Finite, NonEmpty],
+        data: Validated[pd.Series, Finite],
         *,
         fast_period: int = 12,
         slow_period: int = 26,

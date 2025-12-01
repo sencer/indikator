@@ -12,8 +12,6 @@ import numpy as np
 import pandas as pd
 from pdval import (
     HasColumns,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -24,9 +22,7 @@ from indikator._obv_numba import compute_obv_numba
 @configurable
 @validated
 def obv(
-    data: Validated[
-        pd.DataFrame, HasColumns[Literal["close", "volume"]], NonNaN, NonEmpty
-    ],
+    data: Validated[pd.DataFrame, HasColumns[Literal["close", "volume"]]],
 ) -> pd.DataFrame:
     """Calculate On-Balance Volume (OBV).
 

@@ -39,12 +39,9 @@ class TestBasicFunctionality:
         assert len(result) == len(stock_series)
 
     def test_empty_series_returns_empty(self) -> None:
-        """Empty input should raise ValueError."""
-        empty_series = pd.Series([], dtype=float)
-        sector_series = pd.Series([100.0, 105.0])
-
+        """Should raise ValueError if input Series is empty."""
         with pytest.raises(ValueError, match="Data must not be empty"):
-            sector_correlation(empty_series, sector_series)
+            sector_correlation(pd.Series(dtype=float))
 
 
 class TestCorrelationCalculation:
@@ -122,11 +119,13 @@ class TestMissingDataHandling:
         # All values should be the default
         assert (result == 0.5).all()
 
-    def test_empty_sector_data_raises_error(self, stock_series: pd.Series) -> None:
-        """Should raise ValueError when sector_data is empty."""
-        empty_sector = pd.Series([], dtype=float)
+    def test_empty_sector_data_raises_error(self) -> None:
+        """Should raise ValueError if sector data is empty."""
+        stock_data = pd.Series([100.0, 101.0, 102.0])
+        empty_sector = pd.Series(dtype=float)
+
         with pytest.raises(ValueError, match="Data must not be empty"):
-            sector_correlation(stock_series, empty_sector)
+            sector_correlation(stock_data, empty_sector)
 
     def test_insufficient_window_data_returns_default(self) -> None:
         """Should return default value when data is shorter than window."""

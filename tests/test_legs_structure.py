@@ -15,10 +15,13 @@ class TestHigherHighsLowerLows:
     ) -> None:
         """Higher high in uptrend should increase leg count."""
         result = zigzag_legs(
-            higher_highs_df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            higher_highs_df["close"],
+            threshold=0.03,
+            confirmation_bars=0,
+            min_distance_pct=0.01,
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Should see increasing positive counts as higher highs form
         # Filter out zeros and check that counts increase
@@ -32,10 +35,13 @@ class TestHigherHighsLowerLows:
     ) -> None:
         """Lower low in downtrend should increase leg count (more negative)."""
         result = zigzag_legs(
-            lower_lows_df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            lower_lows_df["close"],
+            threshold=0.03,
+            confirmation_bars=0,
+            min_distance_pct=0.01,
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Should see increasingly negative counts as lower lows form
         non_zero = legs[legs < 0]
@@ -59,10 +65,10 @@ class TestHigherHighsLowerLows:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Live counting: count increments when price breaks previous high DURING up leg
         # Should reach at least 2 (possibly 3)
@@ -85,10 +91,10 @@ class TestHigherHighsLowerLows:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Live counting: count increments when price breaks previous low DURING down leg
         # Should reach at least -2 (possibly -3)
@@ -104,13 +110,13 @@ class TestTrendChanges:
     ) -> None:
         """Test transition from bullish to bearish structure."""
         result = zigzag_legs(
-            trend_change_bull_to_bear_df,
+            trend_change_bull_to_bear_df["close"],
             threshold=0.03,
             confirmation_bars=0,
             min_distance_pct=0.01,
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Should start positive and end negative
         # Find first non-zero
@@ -138,10 +144,10 @@ class TestTrendChanges:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Should transition from negative to positive
         if (legs != 0).any():
@@ -170,10 +176,10 @@ class TestTrendChanges:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Should have both positive and negative values
         has_positive = (legs > 0).any()
@@ -197,10 +203,10 @@ class TestTrendChanges:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # After trend change, should start at ±1
         # Find where sign changes
@@ -228,10 +234,10 @@ class TestCorrectionsVsImpulse:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Count should stay at 1 during correction
         positive_vals = legs[legs > 0]
@@ -253,10 +259,10 @@ class TestCorrectionsVsImpulse:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Live counting: after correction, breaking previous high increases count
         positive_vals = legs[legs > 0]
@@ -280,11 +286,11 @@ class TestStructureBreaks:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.0
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.0
         )
 
         # Should detect structure break
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_break_of_previous_high_in_downtrend(self) -> None:
         """Breaking previous high in downtrend signals trend change."""
@@ -299,11 +305,11 @@ class TestStructureBreaks:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.0
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.0
         )
 
         # Should detect structure break and potentially reverse
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestLiveCountingBehavior:
@@ -323,11 +329,11 @@ class TestLiveCountingBehavior:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
         # Should show progression of leg count
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_count_persists_during_correction(self) -> None:
         """Count should persist (not decrease) during corrections."""
@@ -344,10 +350,10 @@ class TestLiveCountingBehavior:
         })
 
         result = zigzag_legs(
-            df, threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
+            df["close"], threshold=0.03, confirmation_bars=0, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # During correction, count shouldn't decrease
         # Once a count is reached, it should persist until trend change

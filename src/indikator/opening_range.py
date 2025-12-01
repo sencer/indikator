@@ -15,8 +15,6 @@ from pdval import (
     Ge as GeValidator,
     HasColumns,
     Index,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -30,8 +28,6 @@ def opening_range(  # noqa: PLR0914
         HasColumns[Literal["high", "low", "close"]],
         Index[Datetime],
         GeValidator[Literal["high", "low"]],
-        NonNaN,
-        NonEmpty,
     ],
     minutes: Hyper[int, Ge[1]] = 30,
     session_start: str = "09:30",

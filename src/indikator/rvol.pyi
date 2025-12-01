@@ -5,24 +5,23 @@ Do not edit manually - changes will be overwritten.
 """
 
 from collections.abc import Callable
-from typing import Literal
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Datetime, HasColumns, Index, NonEmpty, NonNegative, Validated
+from pdval import Datetime, Index, NonNegative, Validated
 
 # Module constants
 MIN_SAMPLES_PER_SLOT = 3
 
 # Public functions
 def intraday_aggregate(
-    data: pd.Series,
+    data: Validated[pd.Series, Index[Datetime]],
     agg_func: Callable[[pd.Series], float],
     lookback_days: int | None = None,
     min_samples: int = MIN_SAMPLES_PER_SLOT,
 ) -> pd.Series: ...
 
-class RvolConfig(MakeableModel[pd.DataFrame]):
+class RvolConfig(MakeableModel[pd.Series]):
     window: int
     epsilon: float
     def __init__(self, *, window: int = 20, epsilon: float = 1e-09) -> None: ...
@@ -38,13 +37,11 @@ class _RvolConfigurable:
     Config: type[RvolConfig]
     def __call__(
         self,
-        data: Validated[
-            pd.DataFrame, HasColumns[Literal["volume"]], NonNegative, NonEmpty
-        ],
+        data: Validated[pd.Series, NonNegative],
         *,
         window: int = 20,
         epsilon: float = 1e-09,
-    ) -> pd.DataFrame: ...
+    ) -> pd.Series: ...
 
 type rvol = _RvolConfigurable
 
@@ -52,7 +49,7 @@ class _RvolIntradayConfigurable:
     Config: type[RvolIntradayConfig]
     def __call__(
         self,
-        data: Validated[pd.Series, NonNegative, Index[Datetime], NonEmpty],
+        data: Validated[pd.Series, NonNegative, Index[Datetime]],
         *,
         lookback_days: int | None = None,
         min_samples: int = MIN_SAMPLES_PER_SLOT,
