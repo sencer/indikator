@@ -1,0 +1,16 @@
+repos:
+  - repo: local
+    hooks:
+      - id: hipr-generate-stubs
+        name: Generate Stubs
+        entry: bash -c "uv run hipr-generate-stubs src/ && uv run ruff check --fix src/indikator/*.pyi && uv run ruff format src/"
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^src/.*\.py$
+
+      - id: ruff-format
+        name: Ruff Format
+        entry: uv run ruff format
+        language: system
+        types: [python]
