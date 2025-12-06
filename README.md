@@ -62,7 +62,7 @@ result = atr(data, window=20)
 
 # 2. Reusable configuration (Factory pattern)
 # Create a specialized ATR calculator
-fast_atr = atr.make(window=5)
+fast_atr = atr.Config(window=5).make()
 
 # Apply it to multiple datasets
 result1 = fast_atr(data1)
@@ -88,7 +88,7 @@ except ValueError as e:
 
 | Indicator | Description |
 |-----------|-------------|
-| **ATR** | Average True Range (Volatility) |
+| **ATR** | Average True Range (Volatility) (Standard & Intraday) |
 | **Bollinger Bands** | Volatility bands based on SMA and standard deviation |
 | **Churn Factor** | Volume efficiency measure |
 | **Legs** | Zigzag/Swing point detection |
