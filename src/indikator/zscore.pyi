@@ -6,7 +6,7 @@ Do not edit manually - changes will be overwritten.
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Datetime, Finite, Index, NonEmpty, NonNaN, Validated
+from pdval import Datetime, Finite, Index, Validated
 
 from indikator.rvol import MIN_SAMPLES_PER_SLOT
 
@@ -26,7 +26,7 @@ class _ZscoreConfigurable:
     Config: type[ZscoreConfig]
     def __call__(
         self,
-        data: Validated[pd.Series, Finite, NonNaN, NonEmpty],
+        data: Validated[pd.Series, Finite],
         *,
         window: int = 20,
         epsilon: float = 1e-09,
@@ -38,7 +38,7 @@ class _ZscoreIntradayConfigurable:
     Config: type[ZscoreIntradayConfig]
     def __call__(
         self,
-        data: Validated[pd.Series, Index[Datetime], NonEmpty],
+        data: Validated[pd.Series, Index[Datetime]],
         *,
         lookback_days: int | None = None,
         min_samples: int = MIN_SAMPLES_PER_SLOT,

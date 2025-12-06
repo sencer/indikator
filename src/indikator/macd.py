@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from pdval import (
     Finite,
-    NonEmpty,
     Validated,
     validated,
 )
@@ -21,7 +20,7 @@ from indikator._macd_numba import compute_macd_numba
 @configurable
 @validated
 def macd(
-    data: Validated[pd.Series, Finite, NonEmpty],
+    data: Validated[pd.Series, Finite],
     fast_period: Hyper[int, Ge[2]] = 12,
     slow_period: Hyper[int, Ge[2]] = 26,
     signal_period: Hyper[int, Ge[1]] = 9,

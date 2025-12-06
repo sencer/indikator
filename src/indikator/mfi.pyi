@@ -8,7 +8,7 @@ from typing import Literal
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Ge as GeValidator, HasColumns, NonEmpty, NonNaN, Validated
+from pdval import Ge as GeValidator, HasColumns, Validated
 
 class MfiConfig(MakeableModel[pd.DataFrame]):
     window: int
@@ -23,8 +23,6 @@ class _MfiConfigurable:
             pd.DataFrame,
             HasColumns[Literal["high", "low", "close", "volume"]],
             GeValidator[Literal["high", "low"]],
-            NonNaN,
-            NonEmpty,
         ],
         *,
         window: int = 14,

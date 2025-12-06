@@ -49,7 +49,7 @@ class TestBasicFunctionality:
         assert len(result) == len(simple_uptrend_df)
 
     def test_empty_dataframe_returns_empty_series(self) -> None:
-        """Empty input should raise ValueError."""
+        """Should raise ValueError if input is empty."""
         with pytest.raises(ValueError, match="Data must not be empty"):
             slope(pd.Series(dtype=float))
 

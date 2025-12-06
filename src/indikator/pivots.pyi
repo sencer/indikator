@@ -8,15 +8,7 @@ from typing import Literal
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import (
-    Datetime,
-    Ge as GeValidator,
-    HasColumns,
-    Index,
-    NonEmpty,
-    NonNaN,
-    Validated,
-)
+from pdval import Datetime, Ge as GeValidator, HasColumns, Index, Validated
 
 class PivotPointsConfig(MakeableModel[pd.DataFrame]):
     pass
@@ -30,8 +22,6 @@ class _PivotPointsConfigurable:
             HasColumns[Literal["high", "low", "close"]],
             Index[Datetime],
             GeValidator[Literal["high", "low"]],
-            NonNaN,
-            NonEmpty,
         ],
         method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
         period: Literal["D", "W", "ME"] = "D",

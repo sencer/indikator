@@ -23,9 +23,9 @@ class TestConfirmationPeriod:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=0)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=0)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         assert legs[0] == 0  # Initial
         assert legs[1] > 0  # Bullish established
         assert legs[2] > 0  # Still bullish (correction)
@@ -47,9 +47,9 @@ class TestConfirmationPeriod:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=1)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=1)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         assert legs[4] > 0  # Still bullish (confirmation not complete)
         assert legs[5] < 0  # Bearish - confirmation complete, structure break detected
         assert legs[6] < 0  # Still bearish
@@ -66,10 +66,10 @@ class TestConfirmationPeriod:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=2)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=2)
 
         # Should eventually confirm downtrend
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_confirmation_cancelled_by_new_high(self) -> None:
         """Confirmation should be cancelled if price makes new high."""
@@ -83,9 +83,9 @@ class TestConfirmationPeriod:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=2)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=2)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Should remain positive (bullish) throughout
         assert legs[-1] > 0
 
@@ -101,9 +101,9 @@ class TestConfirmationPeriod:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=2)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=2)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Should remain negative (bearish) throughout
         assert legs[-1] < 0
 
@@ -120,10 +120,10 @@ class TestConfirmationPeriod:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, confirmation_bars=2, min_distance_pct=0.0
+            df["close"], threshold=0.05, confirmation_bars=2, min_distance_pct=0.0
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Just verify confirmation completed - don't test structure breaks here
         assert legs[0] == 0  # Initial
         assert legs[1] > 0  # Bullish
@@ -144,9 +144,9 @@ class TestConfirmationPeriod:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=5)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=5)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Just verify confirmation period works with 5 bars
         assert legs[0] == 0  # Initial
         assert legs[1] > 0  # Bullish
@@ -170,9 +170,9 @@ class TestConfirmationWithThreshold:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=1)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=1)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Should remain bullish (no threshold cross)
         assert legs[-1] > 0
 
@@ -190,10 +190,10 @@ class TestConfirmationWithThreshold:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=1)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=1)
 
         # Should reverse to bearish after confirmation and leg completion
-        legs = result["zigzag_legs"].values
+        legs = result.values
         assert (
             legs[-1] < 0
         )  # Bearish - threshold crossed, confirmed, and structure broken
@@ -216,10 +216,10 @@ class TestConfirmationEdgeCases:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=1)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=1)
 
         # Should confirm and evaluate structure break on last bar
-        legs = result["zigzag_legs"].values
+        legs = result.values
         assert legs[-1] < 0  # Bearish - structure break at end of data
 
     def test_confirmation_incomplete_at_end(self) -> None:
@@ -233,9 +233,9 @@ class TestConfirmationEdgeCases:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=5)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=5)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Should still be in uptrend (confirmation incomplete)
         # Or might be 0 if not confirmed yet
         assert legs[-1] >= 0
@@ -255,9 +255,9 @@ class TestConfirmationEdgeCases:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=1)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=1)
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
         # Should remain bullish throughout
         assert legs[-1] > 0
 
@@ -272,10 +272,10 @@ class TestConfirmationEdgeCases:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=1)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=1)
 
         # Should handle exact threshold
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestConfirmationWithMinDistance:
@@ -298,9 +298,9 @@ class TestConfirmationWithMinDistance:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, confirmation_bars=1, min_distance_pct=0.005
+            df["close"], threshold=0.05, confirmation_bars=1, min_distance_pct=0.005
         )
 
         # Should reverse after filtering tiny moves and breaking structure
-        legs = result["zigzag_legs"].values
+        legs = result.values
         assert legs[-1] < 0  # Bearish - structure break despite min_distance filtering

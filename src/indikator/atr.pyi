@@ -8,7 +8,7 @@ from typing import Literal
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Datetime, HasColumns, Index, NonEmpty, NonNaN, Validated
+from pdval import Datetime, HasColumns, Index, Validated
 
 from indikator.rvol import MIN_SAMPLES_PER_SLOT
 
@@ -24,9 +24,7 @@ class _AtrConfigurable:
     Config: type[AtrConfig]
     def __call__(
         self,
-        data: Validated[
-            pd.DataFrame, HasColumns[Literal["high", "low", "close"]], NonNaN, NonEmpty
-        ],
+        data: Validated[pd.DataFrame, HasColumns[Literal["high", "low", "close"]]],
         *,
         window: int = 14,
     ) -> pd.DataFrame: ...
@@ -38,11 +36,7 @@ class _AtrIntradayConfigurable:
     def __call__(
         self,
         data: Validated[
-            pd.DataFrame,
-            HasColumns[Literal["high", "low", "close"]],
-            Index[Datetime],
-            NonNaN,
-            NonEmpty,
+            pd.DataFrame, HasColumns[Literal["high", "low", "close"]], Index[Datetime]
         ],
         *,
         lookback_days: int | None = None,
