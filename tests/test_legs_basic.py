@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from indikator.legs import zigzag_legs
 
@@ -38,11 +39,9 @@ class TestBasicFunctionality:
     def test_empty_dataframe_returns_empty_with_column(
         self, empty_df: pd.DataFrame
     ) -> None:
-        """Empty input should return empty output with zigzag_legs column."""
-        result = zigzag_legs(empty_df)
-
-        assert len(result) == 0
-        assert "zigzag_legs" in result.columns
+        """Should raise ValueError if input DataFrame is empty."""
+        with pytest.raises(ValueError, match="Data must not be empty"):
+            zigzag_legs(empty_df)
 
     def test_single_value_returns_zero_legs(
         self, single_value_df: pd.DataFrame
