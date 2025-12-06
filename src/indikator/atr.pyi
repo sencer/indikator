@@ -10,7 +10,8 @@ from hipr.config import MakeableModel
 import pandas as pd
 from pdval import Datetime, HasColumns, Index, Validated
 
-from indikator.rvol import MIN_SAMPLES_PER_SLOT
+# Module constants
+_DEFAULT_MIN_SAMPLES = 3
 
 class AtrConfig(MakeableModel[pd.DataFrame]):
   window: int
@@ -18,7 +19,7 @@ class AtrConfig(MakeableModel[pd.DataFrame]):
 
 class AtrIntradayConfig(MakeableModel[pd.DataFrame]):
   min_samples: int
-  def __init__(self, *, min_samples: int = MIN_SAMPLES_PER_SLOT) -> None: ...
+  def __init__(self, *, min_samples: int = _DEFAULT_MIN_SAMPLES) -> None: ...
 
 class _AtrConfigurable:
   Config: type[AtrConfig]
@@ -40,7 +41,7 @@ class _AtrIntradayConfigurable:
     ],
     *,
     lookback_days: int | None = None,
-    min_samples: int = MIN_SAMPLES_PER_SLOT,
+    min_samples: int = _DEFAULT_MIN_SAMPLES,
   ) -> pd.DataFrame: ...
 
 type atr_intraday = _AtrIntradayConfigurable

@@ -4,9 +4,6 @@ This module calculates relative volume, which measures current trading volume
 relative to the average volume over a lookback period.
 """
 
-from collections.abc import Callable
-from typing import cast
-
 from hipr import Ge, Gt, Hyper, configurable
 import pandas as pd
 from pdval import (
@@ -17,10 +14,12 @@ from pdval import (
   validated,
 )
 
-# Minimum samples required per time slot before calculating average
-MIN_SAMPLES_PER_SLOT = 3
+from indikator._intraday import intraday_aggregate
 
-__all__ = ["MIN_SAMPLES_PER_SLOT", "intraday_aggregate", "rvol", "rvol_intraday"]
+# Default minimum samples per time slot
+_DEFAULT_MIN_SAMPLES = 3
+
+__all__ = ["rvol", "rvol_intraday"]
 
 
 @configurable
@@ -86,76 +85,12 @@ def rvol(
   return rvol_values
 
 
-@validated
-def intraday_aggregate(
-  data: Validated[pd.Series, Index[Datetime]],
-  agg_func: Callable[[pd.Series], float],
-  lookback_days: int | None = None,
-  min_samples: int = MIN_SAMPLES_PER_SLOT,
-) -> pd.Series:
-  """Generic intraday aggregation by time-of-day.
-
-  For each bar, aggregates historical values for that specific time of day
-  using a custom aggregation function (mean, std, median, etc.).
-
-  Args:
-    data: Series with DatetimeIndex
-    agg_func: Aggregation function (e.g., pd.Series.mean, pd.Series.std)
-    lookback_days: Days to look back (None = all history)
-    min_samples: Minimum samples required per time slot
-
-  Returns:
-    Series with aggregated values for each bar's time slot
-
-  Raises:
-    ValueError: If index not DatetimeIndex
-  """
-  # Cast index to DatetimeIndex for type checker
-  dt_index = cast("pd.DatetimeIndex", data.index)
-
-  # We need to group by time, but Series groupby is less flexible for temporary columns
-  # So we'll convert to DataFrame temporarily for the operation
-  df = data.to_frame(name="_value")
-  df["_time_slot"] = dt_index.time
-
-  # Filter to lookback period if specified
-  if lookback_days is not None:
-    cutoff_date = cast("pd.Timestamp", df.index[-1] - pd.Timedelta(days=lookback_days))
-    lookback_data = df[df.index >= cutoff_date]
-  else:
-    lookback_data = df
-
-  # Optimized: Group by time slot and use expanding window approach
-  agg_values = pd.Series(index=data.index, dtype=float)
-
-  # Group by time slot once
-  grouped = lookback_data.groupby(  # pyright: ignore[reportUnknownMemberType]
-    "_time_slot"
-  )
-
-  for _time_slot, group in grouped:
-    # Get values for this time slot
-    group_values = group["_value"]
-
-    # Calculate expanding aggregates (excluding current bar)
-    indexes = cast("pd.DatetimeIndex", group.index)
-    for i, idx in enumerate(indexes):
-      # idx is now typed as Timestamp from DatetimeIndex
-      # Need minimum samples from previous bars
-      if i >= min_samples:
-        # Get all previous values in this time slot
-        prev_values = group_values.iloc[:i]
-        agg_values[idx] = agg_func(prev_values)
-
-  return agg_values
-
-
 @configurable
 @validated
 def rvol_intraday(
   data: Validated[pd.Series, NonNegative, Index[Datetime]],
   lookback_days: int | None = None,
-  min_samples: Hyper[int, Ge[1]] = MIN_SAMPLES_PER_SLOT,
+  min_samples: Hyper[int, Ge[1]] = _DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:
   """Calculate intraday RVOL based on time-of-day historical averages.
@@ -193,7 +128,7 @@ def rvol_intraday(
   # Get historical averages for each time slot using generic aggregator
   avg_volume_by_time = intraday_aggregate(
     data,
-    agg_func=pd.Series.mean,
+    agg_func="mean",
     lookback_days=lookback_days,
     min_samples=min_samples,
   )

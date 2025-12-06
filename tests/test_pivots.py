@@ -309,7 +309,7 @@ class TestPivotPoints:
     # but let's test the function logic handles it
     with contextlib.suppress(ValueError, TypeError):
       # This will fail type checking, but let's see runtime behavior
-      pivot_points(data, method="standard", period="Y")  # type: ignore
+      pivot_points(data, method="standard", period="YE")
       # If it doesn't raise, that's okay - validation may happen elsewhere
 
   def test_pivots_invalid_method(self):

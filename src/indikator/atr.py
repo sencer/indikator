@@ -19,7 +19,10 @@ from pdval import (
 )
 
 from indikator._atr_numba import compute_atr_numba, compute_true_range_numba
-from indikator.rvol import MIN_SAMPLES_PER_SLOT, intraday_aggregate
+from indikator._intraday import intraday_aggregate
+
+# Default minimum samples per time slot for intraday ATR
+_DEFAULT_MIN_SAMPLES = 3
 
 
 @configurable
@@ -99,7 +102,7 @@ def atr_intraday(
     Index[Datetime],
   ],
   lookback_days: int | None = None,
-  min_samples: Hyper[int, Ge[2]] = MIN_SAMPLES_PER_SLOT,
+  min_samples: Hyper[int, Ge[2]] = _DEFAULT_MIN_SAMPLES,
 ) -> pd.DataFrame:
   """Calculate time-of-day adjusted ATR (intraday volatility).
 
@@ -155,7 +158,7 @@ def atr_intraday(
   # Get historical average true range for each time slot
   avg_tr_by_time = intraday_aggregate(
     data_with_tr["true_range"],
-    agg_func=pd.Series.mean,
+    agg_func="mean",
     lookback_days=lookback_days,
     min_samples=min_samples,
   )

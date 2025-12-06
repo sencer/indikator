@@ -6,7 +6,7 @@ to measure how closely the stock moves with the broader sector.
 
 from __future__ import annotations
 
-from hipr import Ge, Hyper, Le  # noqa: TC002
+from hipr import Ge, Hyper, Le, configurable  # noqa: TC002
 import pandas as pd
 from pdval import (  # noqa: TC002
   Finite,
@@ -18,6 +18,7 @@ from pdval import (  # noqa: TC002
 MAX_NAN_RATIO = 0.5
 
 
+@configurable
 @validated
 def sector_correlation(
   stock_data: Validated[pd.Series, Finite],
@@ -48,10 +49,10 @@ def sector_correlation(
   if sector_data is None:
     return pd.Series(default_value, index=stock_data.index, name="sector_correlation")
 
-  # Align series on index
-  aligned_stock, _ = stock_data.align(sector_data, join="inner")
-
-  if len(aligned_stock) < window:
+  # Check if there's enough overlap between the two series
+  # Use index intersection (O(n log n)) instead of creating aligned copies
+  overlap_count = len(stock_data.index.intersection(sector_data.index))
+  if overlap_count < window:
     return pd.Series(default_value, index=stock_data.index, name="sector_correlation")
 
   # Align sector data to stock data index using forward fill

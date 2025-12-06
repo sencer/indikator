@@ -20,7 +20,7 @@ from pdval import (
 
 @configurable
 @validated
-def pivot_points(  # noqa: PLR0915, pyright: ignore[reportRedeclaration, reportReturnType]
+def pivot_points(
   data: Validated[
     pd.DataFrame,
     HasColumns[Literal["high", "low", "close"]],
@@ -103,110 +103,78 @@ def pivot_points(  # noqa: PLR0915, pyright: ignore[reportRedeclaration, reportR
     >>> result = pivot_points(data, method="standard", period="D")
     >>> # Returns DataFrame with PP, R1-R3, S1-R3 levels
   """
-
-  # Calculate previous period's high, low, close
-  if period == "D":
-    prev_period = (
-      data.resample("D")
-      .agg(  # pyright: ignore[reportUnknownMemberType]
-        {"high": "max", "low": "min", "close": "last"}
-      )
-      .shift(1)
-    )
-  elif period == "W":
-    prev_period = (
-      data.resample("W")
-      .agg(  # pyright: ignore[reportUnknownMemberType]
-        {"high": "max", "low": "min", "close": "last"}
-      )
-      .shift(1)
-    )
-  elif period == "ME":
-    prev_period = (
-      data.resample("ME")
-      .agg(  # pyright: ignore[reportUnknownMemberType]
-        {"high": "max", "low": "min", "close": "last"}
-      )
-      .shift(1)
-    )
-  else:
-    raise ValueError(f"Invalid period: {period}")
+  # Calculate previous period's high, low, close (consolidated resample)
+  prev_period = (
+    data.resample(period)
+    .agg({"high": "max", "low": "min", "close": "last"})  # pyright: ignore[reportUnknownMemberType]
+    .shift(1)
+  )
 
   # Reindex to match original data (forward fill within period)
   prev_high = prev_period["high"].reindex(data.index, method="ffill")
   prev_low = prev_period["low"].reindex(data.index, method="ffill")
   prev_close = prev_period["close"].reindex(data.index, method="ffill")
+  range_hl = prev_high - prev_low
 
   # Calculate pivot points based on method
   if method == "standard":
     pp = (prev_high + prev_low + prev_close) / 3
-    r1 = 2 * pp - prev_low
-    r2 = pp + (prev_high - prev_low)
-    r3 = prev_high + 2 * (pp - prev_low)
-    s1 = 2 * pp - prev_high
-    s2 = pp - (prev_high - prev_low)
-    s3 = prev_low - 2 * (prev_high - pp)
-
-    result = pd.DataFrame(
-      {"pp": pp, "r1": r1, "r2": r2, "r3": r3, "s1": s1, "s2": s2, "s3": s3},
-      index=data.index,
-    )
-
-  elif method == "fibonacci":
-    pp = (prev_high + prev_low + prev_close) / 3
-    range_hl = prev_high - prev_low
-    r1 = pp + 0.382 * range_hl
-    r2 = pp + 0.618 * range_hl
-    r3 = pp + 1.000 * range_hl
-    s1 = pp - 0.382 * range_hl
-    s2 = pp - 0.618 * range_hl
-    s3 = pp - 1.000 * range_hl
-
-    result = pd.DataFrame(
-      {"pp": pp, "r1": r1, "r2": r2, "r3": r3, "s1": s1, "s2": s2, "s3": s3},
-      index=data.index,
-    )
-
-  elif method == "woodie":
-    pp = (prev_high + prev_low + 2 * prev_close) / 4
-    r1 = 2 * pp - prev_low
-    r2 = pp + (prev_high - prev_low)
-    s1 = 2 * pp - prev_high
-    s2 = pp - (prev_high - prev_low)
-
-    result = pd.DataFrame(
-      {"pp": pp, "r1": r1, "r2": r2, "s1": s1, "s2": s2},
-      index=data.index,
-    )
-
-  elif method == "camarilla":
-    pp = (prev_high + prev_low + prev_close) / 3
-    range_hl = prev_high - prev_low
-    r1 = prev_close + 1.1 / 12 * range_hl
-    r2 = prev_close + 1.1 / 6 * range_hl
-    r3 = prev_close + 1.1 / 4 * range_hl
-    r4 = prev_close + 1.1 / 2 * range_hl
-    s1 = prev_close - 1.1 / 12 * range_hl
-    s2 = prev_close - 1.1 / 6 * range_hl
-    s3 = prev_close - 1.1 / 4 * range_hl
-    s4 = prev_close - 1.1 / 2 * range_hl
-
-    result = pd.DataFrame(
+    return pd.DataFrame(
       {
         "pp": pp,
-        "r1": r1,
-        "r2": r2,
-        "r3": r3,
-        "r4": r4,
-        "s1": s1,
-        "s2": s2,
-        "s3": s3,
-        "s4": s4,
+        "r1": 2 * pp - prev_low,
+        "r2": pp + range_hl,
+        "r3": prev_high + 2 * (pp - prev_low),
+        "s1": 2 * pp - prev_high,
+        "s2": pp - range_hl,
+        "s3": prev_low - 2 * (prev_high - pp),
       },
       index=data.index,
     )
 
-  else:
-    raise ValueError(f"Invalid method: {method}")
+  if method == "fibonacci":
+    pp = (prev_high + prev_low + prev_close) / 3
+    return pd.DataFrame(
+      {
+        "pp": pp,
+        "r1": pp + 0.382 * range_hl,
+        "r2": pp + 0.618 * range_hl,
+        "r3": pp + range_hl,
+        "s1": pp - 0.382 * range_hl,
+        "s2": pp - 0.618 * range_hl,
+        "s3": pp - range_hl,
+      },
+      index=data.index,
+    )
 
-  return result
+  if method == "woodie":
+    pp = (prev_high + prev_low + 2 * prev_close) / 4
+    return pd.DataFrame(
+      {
+        "pp": pp,
+        "r1": 2 * pp - prev_low,
+        "r2": pp + range_hl,
+        "s1": 2 * pp - prev_high,
+        "s2": pp - range_hl,
+      },
+      index=data.index,
+    )
+
+  if method == "camarilla":
+    pp = (prev_high + prev_low + prev_close) / 3
+    return pd.DataFrame(
+      {
+        "pp": pp,
+        "r1": prev_close + 1.1 / 12 * range_hl,
+        "r2": prev_close + 1.1 / 6 * range_hl,
+        "r3": prev_close + 1.1 / 4 * range_hl,
+        "r4": prev_close + 1.1 / 2 * range_hl,
+        "s1": prev_close - 1.1 / 12 * range_hl,
+        "s2": prev_close - 1.1 / 6 * range_hl,
+        "s3": prev_close - 1.1 / 4 * range_hl,
+        "s4": prev_close - 1.1 / 2 * range_hl,
+      },
+      index=data.index,
+    )
+
+  raise ValueError(f"Invalid method: {method}")
