@@ -1,6 +1,6 @@
 """Indikator - Technical indicators library."""
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 from indikator.atr import atr, atr_intraday
 from indikator.bollinger import bollinger_bands
@@ -12,7 +12,7 @@ from indikator.obv import obv
 from indikator.opening_range import opening_range
 from indikator.pivots import pivot_points
 from indikator.rsi import rsi
-from indikator.rvol import intraday_aggregate, rvol, rvol_intraday
+from indikator.rvol import rvol, rvol_intraday
 from indikator.sector_correlation import sector_correlation
 from indikator.slope import slope
 from indikator.vwap import vwap, vwap_anchored
@@ -23,7 +23,6 @@ __all__ = [
   "atr_intraday",
   "bollinger_bands",
   "churn_factor",
-  "intraday_aggregate",
   "macd",
   "mfi",
   "obv",
