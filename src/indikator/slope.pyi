@@ -9,13 +9,13 @@ import pandas as pd
 from pdval import Finite, Validated
 
 class SlopeConfig(MakeableModel[pd.Series]):
-    window: int
-    def __init__(self, *, window: int = 20) -> None: ...
+  window: int
+  def __init__(self, *, window: int = 20) -> None: ...
 
 class _SlopeConfigurable:
-    Config: type[SlopeConfig]
-    def __call__(
-        self, data: Validated[pd.Series, Finite], *, window: int = 20
-    ) -> pd.Series: ...
+  Config: type[SlopeConfig]
+  def __call__(
+    self, data: Validated[pd.Series, Finite], *, window: int = 20
+  ) -> pd.Series: ...
 
 type slope = _SlopeConfigurable

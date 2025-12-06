@@ -9,29 +9,29 @@ import pandas as pd
 from pdval import Finite, Validated
 
 class ZigzagLegsConfig(MakeableModel[pd.Series]):
-    threshold: float
-    min_distance_pct: float
-    confirmation_bars: int
-    epsilon: float
-    def __init__(
-        self,
-        *,
-        threshold: float = 0.01,
-        min_distance_pct: float = 0.005,
-        confirmation_bars: int = 2,
-        epsilon: float = 1e-09,
-    ) -> None: ...
+  threshold: float
+  min_distance_pct: float
+  confirmation_bars: int
+  epsilon: float
+  def __init__(
+    self,
+    *,
+    threshold: float = 0.01,
+    min_distance_pct: float = 0.005,
+    confirmation_bars: int = 2,
+    epsilon: float = 1e-09,
+  ) -> None: ...
 
 class _ZigzagLegsConfigurable:
-    Config: type[ZigzagLegsConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, Finite],
-        *,
-        threshold: float = 0.01,
-        min_distance_pct: float = 0.005,
-        confirmation_bars: int = 2,
-        epsilon: float = 1e-09,
-    ) -> pd.Series: ...
+  Config: type[ZigzagLegsConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, Finite],
+    *,
+    threshold: float = 0.01,
+    min_distance_pct: float = 0.005,
+    confirmation_bars: int = 2,
+    epsilon: float = 1e-09,
+  ) -> pd.Series: ...
 
 type zigzag_legs = _ZigzagLegsConfigurable

@@ -11,38 +11,38 @@ from pdval import Datetime, Finite, Index, Validated
 from indikator.rvol import MIN_SAMPLES_PER_SLOT
 
 class ZscoreConfig(MakeableModel[pd.Series]):
-    window: int
-    epsilon: float
-    def __init__(self, *, window: int = 20, epsilon: float = 1e-09) -> None: ...
+  window: int
+  epsilon: float
+  def __init__(self, *, window: int = 20, epsilon: float = 1e-09) -> None: ...
 
 class ZscoreIntradayConfig(MakeableModel[pd.Series]):
-    min_samples: int
-    epsilon: float
-    def __init__(
-        self, *, min_samples: int = MIN_SAMPLES_PER_SLOT, epsilon: float = 1e-09
-    ) -> None: ...
+  min_samples: int
+  epsilon: float
+  def __init__(
+    self, *, min_samples: int = MIN_SAMPLES_PER_SLOT, epsilon: float = 1e-09
+  ) -> None: ...
 
 class _ZscoreConfigurable:
-    Config: type[ZscoreConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, Finite],
-        *,
-        window: int = 20,
-        epsilon: float = 1e-09,
-    ) -> pd.Series: ...
+  Config: type[ZscoreConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, Finite],
+    *,
+    window: int = 20,
+    epsilon: float = 1e-09,
+  ) -> pd.Series: ...
 
 type zscore = _ZscoreConfigurable
 
 class _ZscoreIntradayConfigurable:
-    Config: type[ZscoreIntradayConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, Index[Datetime]],
-        *,
-        lookback_days: int | None = None,
-        min_samples: int = MIN_SAMPLES_PER_SLOT,
-        epsilon: float = 1e-09,
-    ) -> pd.Series: ...
+  Config: type[ZscoreIntradayConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, Index[Datetime]],
+    *,
+    lookback_days: int | None = None,
+    min_samples: int = MIN_SAMPLES_PER_SLOT,
+    epsilon: float = 1e-09,
+  ) -> pd.Series: ...
 
 type zscore_intraday = _ZscoreIntradayConfigurable

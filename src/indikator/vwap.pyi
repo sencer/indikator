@@ -11,35 +11,35 @@ import pandas as pd
 from pdval import Datetime, Ge as GeValidator, HasColumns, Index, Validated
 
 class VwapConfig(MakeableModel[pd.DataFrame]):
-    pass
+  pass
 
 class VwapAnchoredConfig(MakeableModel[pd.DataFrame]):
-    pass
+  pass
 
 class _VwapConfigurable:
-    Config: type[VwapConfig]
-    def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame,
-            HasColumns[Literal["high", "low", "close", "volume"]],
-            Index[Datetime],
-            GeValidator[Literal["high", "low"]],
-        ],
-        session_freq: Literal["D", "W", "ME"] = "D",
-    ) -> pd.DataFrame: ...
+  Config: type[VwapConfig]
+  def __call__(
+    self,
+    data: Validated[
+      pd.DataFrame,
+      HasColumns[Literal["high", "low", "close", "volume"]],
+      Index[Datetime],
+      GeValidator[Literal["high", "low"]],
+    ],
+    session_freq: Literal["D", "W", "ME"] = "D",
+  ) -> pd.DataFrame: ...
 
 type vwap = _VwapConfigurable
 
 class _VwapAnchoredConfigurable:
-    Config: type[VwapAnchoredConfig]
-    def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame, HasColumns[Literal["high", "low", "close", "volume"]]
-        ],
-        anchor_index: int | None = None,
-        anchor_datetime: pd.Timestamp | str | None = None,
-    ) -> pd.DataFrame: ...
+  Config: type[VwapAnchoredConfig]
+  def __call__(
+    self,
+    data: Validated[
+      pd.DataFrame, HasColumns[Literal["high", "low", "close", "volume"]]
+    ],
+    anchor_index: int | None = None,
+    anchor_datetime: pd.Timestamp | str | None = None,
+  ) -> pd.DataFrame: ...
 
 type vwap_anchored = _VwapAnchoredConfigurable

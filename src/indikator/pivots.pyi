@@ -11,20 +11,20 @@ import pandas as pd
 from pdval import Datetime, Ge as GeValidator, HasColumns, Index, Validated
 
 class PivotPointsConfig(MakeableModel[pd.DataFrame]):
-    pass
+  pass
 
 class _PivotPointsConfigurable:
-    Config: type[PivotPointsConfig]
-    def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame,
-            HasColumns[Literal["high", "low", "close"]],
-            Index[Datetime],
-            GeValidator[Literal["high", "low"]],
-        ],
-        method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
-        period: Literal["D", "W", "ME"] = "D",
-    ) -> pd.DataFrame: ...
+  Config: type[PivotPointsConfig]
+  def __call__(
+    self,
+    data: Validated[
+      pd.DataFrame,
+      HasColumns[Literal["high", "low", "close"]],
+      Index[Datetime],
+      GeValidator[Literal["high", "low"]],
+    ],
+    method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
+    period: Literal["D", "W", "ME"] = "D",
+  ) -> pd.DataFrame: ...
 
 type pivot_points = _PivotPointsConfigurable
