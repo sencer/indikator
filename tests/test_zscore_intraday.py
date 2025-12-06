@@ -110,12 +110,11 @@ class TestZScoreIntraday:
         with pytest.raises(ValueError, match="Index must be DatetimeIndex"):
             zscore_intraday(data["close"])
 
-    def test_empty_dataframe(self):
-        """Test empty DataFrame handling."""
-        data = pd.DataFrame({"close": []}, index=pd.DatetimeIndex([]))
-
+    def test_empty_dataframe(self) -> None:
+        """Empty input should raise ValueError."""
+        empty_data = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
         with pytest.raises(ValueError, match="Data must not be empty"):
-            zscore_intraday(data["close"])
+            zscore_intraday(empty_data)
 
     def test_zero_std_protection(self):
         """Test protection against division by zero standard deviation."""

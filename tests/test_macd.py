@@ -60,11 +60,11 @@ class TestMACD:
         with pytest.raises(ValueError, match="must be <"):
             macd(prices, fast_period=20, slow_period=10)
 
-    def test_macd_empty_data(self):
-        """Test MACD with empty series."""
-        prices = pd.Series([], dtype=float)
+    def test_macd_empty_data(self) -> None:
+        """Should raise ValueError when data is empty."""
+        empty_data = pd.Series([], dtype=float)
         with pytest.raises(ValueError, match="Data must not be empty"):
-            macd(prices)
+            macd(empty_data)
 
     def test_macd_histogram(self):
         """Test MACD histogram calculation."""

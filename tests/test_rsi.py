@@ -67,11 +67,11 @@ class TestRSI:
         # RSI should be low (close to 0) for all losses
         assert (result_down.dropna() < 20).all()
 
-    def test_rsi_empty_data(self):
-        """Test RSI with empty series."""
-        prices = pd.Series([], dtype=float)
-        with pytest.raises(ValueError, match="Data must not be empty"):
-            rsi(prices)
+        def test_rsi_empty_data(self) -> None:  # noqa: ARG001
+            """Should raise ValueError when data is empty."""
+            empty_data = pd.Series([], dtype=float)
+            with pytest.raises(ValueError, match="Data must not be empty"):
+                rsi(empty_data)
 
     def test_rsi_insufficient_data(self):
         """Test RSI with insufficient data."""

@@ -11,8 +11,6 @@ from hipr import Ge, Hyper, Le  # noqa: TC002
 import pandas as pd
 from pdval import (  # noqa: TC002
     Finite,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -23,8 +21,8 @@ MAX_NAN_RATIO = 0.5
 
 @validated
 def sector_correlation(
-    stock_data: Validated[pd.Series, Finite, NonNaN, NonEmpty],
-    sector_data: Validated[pd.Series, Finite, NonNaN] | None = None,
+    stock_data: Validated[pd.Series, Finite],
+    sector_data: Validated[pd.Series, Finite] | None = None,
     *,
     window: Hyper[int, Ge[2]] = 20,
     default_value: Hyper[float, Ge[-1.0], Le[1.0]] = 0.0,

@@ -6,7 +6,7 @@ Do not edit manually - changes will be overwritten.
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Finite, NonEmpty, Validated
+from pdval import Finite, Validated
 
 class BollingerBandsConfig(MakeableModel[pd.DataFrame]):
     window: int
@@ -17,7 +17,7 @@ class _BollingerBandsConfigurable:
     Config: type[BollingerBandsConfig]
     def __call__(
         self,
-        data: Validated[pd.Series, Finite, NonEmpty],
+        data: Validated[pd.Series, Finite],
         *,
         window: int = 20,
         num_std: float = 2.0,

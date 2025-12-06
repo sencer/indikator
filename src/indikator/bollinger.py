@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from pdval import (
     Finite,
-    NonEmpty,
     Validated,
     validated,
 )
@@ -20,7 +19,7 @@ from pdval import (
 @configurable
 @validated
 def bollinger_bands(
-    data: Validated[pd.Series, Finite, NonEmpty],
+    data: Validated[pd.Series, Finite],
     window: Hyper[int, Ge[2]] = 20,
     num_std: Hyper[float, Gt[0.0]] = 2.0,
 ) -> pd.DataFrame:

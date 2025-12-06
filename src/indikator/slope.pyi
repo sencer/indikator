@@ -6,7 +6,7 @@ Do not edit manually - changes will be overwritten.
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import Finite, NonEmpty, NonNaN, Validated
+from pdval import Finite, Validated
 
 class SlopeConfig(MakeableModel[pd.Series]):
     window: int
@@ -15,7 +15,7 @@ class SlopeConfig(MakeableModel[pd.Series]):
 class _SlopeConfigurable:
     Config: type[SlopeConfig]
     def __call__(
-        self, data: Validated[pd.Series, Finite, NonNaN, NonEmpty], *, window: int = 20
+        self, data: Validated[pd.Series, Finite], *, window: int = 20
     ) -> pd.Series: ...
 
 type slope = _SlopeConfigurable

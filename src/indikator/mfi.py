@@ -13,8 +13,6 @@ import pandas as pd
 from pdval import (
     Ge as GeValidator,
     HasColumns,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -29,8 +27,6 @@ def mfi(
         pd.DataFrame,
         HasColumns[Literal["high", "low", "close", "volume"]],
         GeValidator[Literal["high", "low"]],
-        NonNaN,
-        NonEmpty,
     ],
     window: Hyper[int, Ge[2]] = 14,
     epsilon: Hyper[float, Gt[0.0]] = 1e-9,

@@ -15,8 +15,6 @@ from pdval import (
     Ge as GeValidator,
     HasColumns,
     Index,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -31,8 +29,6 @@ def vwap(
         pd.DataFrame,
         HasColumns[Literal["high", "low", "close", "volume"]],
         Index[Datetime],
-        NonNaN,
-        NonEmpty,
         GeValidator[Literal["high", "low"]],
     ],
     session_freq: Literal["D", "W", "ME"] = "D",
@@ -126,8 +122,6 @@ def vwap_anchored(
     data: Validated[
         pd.DataFrame,
         HasColumns[Literal["high", "low", "close", "volume"]],
-        NonNaN,
-        NonEmpty,
     ],
     anchor_index: int | None = None,
     anchor_datetime: pd.Timestamp | str | None = None,

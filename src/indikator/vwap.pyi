@@ -8,15 +8,7 @@ from typing import Literal
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import (
-    Datetime,
-    Ge as GeValidator,
-    HasColumns,
-    Index,
-    NonEmpty,
-    NonNaN,
-    Validated,
-)
+from pdval import Datetime, Ge as GeValidator, HasColumns, Index, Validated
 
 class VwapConfig(MakeableModel[pd.DataFrame]):
     pass
@@ -32,8 +24,6 @@ class _VwapConfigurable:
             pd.DataFrame,
             HasColumns[Literal["high", "low", "close", "volume"]],
             Index[Datetime],
-            NonNaN,
-            NonEmpty,
             GeValidator[Literal["high", "low"]],
         ],
         session_freq: Literal["D", "W", "ME"] = "D",
@@ -46,10 +36,7 @@ class _VwapAnchoredConfigurable:
     def __call__(
         self,
         data: Validated[
-            pd.DataFrame,
-            HasColumns[Literal["high", "low", "close", "volume"]],
-            NonNaN,
-            NonEmpty,
+            pd.DataFrame, HasColumns[Literal["high", "low", "close", "volume"]]
         ],
         anchor_index: int | None = None,
         anchor_datetime: pd.Timestamp | str | None = None,

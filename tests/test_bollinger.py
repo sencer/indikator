@@ -83,11 +83,11 @@ class TestBollingerBands:
         # We can't test exact values without knowing std dev, but we can check it's calculated
         assert result["bb_percent"].notna().any()
 
-    def test_bollinger_empty_data(self):
-        """Test Bollinger Bands with empty series."""
-        prices = pd.Series([], dtype=float)
-        with pytest.raises(ValueError):
-            bollinger_bands(prices)
+    def test_bollinger_empty_data(self) -> None:
+        """Should raise ValueError when data is empty."""
+        empty_data = pd.Series([], dtype=float)
+        with pytest.raises(ValueError, match="Data must not be empty"):
+            bollinger_bands(empty_data)
 
     def test_bollinger_window_parameter(self):
         """Test Bollinger Bands with different window sizes."""

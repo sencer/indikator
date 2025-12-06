@@ -10,8 +10,6 @@ import numpy as np
 import pandas as pd
 from pdval import (
     Finite,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -22,7 +20,7 @@ from indikator._slope_numba import compute_slope_numba
 @configurable
 @validated
 def slope(
-    data: Validated[pd.Series, Finite, NonNaN, NonEmpty],
+    data: Validated[pd.Series, Finite],
     window: Hyper[int, Ge[2]] = 20,
 ) -> pd.Series:
     """Calculate the slope of linear regression over a rolling window.

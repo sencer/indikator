@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from pdval import (
     Finite,
-    NonEmpty,
     Validated,
     validated,
 )
@@ -22,7 +21,7 @@ from indikator._rsi_numba import compute_rsi_numba
 @configurable
 @validated
 def rsi(
-    data: Validated[pd.Series, Finite, NonEmpty],
+    data: Validated[pd.Series, Finite],
     window: Hyper[int, Ge[2]] = 14,
     epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:

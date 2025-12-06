@@ -6,15 +6,13 @@ relative to the average volume over a lookback period.
 
 # pyright: reportAttributeAccessIssue=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
 from collections.abc import Callable
-from typing import Literal, cast
+from typing import cast
 
 from hipr import Ge, Gt, Hyper, configurable
 import pandas as pd
 from pdval import (
     Datetime,
-    HasColumns,
     Index,
-    NonEmpty,
     NonNegative,
     Validated,
     validated,
@@ -29,10 +27,10 @@ __all__ = ["MIN_SAMPLES_PER_SLOT", "intraday_aggregate", "rvol", "rvol_intraday"
 @configurable
 @validated
 def rvol(
-    data: Validated[pd.DataFrame, HasColumns[Literal["volume"]], NonNegative, NonEmpty],
+    data: Validated[pd.Series, NonNegative],
     window: Hyper[int, Ge[2]] = 20,
     epsilon: Hyper[float, Gt[0.0]] = 1e-9,
-) -> pd.DataFrame:
+) -> pd.Series:
     """Calculate Relative Volume (RVOL).
 
     Measures current volume relative to average volume over a lookback window.
@@ -54,51 +52,44 @@ def rvol(
     - Simple moving average for stable baseline
 
     Args:
-      data: OHLCV DataFrame with 'volume' column
+      data: Volume Series
       window: Rolling window size for average volume calculation
       epsilon: Small value to prevent division by zero
 
     Returns:
-      DataFrame with 'rvol' column added
+      Series with RVOL values
 
     Raises:
-      ValueError: If 'volume' column is missing
+      ValueError: If validation fails
       pandera.errors.SchemaError: If validation fails
 
     Example:
       >>> import pandas as pd
-      >>> data = pd.DataFrame({
-      ...     'volume': [1000, 1000, 1000, 2000, 3000]
-      ... })
+      >>> data = pd.Series([1000, 1000, 1000, 2000, 3000])
       >>> result = rvol(data, window=3)
       >>> # RVOL will be ~1.0 for first bars, then spike to 2.0, 3.0
     """
 
     # Handle insufficient data for window
     if len(data) < window:
-        data_copy = data.copy()
-        data_copy["rvol"] = 1.0  # Neutral default
-        return data_copy
+        return pd.Series(1.0, index=data.index, name="rvol")
 
     # Calculate simple moving average of volume
-    sma_volume = data["volume"].rolling(window=window).mean()
+    sma_volume = data.rolling(window=window).mean()
 
     # Calculate relative volume with division by zero protection
     # Use where clause to handle zero/NaN denominator
-    rvol_values = pd.Series(1.0, index=data.index)
+    rvol_values = pd.Series(1.0, index=data.index, name="rvol")
     valid_sma = sma_volume > epsilon
 
-    rvol_values[valid_sma] = data["volume"][valid_sma] / sma_volume[valid_sma]
+    rvol_values[valid_sma] = data[valid_sma] / sma_volume[valid_sma]
 
-    # Create result dataframe
-    data_copy = data.copy()
-    data_copy["rvol"] = rvol_values
-
-    return data_copy
+    return rvol_values
 
 
+@validated
 def intraday_aggregate(
-    data: pd.Series,
+    data: Validated[pd.Series, Index[Datetime]],
     agg_func: Callable[[pd.Series], float],
     lookback_days: int | None = None,
     min_samples: int = MIN_SAMPLES_PER_SLOT,
@@ -120,26 +111,12 @@ def intraday_aggregate(
     Raises:
       ValueError: If index not DatetimeIndex
     """
-    # Validate DatetimeIndex
-    if not isinstance(data.index, pd.DatetimeIndex):
-        msg = (
-            f"Index must be DatetimeIndex for intraday aggregation, got {type(data.index).__name__}. "
-            "Intraday aggregation requires timestamps to extract time-of-day patterns."
-        )
-        raise ValueError(msg)
-
-    # Handle empty data
-    if len(data) == 0:
-        return pd.Series(dtype=float, index=data.index)
-
-    # Create working copy
-    data_copy = data.copy()
     # Cast index to DatetimeIndex for type checker
-    dt_index = cast("pd.DatetimeIndex", data_copy.index)
+    dt_index = cast("pd.DatetimeIndex", data.index)
 
     # We need to group by time, but Series groupby is less flexible for temporary columns
     # So we'll convert to DataFrame temporarily for the operation
-    df = data_copy.to_frame(name="_value")
+    df = data.to_frame(name="_value")
     df["_time_slot"] = dt_index.time
 
     # Filter to lookback period if specified
@@ -177,7 +154,7 @@ def intraday_aggregate(
 @configurable
 @validated
 def rvol_intraday(
-    data: Validated[pd.Series, NonNegative, Index[Datetime], NonEmpty],
+    data: Validated[pd.Series, NonNegative, Index[Datetime]],
     lookback_days: int | None = None,
     min_samples: Hyper[int, Ge[1]] = MIN_SAMPLES_PER_SLOT,
     epsilon: Hyper[float, Gt[0.0]] = 1e-9,

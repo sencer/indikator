@@ -15,8 +15,6 @@ from pdval import (
     Datetime,
     HasColumns,
     Index,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -28,9 +26,7 @@ from indikator.rvol import MIN_SAMPLES_PER_SLOT, intraday_aggregate
 @configurable
 @validated
 def atr(
-    data: Validated[
-        pd.DataFrame, HasColumns[Literal["high", "low", "close"]], NonNaN, NonEmpty
-    ],
+    data: Validated[pd.DataFrame, HasColumns[Literal["high", "low", "close"]]],
     window: Hyper[int, Ge[1]] = 14,
 ) -> pd.DataFrame:
     """Calculate Average True Range (ATR).
@@ -102,8 +98,6 @@ def atr_intraday(
         pd.DataFrame,
         HasColumns[Literal["high", "low", "close"]],
         Index[Datetime],
-        NonNaN,
-        NonEmpty,
     ],
     lookback_days: int | None = None,
     min_samples: Hyper[int, Ge[2]] = MIN_SAMPLES_PER_SLOT,
