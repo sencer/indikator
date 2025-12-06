@@ -13,34 +13,34 @@ from pdval import Datetime, HasColumns, Index, Validated
 from indikator.rvol import MIN_SAMPLES_PER_SLOT
 
 class AtrConfig(MakeableModel[pd.DataFrame]):
-    window: int
-    def __init__(self, *, window: int = 14) -> None: ...
+  window: int
+  def __init__(self, *, window: int = 14) -> None: ...
 
 class AtrIntradayConfig(MakeableModel[pd.DataFrame]):
-    min_samples: int
-    def __init__(self, *, min_samples: int = MIN_SAMPLES_PER_SLOT) -> None: ...
+  min_samples: int
+  def __init__(self, *, min_samples: int = MIN_SAMPLES_PER_SLOT) -> None: ...
 
 class _AtrConfigurable:
-    Config: type[AtrConfig]
-    def __call__(
-        self,
-        data: Validated[pd.DataFrame, HasColumns[Literal["high", "low", "close"]]],
-        *,
-        window: int = 14,
-    ) -> pd.DataFrame: ...
+  Config: type[AtrConfig]
+  def __call__(
+    self,
+    data: Validated[pd.DataFrame, HasColumns[Literal["high", "low", "close"]]],
+    *,
+    window: int = 14,
+  ) -> pd.DataFrame: ...
 
 type atr = _AtrConfigurable
 
 class _AtrIntradayConfigurable:
-    Config: type[AtrIntradayConfig]
-    def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame, HasColumns[Literal["high", "low", "close"]], Index[Datetime]
-        ],
-        *,
-        lookback_days: int | None = None,
-        min_samples: int = MIN_SAMPLES_PER_SLOT,
-    ) -> pd.DataFrame: ...
+  Config: type[AtrIntradayConfig]
+  def __call__(
+    self,
+    data: Validated[
+      pd.DataFrame, HasColumns[Literal["high", "low", "close"]], Index[Datetime]
+    ],
+    *,
+    lookback_days: int | None = None,
+    min_samples: int = MIN_SAMPLES_PER_SLOT,
+  ) -> pd.DataFrame: ...
 
 type atr_intraday = _AtrIntradayConfigurable

@@ -15,45 +15,45 @@ MIN_SAMPLES_PER_SLOT = 3
 
 # Public functions
 def intraday_aggregate(
-    data: Validated[pd.Series, Index[Datetime]],
-    agg_func: Callable[[pd.Series], float],
-    lookback_days: int | None = None,
-    min_samples: int = MIN_SAMPLES_PER_SLOT,
+  data: Validated[pd.Series, Index[Datetime]],
+  agg_func: Callable[[pd.Series], float],
+  lookback_days: int | None = None,
+  min_samples: int = MIN_SAMPLES_PER_SLOT,
 ) -> pd.Series: ...
 
 class RvolConfig(MakeableModel[pd.Series]):
-    window: int
-    epsilon: float
-    def __init__(self, *, window: int = 20, epsilon: float = 1e-09) -> None: ...
+  window: int
+  epsilon: float
+  def __init__(self, *, window: int = 20, epsilon: float = 1e-09) -> None: ...
 
 class RvolIntradayConfig(MakeableModel[pd.Series]):
-    min_samples: int
-    epsilon: float
-    def __init__(
-        self, *, min_samples: int = MIN_SAMPLES_PER_SLOT, epsilon: float = 1e-09
-    ) -> None: ...
+  min_samples: int
+  epsilon: float
+  def __init__(
+    self, *, min_samples: int = MIN_SAMPLES_PER_SLOT, epsilon: float = 1e-09
+  ) -> None: ...
 
 class _RvolConfigurable:
-    Config: type[RvolConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, NonNegative],
-        *,
-        window: int = 20,
-        epsilon: float = 1e-09,
-    ) -> pd.Series: ...
+  Config: type[RvolConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, NonNegative],
+    *,
+    window: int = 20,
+    epsilon: float = 1e-09,
+  ) -> pd.Series: ...
 
 type rvol = _RvolConfigurable
 
 class _RvolIntradayConfigurable:
-    Config: type[RvolIntradayConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, NonNegative, Index[Datetime]],
-        *,
-        lookback_days: int | None = None,
-        min_samples: int = MIN_SAMPLES_PER_SLOT,
-        epsilon: float = 1e-09,
-    ) -> pd.Series: ...
+  Config: type[RvolIntradayConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, NonNegative, Index[Datetime]],
+    *,
+    lookback_days: int | None = None,
+    min_samples: int = MIN_SAMPLES_PER_SLOT,
+    epsilon: float = 1e-09,
+  ) -> pd.Series: ...
 
 type rvol_intraday = _RvolIntradayConfigurable

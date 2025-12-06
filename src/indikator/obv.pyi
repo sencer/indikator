@@ -11,12 +11,12 @@ import pandas as pd
 from pdval import HasColumns, Validated
 
 class ObvConfig(MakeableModel[pd.DataFrame]):
-    pass
+  pass
 
 class _ObvConfigurable:
-    Config: type[ObvConfig]
-    def __call__(
-        self, data: Validated[pd.DataFrame, HasColumns[Literal["close", "volume"]]]
-    ) -> pd.DataFrame: ...
+  Config: type[ObvConfig]
+  def __call__(
+    self, data: Validated[pd.DataFrame, HasColumns[Literal["close", "volume"]]]
+  ) -> pd.DataFrame: ...
 
 type obv = _ObvConfigurable
