@@ -764,6 +764,18 @@ wheels = [
 ]
 
 [[package]]
+name = "hypothesis"
+version = "6.148.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sortedcontainers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/09/5e/6a506e81d4dfefed2e838b6beaaae87b2e411dda3da0a3abf94099f194ae/hypothesis-6.148.7.tar.gz", hash = "sha256:b96e817e715c5b1a278411e3b9baf6d599d5b12207ba25e41a8f066929f6c2a6", size = 471199, upload-time = "2025-12-05T02:12:38.068Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/55/fa5607e4a4af96dfa0e7efd81bbd130735cedd21aac70b25e06191bff92f/hypothesis-6.148.7-py3-none-any.whl", hash = "sha256:94dbd58ebf259afa3bafb1d3bf5761ac1bde6f1477de494798cbf7960aabbdee", size = 538127, upload-time = "2025-12-05T02:12:35.54Z" },
+]
+
+[[package]]
 name = "identify"
 version = "2.6.15"
 source = { registry = "https://pypi.org/simple" }
@@ -811,6 +823,7 @@ dev = [
 [package.dev-dependencies]
 dev = [
     { name = "basedpyright" },
+    { name = "hypothesis" },
     { name = "indikator", extra = ["dev"] },
     { name = "jupyterlab" },
     { name = "matplotlib" },
@@ -843,6 +856,7 @@ provides-extras = ["dev"]
 [package.metadata.requires-dev]
 dev = [
     { name = "basedpyright", specifier = ">=1.34.0" },
+    { name = "hypothesis", specifier = ">=6.0.0" },
     { name = "indikator", extras = ["dev"], editable = "." },
     { name = "jupyterlab", specifier = ">=4.5.0" },
     { name = "matplotlib", specifier = ">=3.10.7" },
@@ -2685,6 +2699,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9b/31/8bdbac3ee499d5c7b179d17dfdea13d3882f1fae4f0c9f95b73f1b8502fa/skylos-2.5.3.tar.gz", hash = "sha256:9b128a69833ff761a87e10c17a638d86ad5f94679674936adac2ec02a7f9e762", size = 92737, upload-time = "2025-11-28T06:37:04.073Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ad/2b/f4cd4309167aa4bae7fe236c4d2da30506dc21dbda76be2d383dc3377479/skylos-2.5.3-py3-none-any.whl", hash = "sha256:2587260c43e3b6517e96d319445d40d417ddff3a92f19b76a0c9d7e060115335", size = 53128, upload-time = "2025-11-28T06:37:02.782Z" },
+]
+
+[[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
 ]
 
 [[package]]
