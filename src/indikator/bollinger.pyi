@@ -9,18 +9,14 @@ import pandas as pd
 from pdval import Finite, Validated
 
 class BollingerBandsConfig(MakeableModel[pd.DataFrame]):
-    window: int
-    num_std: float
-    def __init__(self, *, window: int = 20, num_std: float = 2.0) -> None: ...
+  window: int
+  num_std: float
+  def __init__(self, *, window: int = 20, num_std: float = 2.0) -> None: ...
 
 class _BollingerBandsConfigurable:
-    Config: type[BollingerBandsConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, Finite],
-        *,
-        window: int = 20,
-        num_std: float = 2.0,
-    ) -> pd.DataFrame: ...
+  Config: type[BollingerBandsConfig]
+  def __call__(
+    self, data: Validated[pd.Series, Finite], *, window: int = 20, num_std: float = 2.0
+  ) -> pd.DataFrame: ...
 
 type bollinger_bands = _BollingerBandsConfigurable

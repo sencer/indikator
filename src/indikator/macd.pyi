@@ -9,22 +9,22 @@ import pandas as pd
 from pdval import Finite, Validated
 
 class MacdConfig(MakeableModel[pd.DataFrame]):
-    fast_period: int
-    slow_period: int
-    signal_period: int
-    def __init__(
-        self, *, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9
-    ) -> None: ...
+  fast_period: int
+  slow_period: int
+  signal_period: int
+  def __init__(
+    self, *, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9
+  ) -> None: ...
 
 class _MacdConfigurable:
-    Config: type[MacdConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, Finite],
-        *,
-        fast_period: int = 12,
-        slow_period: int = 26,
-        signal_period: int = 9,
-    ) -> pd.DataFrame: ...
+  Config: type[MacdConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, Finite],
+    *,
+    fast_period: int = 12,
+    slow_period: int = 26,
+    signal_period: int = 9,
+  ) -> pd.DataFrame: ...
 
 type macd = _MacdConfigurable

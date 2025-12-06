@@ -3,16 +3,20 @@
 This module provides a Numba-optimized rolling slope calculation using
 linear regression. 1,000-8,000x faster than using scipy.linregress.
 """
-# pyright: reportAny=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false
+
+from typing import TYPE_CHECKING, cast
 
 from hipr import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 from pdval import (
-    Finite,
-    Validated,
-    validated,
+  Finite,
+  Validated,
+  validated,
 )
+
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
 
 from indikator._slope_numba import compute_slope_numba
 
@@ -20,31 +24,34 @@ from indikator._slope_numba import compute_slope_numba
 @configurable
 @validated
 def slope(
-    data: Validated[pd.Series, Finite],
-    window: Hyper[int, Ge[2]] = 20,
+  data: Validated[pd.Series, Finite],
+  window: Hyper[int, Ge[2]] = 20,
 ) -> pd.Series:
-    """Calculate the slope of linear regression over a rolling window.
+  """Calculate the slope of linear regression over a rolling window.
 
-    The slope indicates the direction and steepness of the trend:
-    - Positive slope: Uptrend
-    - Negative slope: Downtrend
-    - Near zero: Sideways/Consolidation
+  The slope indicates the direction and steepness of the trend:
+  - Positive slope: Uptrend
+  - Negative slope: Downtrend
+  - Near zero: Sideways/Consolidation
 
-    Args:
-      data: Series of prices (e.g., close prices)
-      window: Rolling window size for regression
+  Args:
+    data: Series of prices (e.g., close prices)
+    window: Rolling window size for regression
 
-    Returns:
-      Series with slope values
+  Returns:
+    Series with slope values
 
-    Raises:
-      ValueError: If validation fails
-    """
+  Raises:
+    ValueError: If validation fails
+  """
 
-    # Convert to numpy for Numba
-    values = data.values.astype(np.float64)
+  # Convert to numpy for Numba
+  values = cast(
+    "NDArray[np.float64]",
+    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+  )
 
-    # Calculate slopes using Numba-optimized function
-    slopes = compute_slope_numba(values, window)
+  # Calculate slopes using Numba-optimized function
+  slopes = compute_slope_numba(values, window)
 
-    return pd.Series(slopes, index=data.index, name=data.name)
+  return pd.Series(slopes, index=data.index, name=data.name)

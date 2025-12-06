@@ -11,22 +11,22 @@ import pandas as pd
 from pdval import Ge as GeValidator, HasColumns, Validated
 
 class MfiConfig(MakeableModel[pd.DataFrame]):
-    window: int
-    epsilon: float
-    def __init__(self, *, window: int = 14, epsilon: float = 1e-09) -> None: ...
+  window: int
+  epsilon: float
+  def __init__(self, *, window: int = 14, epsilon: float = 1e-09) -> None: ...
 
 class _MfiConfigurable:
-    Config: type[MfiConfig]
-    def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame,
-            HasColumns[Literal["high", "low", "close", "volume"]],
-            GeValidator[Literal["high", "low"]],
-        ],
-        *,
-        window: int = 14,
-        epsilon: float = 1e-09,
-    ) -> pd.DataFrame: ...
+  Config: type[MfiConfig]
+  def __call__(
+    self,
+    data: Validated[
+      pd.DataFrame,
+      HasColumns[Literal["high", "low", "close", "volume"]],
+      GeValidator[Literal["high", "low"]],
+    ],
+    *,
+    window: int = 14,
+    epsilon: float = 1e-09,
+  ) -> pd.DataFrame: ...
 
 type mfi = _MfiConfigurable

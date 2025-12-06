@@ -9,18 +9,18 @@ import pandas as pd
 from pdval import Finite, Validated
 
 class RsiConfig(MakeableModel[pd.Series]):
-    window: int
-    epsilon: float
-    def __init__(self, *, window: int = 14, epsilon: float = 1e-09) -> None: ...
+  window: int
+  epsilon: float
+  def __init__(self, *, window: int = 14, epsilon: float = 1e-09) -> None: ...
 
 class _RsiConfigurable:
-    Config: type[RsiConfig]
-    def __call__(
-        self,
-        data: Validated[pd.Series, Finite],
-        *,
-        window: int = 14,
-        epsilon: float = 1e-09,
-    ) -> pd.Series: ...
+  Config: type[RsiConfig]
+  def __call__(
+    self,
+    data: Validated[pd.Series, Finite],
+    *,
+    window: int = 14,
+    epsilon: float = 1e-09,
+  ) -> pd.Series: ...
 
 type rsi = _RsiConfigurable

@@ -11,22 +11,22 @@ import pandas as pd
 from pdval import Datetime, Ge as GeValidator, HasColumns, Index, Validated
 
 class OpeningRangeConfig(MakeableModel[pd.DataFrame]):
-    minutes: int
-    def __init__(self, *, minutes: int = 30) -> None: ...
+  minutes: int
+  def __init__(self, *, minutes: int = 30) -> None: ...
 
 class _OpeningRangeConfigurable:
-    Config: type[OpeningRangeConfig]
-    def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame,
-            HasColumns[Literal["high", "low", "close"]],
-            Index[Datetime],
-            GeValidator[Literal["high", "low"]],
-        ],
-        *,
-        minutes: int = 30,
-        session_start: str = "09:30",
-    ) -> pd.DataFrame: ...
+  Config: type[OpeningRangeConfig]
+  def __call__(
+    self,
+    data: Validated[
+      pd.DataFrame,
+      HasColumns[Literal["high", "low", "close"]],
+      Index[Datetime],
+      GeValidator[Literal["high", "low"]],
+    ],
+    *,
+    minutes: int = 30,
+    session_start: str = "09:30",
+  ) -> pd.DataFrame: ...
 
 type opening_range = _OpeningRangeConfigurable
