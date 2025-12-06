@@ -4,11 +4,9 @@ This module calculates rolling correlation between a stock and its sector ETF
 to measure how closely the stock moves with the broader sector.
 """
 
-from __future__ import annotations
-
-from hipr import Ge, Hyper, Le, configurable  # noqa: TC002
+from hipr import Ge, Hyper, Le, configurable
 import pandas as pd
-from pdval import (  # noqa: TC002
+from pdval import (
   Finite,
   Validated,
   validated,
