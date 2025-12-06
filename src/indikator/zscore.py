@@ -11,8 +11,6 @@ from pdval import (
     Datetime,
     Finite,
     Index,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -23,7 +21,7 @@ from indikator.rvol import MIN_SAMPLES_PER_SLOT, intraday_aggregate
 @configurable
 @validated
 def zscore(
-    data: Validated[pd.Series, Finite, NonNaN, NonEmpty],
+    data: Validated[pd.Series, Finite],
     window: Hyper[int, Ge[2]] = 20,
     epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:
@@ -64,7 +62,7 @@ def zscore(
 @configurable
 @validated
 def zscore_intraday(
-    data: Validated[pd.Series, Index[Datetime], NonEmpty],
+    data: Validated[pd.Series, Index[Datetime]],
     lookback_days: int | None = None,
     min_samples: Hyper[int, Ge[2]] = MIN_SAMPLES_PER_SLOT,
     epsilon: Hyper[float, Gt[0.0]] = 1e-9,

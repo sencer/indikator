@@ -14,8 +14,6 @@ from pdval import (
     Ge as GeValidator,
     HasColumns,
     Index,
-    NonEmpty,
-    NonNaN,
     Validated,
     validated,
 )
@@ -29,8 +27,6 @@ def pivot_points(  # noqa: PLR0915
         HasColumns[Literal["high", "low", "close"]],
         Index[Datetime],
         GeValidator[Literal["high", "low"]],
-        NonNaN,
-        NonEmpty,
     ],
     method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
     period: Literal["D", "W", "ME"] = "D",

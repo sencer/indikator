@@ -121,9 +121,8 @@ class TestIntradayAggregate:
         """Test empty DataFrame."""
         data = pd.DataFrame({"volume": []}, index=pd.DatetimeIndex([]))
 
-        result = intraday_aggregate(data["volume"], agg_func=pd.Series.mean)
-
-        assert len(result) == 0
+        with pytest.raises(ValueError, match="Data must not be empty"):
+            intraday_aggregate(data["volume"], agg_func=pd.Series.mean)
 
 
 class TestRvolIntraday:
@@ -224,12 +223,11 @@ class TestRvolIntraday:
         with pytest.raises(ValueError):
             rvol_intraday(data["volume"])
 
-    def test_empty_dataframe(self):
-        """Test empty DataFrame handling."""
-        data = pd.DataFrame({"volume": []}, index=pd.DatetimeIndex([]))
-
+    def test_empty_dataframe(self) -> None:
+        """Empty input should raise ValueError."""
+        empty_data = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
         with pytest.raises(ValueError, match="Data must not be empty"):
-            rvol_intraday(data["volume"])
+            rvol_intraday(empty_data)
 
     def test_division_by_zero_protection(self):
         """Test epsilon protection against zero division."""

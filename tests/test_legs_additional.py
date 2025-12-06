@@ -8,11 +8,11 @@ import pandas as pd
 from indikator.legs import zigzag_legs
 
 
-class TestDataFrameHandling:
-    """Test DataFrame handling edge cases."""
+class TestSeriesHandling:
+    """Test Series handling edge cases."""
 
-    def test_preserves_other_columns(self) -> None:
-        """Should preserve other columns (OHLCV format)."""
+    def test_series_alignment(self) -> None:
+        """Should return Series aligned with input index."""
         df = pd.DataFrame({
             "open": [100.0, 102.0, 105.0],
             "high": [101.0, 103.0, 106.0],
@@ -21,25 +21,19 @@ class TestDataFrameHandling:
             "volume": [1000, 1500, 2000],
         })
 
-        result = zigzag_legs(df, threshold=0.01)
+        result = zigzag_legs(df["close"], threshold=0.01)
 
-        # All original columns should be preserved
-        assert "open" in result.columns
-        assert "high" in result.columns
-        assert "low" in result.columns
-        assert "close" in result.columns
-        assert "volume" in result.columns
-        assert "zigzag_legs" in result.columns
-
-        # Values should be unchanged
-        assert (result["volume"] == df["volume"]).all()
+        assert isinstance(result, pd.Series)
+        assert len(result) == len(df)
+        assert (result.index == df.index).all()
+        assert result.name == "zigzag_legs"
 
     def test_datetime_index(self) -> None:
         """Should work with DatetimeIndex."""
         dates = pd.date_range("2024-01-01", periods=5, freq="D")
         df = pd.DataFrame({"close": [100.0, 102.0, 105.0, 108.0, 110.0]}, index=dates)
 
-        result = zigzag_legs(df, threshold=0.01)
+        result = zigzag_legs(df["close"], threshold=0.01)
 
         # Index should be preserved
         assert isinstance(result.index, pd.DatetimeIndex)
@@ -52,7 +46,7 @@ class TestDataFrameHandling:
             {"close": [100.0, 102.0, 105.0, 108.0, 110.0]}, index=[0, 5, 10, 15, 20]
         )
 
-        result = zigzag_legs(df, threshold=0.01)
+        result = zigzag_legs(df["close"], threshold=0.01)
 
         # Index should be preserved
         assert (result.index == [0, 5, 10, 15, 20]).all()
@@ -62,19 +56,21 @@ class TestDataFrameHandling:
         df = pd.DataFrame({"close": [100.0, 102.0, 105.0]})
         df.index.name = "bar_number"
 
-        result = zigzag_legs(df)
+        result = zigzag_legs(df["close"])
 
         assert result.index.name == "bar_number"
 
     def test_truly_returns_copy(self) -> None:
-        """Should return a true copy, not a view."""
-        df = pd.DataFrame({"close": [100.0, 102.0, 105.0]})
+        """Should return a new Series, not a view."""
+        series = pd.Series([100.0, 102.0, 105.0])
+        result = zigzag_legs(series, threshold=0.01)
 
-        result = zigzag_legs(df, threshold=0.01)
+        # Result should be a new object
+        assert result is not series
 
-        # Modifying result should not affect original
-        result.loc[0, "close"] = 999.0
-        assert df.loc[0, "close"] == 100.0
+        # Modifying result should not affect input
+        result.iloc[0] = 999.0
+        assert series.iloc[0] == 100.0
 
 
 class TestComplexSequences:
@@ -100,10 +96,10 @@ class TestComplexSequences:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, confirmation_bars=2, min_distance_pct=0.01
+            df["close"], threshold=0.05, confirmation_bars=2, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # In a bullish structure, count should be positive
         assert (legs[legs != 0] > 0).all()
@@ -130,10 +126,10 @@ class TestComplexSequences:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, confirmation_bars=2, min_distance_pct=0.01
+            df["close"], threshold=0.05, confirmation_bars=2, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # In a bearish structure, count should be negative
         assert (legs[legs != 0] < 0).all()
@@ -165,10 +161,10 @@ class TestComplexSequences:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, confirmation_bars=1, min_distance_pct=0.01
+            df["close"], threshold=0.05, confirmation_bars=1, min_distance_pct=0.01
         )
 
-        legs = result["zigzag_legs"].values
+        legs = result.values
 
         # Should establish some trend (positive or negative)
         assert (legs != 0).any()
@@ -184,30 +180,38 @@ class TestParameterBoundaries:
         df = pd.DataFrame({"close": [100.0, 100.01, 100.02, 100.01, 100.03]})
 
         result = zigzag_legs(
-            df, threshold=0.0, min_distance_pct=0.0, confirmation_bars=0, epsilon=1e-12
+            df["close"],
+            threshold=0.0,
+            min_distance_pct=0.0,
+            confirmation_bars=0,
+            epsilon=1e-12,
         )
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_all_parameters_at_maximum(self) -> None:
         """Test with all parameters at maximum practical values."""
         df = pd.DataFrame({"close": [100.0, 150.0, 120.0, 180.0, 140.0]})
 
         result = zigzag_legs(
-            df, threshold=1.0, min_distance_pct=1.0, confirmation_bars=10, epsilon=1.0
+            df["close"],
+            threshold=1.0,
+            min_distance_pct=1.0,
+            confirmation_bars=10,
+            epsilon=1.0,
         )
 
         # With such high thresholds, nothing should trigger
-        assert (result["zigzag_legs"] == 0.0).all()
+        assert (result == 0.0).all()
 
     def test_very_long_confirmation_period(self) -> None:
         """Test with confirmation period longer than data."""
         df = pd.DataFrame({"close": [100.0, 110.0, 105.0, 115.0, 110.0]})
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=100)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=100)
 
         # Confirmation never completes
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_threshold_larger_than_price_movement(self) -> None:
         """Test where all price movements are below threshold."""
@@ -215,10 +219,10 @@ class TestParameterBoundaries:
             "close": [100.0, 101.0, 102.0, 103.0, 104.0]  # Max 4% total move
         })
 
-        result = zigzag_legs(df, threshold=0.50)  # 50% threshold
+        result = zigzag_legs(df["close"], threshold=0.50)  # 50% threshold
 
         # No trend should be established
-        assert (result["zigzag_legs"] == 0.0).all()
+        assert (result == 0.0).all()
 
 
 class TestNumericTypes:
@@ -228,18 +232,18 @@ class TestNumericTypes:
         """Test with integer price data."""
         df = pd.DataFrame({"close": [100, 102, 105, 108, 110]})
 
-        result = zigzag_legs(df, threshold=0.01)
+        result = zigzag_legs(df["close"], threshold=0.01)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
         assert len(result) == 5
 
     def test_float32_prices(self) -> None:
         """Test with float32 data type."""
         df = pd.DataFrame({"close": np.array([100.0, 102.0, 105.0], dtype=np.float32)})
 
-        result = zigzag_legs(df, threshold=0.01)
+        result = zigzag_legs(df["close"], threshold=0.01)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_mixed_numeric_types(self) -> None:
         """Test with mixed numeric types in DataFrame."""
@@ -248,9 +252,9 @@ class TestNumericTypes:
             "volume": [1000, 1500, 2000, 2500, 3000],  # Integers
         })
 
-        result = zigzag_legs(df, threshold=0.01)
+        result = zigzag_legs(df["close"], threshold=0.01)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestNegativePrices:
@@ -261,18 +265,18 @@ class TestNegativePrices:
         df = pd.DataFrame({"close": [-100.0, -110.0, -105.0, -115.0]})
 
         # Should handle negative prices
-        result = zigzag_legs(df, threshold=0.05)
+        result = zigzag_legs(df["close"], threshold=0.05)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
         assert len(result) == 4
 
     def test_prices_crossing_zero(self) -> None:
         """Test with prices crossing from negative to positive."""
         df = pd.DataFrame({"close": [-10.0, -5.0, 0.1, 5.0, 10.0]})
 
-        result = zigzag_legs(df, threshold=0.1, epsilon=1e-9)
+        result = zigzag_legs(df["close"], threshold=0.1, epsilon=1e-9)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestPerformance:
@@ -280,10 +284,12 @@ class TestPerformance:
 
     def test_large_dataset(self, large_dataset_df: pd.DataFrame) -> None:
         """Test with large dataset (10k bars)."""
-        result = zigzag_legs(large_dataset_df, threshold=0.02, confirmation_bars=3)
+        result = zigzag_legs(
+            large_dataset_df["close"], threshold=0.02, confirmation_bars=3
+        )
 
         assert len(result) == len(large_dataset_df)
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_very_large_dataset(self) -> None:
         """Test with very large dataset (100k bars)."""
@@ -292,10 +298,10 @@ class TestPerformance:
         prices = 100.0 * np.exp(np.cumsum(returns))
         df = pd.DataFrame({"close": prices})
 
-        result = zigzag_legs(df, threshold=0.02)
+        result = zigzag_legs(df["close"], threshold=0.02)
 
         assert len(result) == 100_000
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestRobustness:
@@ -307,10 +313,10 @@ class TestRobustness:
         noise = np.random.normal(0, 0.0001, 100)
         df = pd.DataFrame({"close": 100.0 + noise})
 
-        result = zigzag_legs(df, threshold=0.01, min_distance_pct=0.005)
+        result = zigzag_legs(df["close"], threshold=0.01, min_distance_pct=0.005)
 
         # Should not establish trend with tiny noise
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_extreme_volatility(self) -> None:
         """Test with extreme price volatility."""
@@ -324,11 +330,11 @@ class TestRobustness:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.10)
+        result = zigzag_legs(df["close"], threshold=0.10)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
         # Should detect trend changes
-        assert (result["zigzag_legs"] != 0).any()
+        assert (result != 0).any()
 
     def test_precision_at_threshold_boundary(self) -> None:
         """Test precision exactly at threshold boundary."""
@@ -340,9 +346,9 @@ class TestRobustness:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.0001, confirmation_bars=0)
+        result = zigzag_legs(df["close"], threshold=0.0001, confirmation_bars=0)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestConfirmationComplexity:
@@ -362,9 +368,9 @@ class TestConfirmationComplexity:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=2)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=2)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_confirmation_with_exact_pivot_tracking(self) -> None:
         """Test that confirmation tracks the most extreme price."""
@@ -379,7 +385,7 @@ class TestConfirmationComplexity:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, confirmation_bars=2, min_distance_pct=0.0
+            df["close"], threshold=0.05, confirmation_bars=2, min_distance_pct=0.0
         )
 
         # Just verify it runs without error and has expected length
@@ -400,9 +406,9 @@ class TestConfirmationComplexity:
             ]
         })
 
-        result = zigzag_legs(df, threshold=0.05, confirmation_bars=2)
+        result = zigzag_legs(df["close"], threshold=0.05, confirmation_bars=2)
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
 
 class TestMinDistanceComplexity:
@@ -424,10 +430,13 @@ class TestMinDistanceComplexity:
         })
 
         result = zigzag_legs(
-            df, threshold=0.01, min_distance_pct=0.01, confirmation_bars=0
+            df["close"],
+            threshold=0.01,
+            min_distance_pct=0.01,
+            confirmation_bars=0,
         )
 
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)
 
     def test_min_distance_prevents_wick_counting(self) -> None:
         """Test that min_distance prevents counting small wicks."""
@@ -443,8 +452,11 @@ class TestMinDistanceComplexity:
         })
 
         result = zigzag_legs(
-            df, threshold=0.05, min_distance_pct=0.005, confirmation_bars=0
+            df["close"],
+            threshold=0.05,
+            min_distance_pct=0.005,
+            confirmation_bars=0,
         )
 
         # All the tiny moves should be filtered
-        assert "zigzag_legs" in result.columns
+        assert isinstance(result, pd.Series)

@@ -8,7 +8,7 @@ from typing import Literal
 
 from hipr.config import MakeableModel
 import pandas as pd
-from pdval import HasColumns, NonEmpty, NonNaN, Validated
+from pdval import HasColumns, Validated
 
 class ObvConfig(MakeableModel[pd.DataFrame]):
     pass
@@ -16,10 +16,7 @@ class ObvConfig(MakeableModel[pd.DataFrame]):
 class _ObvConfigurable:
     Config: type[ObvConfig]
     def __call__(
-        self,
-        data: Validated[
-            pd.DataFrame, HasColumns[Literal["close", "volume"]], NonNaN, NonEmpty
-        ],
+        self, data: Validated[pd.DataFrame, HasColumns[Literal["close", "volume"]]]
     ) -> pd.DataFrame: ...
 
 type obv = _ObvConfigurable
