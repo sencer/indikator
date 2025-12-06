@@ -49,12 +49,10 @@ class TestBasicFunctionality:
         assert len(result) == len(basic_ohlcv_df)
 
     def test_empty_dataframe_returns_empty_with_column(self) -> None:
-        """Empty input should return empty output with churn_factor column."""
+        """Should raise ValueError if input DataFrame is empty."""
         empty_df = pd.DataFrame({"high": [], "low": [], "volume": []})
-        result = churn_factor(empty_df)
-
-        assert len(result) == 0
-        assert "churn_factor" in result.columns
+        with pytest.raises(ValueError, match="Data must not be empty"):
+            churn_factor(empty_df)
 
 
 class TestChurnFactorCalculation:
