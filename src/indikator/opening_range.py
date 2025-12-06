@@ -21,7 +21,7 @@ from pdval import (
 
 @configurable
 @validated
-def opening_range(  # noqa: PLR0914, PLR0915
+def opening_range(
   data: Validated[
     pd.DataFrame,
     HasColumns[Literal["high", "low", "close"]],
@@ -84,95 +84,54 @@ def opening_range(  # noqa: PLR0914, PLR0915
     >>> result = opening_range(data, minutes=30)
     >>> # Returns DataFrame with OR levels
   """
+  # Create session date column for grouping
+  dt_index = cast("pd.DatetimeIndex", data.index)
+  session_date = dt_index.normalize()
 
-  # Parse session start time
-  start_hour, start_minute = map(int, session_start.split(":"))
+  # Create time-based filter for opening range period
+  time_of_day = dt_index.time
+  or_start_time = pd.Timestamp(f"1900-01-01 {session_start}").time()
+  or_end_time = (
+    pd.Timestamp(f"1900-01-01 {session_start}") + pd.Timedelta(minutes=minutes)
+  ).time()
 
-  # Create date column for grouping by session
-  dates = pd.Series(data.index, index=data.index)
-  # normalize() returns an object series unless cast, but usually it's DatetimeIndex-like
-  session_date = dates.dt.normalize()
+  # Vectorized: Identify bars within opening range period
+  is_or_period = (time_of_day >= or_start_time) & (time_of_day < or_end_time)
 
-  # Initialize result arrays
-  n = len(data)
-  or_high = np.full(n, np.nan)
-  or_low = np.full(n, np.nan)
-  or_mid = np.full(n, np.nan)
-  or_range = np.full(n, np.nan)
-  or_breakout = np.zeros(n, dtype=np.int8)
+  # Calculate OR high/low per session using groupby (vectorized)
+  df_work = data.copy()
+  df_work["_session"] = session_date
+  df_work["_is_or"] = is_or_period
 
-  # Process each session
-  unique_sessions = session_date.unique()
-  for session in unique_sessions:  # pyright: ignore[reportUnknownVariableType]
-    session_ts = cast("pd.Timestamp", session)
-    # Get bars for this session
-    session_mask = session_date == session_ts
-    session_data = data[session_mask]
+  # Get OR stats only from bars within the opening range
+  or_data = df_work[df_work["_is_or"]]
+  or_stats = or_data.groupby("_session").agg(  # pyright: ignore[reportUnknownMemberType]
+    _or_high=("high", "max"),
+    _or_low=("low", "min"),
+  )
 
-    if len(session_data) == 0:
-      continue
+  # Map OR stats back to original data by session (preserves index order)
+  df_work["or_high"] = df_work["_session"].map(or_stats["_or_high"])
+  df_work["or_low"] = df_work["_session"].map(or_stats["_or_low"])
+  df_work["or_mid"] = (df_work["or_high"] + df_work["or_low"]) / 2.0
+  df_work["or_range"] = df_work["or_high"] - df_work["or_low"]
 
-    # Find opening range period
-    session_start_time = pd.Timestamp(
-      year=int(session_ts.year),
-      month=int(session_ts.month),
-      day=int(session_ts.day),
-      hour=start_hour,
-      minute=start_minute,
-    )
-    or_end_time = session_start_time + pd.Timedelta(minutes=minutes)
+  # Calculate breakout status (vectorized)
+  df_work["or_breakout"] = np.select(
+    [
+      df_work["close"] > df_work["or_high"],
+      df_work["close"] < df_work["or_low"],
+    ],
+    [1, -1],
+    default=0,
+  ).astype(np.int8)
 
-    # Get bars within opening range
-    # We need to use the index of session_data which is a subset of data
-    # cast index to DatetimeIndex for comparison
-    session_index = cast("pd.DatetimeIndex", session_data.index)
-    or_mask = (session_index >= session_start_time) & (session_index < or_end_time)
-    or_bars = session_data[or_mask]
-
-    if len(or_bars) == 0:
-      continue
-
-    # Calculate OR high and low
-    session_or_high = float(or_bars["high"].max())  # pyright: ignore[reportAny]
-    session_or_low = float(or_bars["low"].min())  # pyright: ignore[reportAny]
-    session_or_mid = (session_or_high + session_or_low) / 2.0
-    session_or_range = session_or_high - session_or_low
-
-    # Fill OR levels for entire session
-    session_indices = data.index[session_mask]
-    for idx in session_indices:  # pyright: ignore[reportAny]
-      idx = cast("pd.Timestamp", idx)
-      # idx type is inferred as Any from Index iteration, so we cast or ignore if safe
-      pos = data.index.get_loc(idx)
-
-      # Handle pos being int, slice, or array
-      if isinstance(pos, int):
-        or_high[pos] = session_or_high
-        or_low[pos] = session_or_low
-        or_mid[pos] = session_or_mid
-        or_range[pos] = session_or_range
-
-        # Determine breakout status
-        close_price = float(data.loc[idx, "close"])  # type: ignore[reportUnknownArgumentType]
-        if close_price > session_or_high:
-          or_breakout[pos] = 1  # Above OR
-        elif close_price < session_or_low:
-          or_breakout[pos] = -1  # Below OR
-        else:
-          or_breakout[pos] = 0  # Inside OR
-      else:
-        # For slice or array (duplicate index), fill all occurrences
-        or_high[pos] = session_or_high
-        or_low[pos] = session_or_low
-        or_mid[pos] = session_or_mid
-        or_range[pos] = session_or_range
-
-  # Create result dataframe
+  # Create result dataframe with only the columns we want
   data_copy = data.copy()
-  data_copy["or_high"] = or_high
-  data_copy["or_low"] = or_low
-  data_copy["or_mid"] = or_mid
-  data_copy["or_range"] = or_range
-  data_copy["or_breakout"] = or_breakout
+  data_copy["or_high"] = df_work["or_high"].values
+  data_copy["or_low"] = df_work["or_low"].values
+  data_copy["or_mid"] = df_work["or_mid"].values
+  data_copy["or_range"] = df_work["or_range"].values
+  data_copy["or_breakout"] = df_work["or_breakout"].values
 
   return data_copy

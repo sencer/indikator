@@ -1,28 +1,25 @@
 """Property-based fuzzing tests for all indicators."""
 
-from typing import Literal
-
 from hypothesis import given, settings, strategies as st
-from hypothesis.extra.pandas import column, data_frames, range_indexes
 import numpy as np
 import pandas as pd
 import pytest
 
 from indikator.atr import atr, atr_intraday
-from indikator.rsi import rsi
-from indikator.macd import macd
 from indikator.bollinger import bollinger_bands
+from indikator.churn_factor import churn_factor
+from indikator.legs import zigzag_legs
+from indikator.macd import macd
 from indikator.mfi import mfi
 from indikator.obv import obv
-from indikator.vwap import vwap, vwap_anchored
-from indikator.slope import slope
-from indikator.zscore import zscore, zscore_intraday
-from indikator.rvol import rvol, rvol_intraday
-from indikator.churn_factor import churn_factor
-from indikator.pivots import pivot_points
-from indikator.legs import zigzag_legs
-from indikator.sector_correlation import sector_correlation
 from indikator.opening_range import opening_range
+from indikator.pivots import pivot_points
+from indikator.rsi import rsi
+from indikator.rvol import rvol, rvol_intraday
+from indikator.sector_correlation import sector_correlation
+from indikator.slope import slope
+from indikator.vwap import vwap, vwap_anchored
+from indikator.zscore import zscore, zscore_intraday
 
 
 @st.composite

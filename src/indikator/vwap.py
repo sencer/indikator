@@ -95,13 +95,9 @@ def vwap(
   else:
     raise ValueError(f"Invalid session_freq: {session_freq}")
 
-  # Reset mask is True where period changes
-  reset_mask = np.zeros(len(data), dtype=np.bool_)
+  # Reset mask is True where period changes (vectorized)
+  reset_mask = np.asarray(period_start != period_start.shift(1))
   reset_mask[0] = True  # Always reset at first bar
-
-  for i in range(1, len(data)):
-    if period_start.iloc[i] != period_start.iloc[i - 1]:
-      reset_mask[i] = True
 
   # Convert to numpy arrays for Numba
   typical_prices = np.asarray(typical_price.values, dtype=np.float64)

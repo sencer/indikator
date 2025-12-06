@@ -8,7 +8,8 @@ from hipr.config import MakeableModel
 import pandas as pd
 from pdval import Datetime, Finite, Index, Validated
 
-from indikator.rvol import MIN_SAMPLES_PER_SLOT
+# Module constants
+_DEFAULT_MIN_SAMPLES = 3
 
 class ZscoreConfig(MakeableModel[pd.Series]):
   window: int
@@ -19,7 +20,7 @@ class ZscoreIntradayConfig(MakeableModel[pd.Series]):
   min_samples: int
   epsilon: float
   def __init__(
-    self, *, min_samples: int = MIN_SAMPLES_PER_SLOT, epsilon: float = 1e-09
+    self, *, min_samples: int = _DEFAULT_MIN_SAMPLES, epsilon: float = 1e-09
   ) -> None: ...
 
 class _ZscoreConfigurable:
@@ -41,7 +42,7 @@ class _ZscoreIntradayConfigurable:
     data: Validated[pd.Series, Index[Datetime]],
     *,
     lookback_days: int | None = None,
-    min_samples: int = MIN_SAMPLES_PER_SLOT,
+    min_samples: int = _DEFAULT_MIN_SAMPLES,
     epsilon: float = 1e-09,
   ) -> pd.Series: ...
 

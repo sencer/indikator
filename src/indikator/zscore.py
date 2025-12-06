@@ -15,7 +15,10 @@ from pdval import (
   validated,
 )
 
-from indikator.rvol import MIN_SAMPLES_PER_SLOT, intraday_aggregate
+from indikator._intraday import intraday_stats
+
+# Default minimum samples per time slot
+_DEFAULT_MIN_SAMPLES = 3
 
 
 @configurable
@@ -64,7 +67,7 @@ def zscore(
 def zscore_intraday(
   data: Validated[pd.Series, Index[Datetime]],
   lookback_days: int | None = None,
-  min_samples: Hyper[int, Ge[2]] = MIN_SAMPLES_PER_SLOT,
+  min_samples: Hyper[int, Ge[2]] = _DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:
   """Calculate time-of-day adjusted Z-Score.
@@ -108,17 +111,9 @@ def zscore_intraday(
     >>> # Will show high z-score on last day
   """
 
-  # Get historical mean and std for each time slot using generic aggregator
-  mean_by_time: pd.Series = intraday_aggregate(
+  # Get historical mean and std for each time slot in a single pass
+  mean_by_time, std_by_time = intraday_stats(
     data,
-    agg_func=pd.Series.mean,
-    lookback_days=lookback_days,
-    min_samples=min_samples,
-  )
-
-  std_by_time: pd.Series = intraday_aggregate(
-    data,
-    agg_func=pd.Series.std,
     lookback_days=lookback_days,
     min_samples=min_samples,
   )
