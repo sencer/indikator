@@ -712,7 +712,7 @@ wheels = [
 
 [[package]]
 name = "hipr"
-version = "0.1.5"
+version = "0.1.7"
 source = { editable = "../hipr" }
 dependencies = [
     { name = "annotated-types" },
@@ -795,7 +795,7 @@ wheels = [
 
 [[package]]
 name = "indikator"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "." }
 dependencies = [
     { name = "hipr" },
