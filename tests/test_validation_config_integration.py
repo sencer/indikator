@@ -19,18 +19,6 @@ def fn_correct_order(
   return data
 
 
-@validated
-@configurable
-def fn_incorrect_order(
-  data: Validated[pd.Series, Finite],
-  param: Hyper[float, Ge[0], Lt[1]] = 0.5,  # noqa: ARG001
-):
-  """Incorrect order: @validated (top) wraps @configurable (bottom).
-  Config.make() bypasses the outer @validated wrapper.
-  """
-  return data
-
-
 class TestValidationConfigIntegration:
   """Integration tests for @configurable and @validated decorators."""
 
@@ -50,24 +38,18 @@ class TestValidationConfigIntegration:
     with pytest.raises(ValueError, match="must be finite"):
       made_fn(self.invalid_data)
 
-  def test_incorrect_order_bypasses_validation(self):
-    """Test that @validated @configurable (top-down) causes made function to bypass validation.
+  def test_incorrect_order_fails_at_definition(self):
+    """Test that @validated @configurable (top-down) fails at definition time.
 
-    This documents the current behavior/bug in the project pattern.
-    If this test fails (i.e. if it properly raises ValueError), then the issue is fixed.
+    The @configurable decorator returns a ConfigurableIndicator object,
+    and @validated cannot wrap non-function objects (inspect.signature fails).
     """
-    # Accessing .Config works because validated wrapper proxies it (or it's available on inner)
-    made_fn = fn_incorrect_order.Config(param=0.3).make()
+    with pytest.raises(ValueError, match="no signature found for builtin"):
 
-    # Valid data should pass
-    result = made_fn(self.valid_data)
-    pd.testing.assert_series_equal(result, self.valid_data)
-
-    # Invalid data passes WITHOUT error because validation is bypassed
-    # If this behavior is fixed, this line should raise ValueError
-    try:
-      made_fn(self.invalid_data)
-    except ValueError:
-      pytest.fail(
-        "Validation was NOT bypassed (unexpected for this configuration order)"
-      )
+      @validated
+      @configurable
+      def fn_incorrect_order(
+        data: Validated[pd.Series, Finite],
+        param: Hyper[float, Ge[0], Lt[1]] = 0.5,  # noqa: ARG001
+      ):
+        return data
