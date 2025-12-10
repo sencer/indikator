@@ -38,18 +38,25 @@ class TestValidationConfigIntegration:
     with pytest.raises(ValueError, match="must be finite"):
       made_fn(self.invalid_data)
 
-  def test_incorrect_order_fails_at_definition(self):
-    """Test that @validated @configurable (top-down) fails at definition time.
+  def test_incorrect_order_still_validates(self):
+    """Test that @validated @configurable (top-down) still validates input.
 
-    The @configurable decorator returns a ConfigurableIndicator object,
-    and @validated cannot wrap non-function objects (inspect.signature fails).
+    While @configurable @validated is the recommended order, the reverse
+    order now works due to changes in pdval/hipr. Both orders provide validation.
     """
-    with pytest.raises(ValueError, match="no signature found for builtin"):
 
-      @validated
-      @configurable
-      def fn_incorrect_order(
-        data: Validated[pd.Series, Finite],
-        param: Hyper[float, Ge[0], Lt[1]] = 0.5,  # noqa: ARG001
-      ):
-        return data
+    @validated
+    @configurable
+    def fn_incorrect_order(
+      data: Validated[pd.Series, Finite],
+      param: Hyper[float, Ge[0], Lt[1]] = 0.5,  # noqa: ARG001
+    ):
+      return data
+
+    # Valid data should pass
+    result = fn_incorrect_order(self.valid_data)
+    pd.testing.assert_series_equal(result, self.valid_data)
+
+    # Invalid data should still raise ValueError (validation still works)
+    with pytest.raises(ValueError, match="must be finite"):
+      fn_incorrect_order(self.invalid_data)
