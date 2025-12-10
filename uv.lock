@@ -712,7 +712,7 @@ wheels = [
 
 [[package]]
 name = "hipr"
-version = "0.1.9"
+version = "0.1.10"
 source = { editable = "../hipr" }
 dependencies = [
     { name = "annotated-types" },
@@ -795,7 +795,7 @@ wheels = [
 
 [[package]]
 name = "indikator"
-version = "0.1.6"
+version = "0.1.7"
 source = { editable = "." }
 dependencies = [
     { name = "hipr" },
@@ -1841,7 +1841,7 @@ wheels = [
 
 [[package]]
 name = "pdval"
-version = "0.1.14"
+version = "0.1.15"
 source = { editable = "../pdval" }
 dependencies = [
     { name = "loguru" },

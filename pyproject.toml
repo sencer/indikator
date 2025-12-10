@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "indikator"
-version = "0.1.6"
+version = "0.1.7"
 description = "A Python library for technical indicator calculations, optimized with Numba for high performance."
 authors = [{ name = "Sencer S.", email = "nospam@gmail.com" }]
 license = { text = "MIT" }
@@ -14,8 +14,8 @@ dependencies = [
     "types-requests",
     "python-dotenv",
     "typing-extensions>=4.12",
-    "pdval>=0.1.14",
-    "hipr>=0.1.9",
+    "pdval>=0.1.15",
+    "hipr>=0.1.10",
     "numpy>=2.3.5",
     "numba>=0.62.1",
     "pandas>=2.3.3",
