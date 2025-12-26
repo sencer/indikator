@@ -4,13 +4,14 @@ This module provides a generic Z-Score calculator that measures how many
 standard deviations a value is away from its rolling mean.
 """
 
-from hipr import Ge, Gt, Hyper, configurable
+from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Datetime,
   Finite,
   Index,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -24,7 +25,7 @@ _DEFAULT_MIN_SAMPLES = 3
 @configurable
 @validated
 def zscore(
-  data: Validated[pd.Series, Finite],
+  data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 20,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:
@@ -65,7 +66,7 @@ def zscore(
 @configurable
 @validated
 def zscore_intraday(
-  data: Validated[pd.Series, Index[Datetime]],
+  data: Validated[pd.Series, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = _DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,

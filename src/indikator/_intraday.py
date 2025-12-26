@@ -8,7 +8,13 @@ from collections.abc import Callable
 from typing import cast
 
 import pandas as pd
-from pdval import Datetime, Index, Validated, validated
+from validated import (
+  Datetime,
+  Index,
+  NonEmpty,
+  Validated,
+  validated,
+)
 
 # Minimum samples required per time slot before calculating aggregate
 _MIN_SAMPLES_PER_SLOT = 3
@@ -18,7 +24,7 @@ __all__ = ["intraday_aggregate", "intraday_stats"]
 
 @validated
 def intraday_aggregate(
-  data: Validated[pd.Series, Index[Datetime]],
+  data: Validated[pd.Series, Index(Datetime), NonEmpty],
   agg_func: str | Callable[[pd.Series], float],
   lookback_days: int | None = None,
   min_samples: int = _MIN_SAMPLES_PER_SLOT,
@@ -88,7 +94,7 @@ def intraday_aggregate(
 
 @validated
 def intraday_stats(
-  data: Validated[pd.Series, Index[Datetime]],
+  data: Validated[pd.Series, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
   min_samples: int = _MIN_SAMPLES_PER_SLOT,
 ) -> tuple[pd.Series, pd.Series]:

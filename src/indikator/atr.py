@@ -5,15 +5,14 @@ the average range of price movement. Essential for position sizing and
 stop-loss placement.
 """
 
-from typing import Literal
-
-from hipr import Ge, Hyper, configurable
+from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Datetime,
   HasColumns,
   Index,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -28,7 +27,7 @@ _DEFAULT_MIN_SAMPLES = 3
 @configurable
 @validated
 def atr(
-  data: Validated[pd.DataFrame, HasColumns[Literal["high", "low", "close"]]],
+  data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), NonEmpty],
   window: Hyper[int, Ge[1]] = 14,
 ) -> pd.DataFrame:
   """Calculate Average True Range (ATR).
@@ -98,8 +97,9 @@ def atr(
 def atr_intraday(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "close"]],
-    Index[Datetime],
+    HasColumns(["high", "low", "close"]),
+    Index(Datetime),
+    NonEmpty,
   ],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = _DEFAULT_MIN_SAMPLES,

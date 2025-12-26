@@ -6,14 +6,15 @@ institutional traders for execution quality and price reference.
 
 from typing import TYPE_CHECKING, Literal, cast
 
-from hipr import configurable
+from nonfig import configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Datetime,
   Ge as GeValidator,
   HasColumns,
   Index,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -29,9 +30,10 @@ from indikator._vwap_numba import compute_anchored_vwap_numba, compute_vwap_numb
 def vwap(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "close", "volume"]],
-    Index[Datetime],
-    GeValidator[Literal["high", "low"]],
+    HasColumns(["high", "low", "close", "volume"]),
+    Index(Datetime),
+    GeValidator("high", "low"),
+    NonEmpty,
   ],
   session_freq: Literal["D", "W", "ME"] = "D",
 ) -> pd.DataFrame:
@@ -119,7 +121,8 @@ def vwap(
 def vwap_anchored(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "close", "volume"]],
+    HasColumns(["high", "low", "close", "volume"]),
+    NonEmpty,
   ],
   anchor_index: int | None = None,
   anchor_datetime: pd.Timestamp | str | None = None,

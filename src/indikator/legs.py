@@ -4,11 +4,13 @@ This module provides optimized technical analysis indicators using Numba JIT com
 Type checking is limited for Numba-compiled functions since numba doesn't provide type stubs.
 """
 
-from hipr import Ge, Gt, Hyper, Le, configurable
+from nonfig import Ge, Gt, Hyper, Le, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Finite,
+  NonEmpty,
+  NonNaN,
   Validated,
   validated,
 )
@@ -19,7 +21,7 @@ from indikator._legs_numba import compute_zigzag_legs_numba
 @configurable
 @validated
 def zigzag_legs(
-  data: Validated[pd.Series, Finite],
+  data: Validated[pd.Series, Finite, NonEmpty, NonNaN],
   threshold: Hyper[float, Ge[0.0], Le[1.0]] = 0.01,
   min_distance_pct: Hyper[float, Ge[0.0], Le[1.0]] = 0.005,
   confirmation_bars: Hyper[int, Ge[0]] = 2,

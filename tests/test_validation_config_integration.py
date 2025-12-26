@@ -1,8 +1,8 @@
-from hipr import Ge, Hyper, Lt, configurable
+from nonfig import Ge, Hyper, Lt, configurable
 import numpy as np
 import pandas as pd
-from pdval import Finite, Validated, validated
 import pytest
+from validated import Finite, Validated, validated
 
 # Define functions with different decorator orders
 
@@ -42,7 +42,7 @@ class TestValidationConfigIntegration:
     """Test that @validated @configurable (top-down) still validates input.
 
     While @configurable @validated is the recommended order, the reverse
-    order now works due to changes in pdval/hipr. Both orders provide validation.
+    order now works due to changes in validated/nonfig. Both orders provide validation.
     """
 
     @validated

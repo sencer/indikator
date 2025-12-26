@@ -4,13 +4,12 @@ This module provides OBV calculation, a cumulative volume-based indicator
 that relates volume to price change.
 """
 
-from typing import Literal
-
-from hipr import configurable
+from nonfig import configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   HasColumns,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -21,7 +20,7 @@ from indikator._obv_numba import compute_obv_numba
 @configurable
 @validated
 def obv(
-  data: Validated[pd.DataFrame, HasColumns[Literal["close", "volume"]]],
+  data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), NonEmpty],
 ) -> pd.DataFrame:
   """Calculate On-Balance Volume (OBV).
 

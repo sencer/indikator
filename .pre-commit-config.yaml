@@ -1,9 +1,9 @@
 repos:
   - repo: local
     hooks:
-      - id: hipr-generate-stubs
+      - id: nonfig-generate-stubs
         name: Generate Stubs
-        entry: bash -c "uv run hipr-generate-stubs src/ && uv run ruff check --fix src/indikator/*.pyi && uv run ruff format src/"
+        entry: bash -c "uv run nonfig-stubgen src/ && uv run ruff check --fix src/indikator/*.pyi && uv run ruff format src/"
         language: system
         pass_filenames: false
         always_run: true

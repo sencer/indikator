@@ -6,11 +6,12 @@ that shows the relationship between two moving averages.
 
 from typing import TYPE_CHECKING, cast
 
-from hipr import Ge, Hyper, configurable
+from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Finite,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -24,7 +25,7 @@ from indikator._macd_numba import compute_macd_numba
 @configurable
 @validated
 def macd(
-  data: Validated[pd.Series, Finite],
+  data: Validated[pd.Series, Finite, NonEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   signal_period: Hyper[int, Ge[1]] = 9,

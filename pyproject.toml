@@ -14,8 +14,8 @@ dependencies = [
     "types-requests",
     "python-dotenv",
     "typing-extensions>=4.12",
-    "pdval>=0.1.15",
-    "hipr>=0.1.10",
+    "validated>=0.1.0",
+    "nonfig>=0.1.0",
     "numpy>=2.3.5",
     "numba>=0.62.1",
     "pandas>=2.3.3",
@@ -154,8 +154,9 @@ max-complexity = 10  # Maximum cyclomatic complexity
     "PLR6301", # Allow test methods (pytest pattern)
     "PLR0913", # Allow many function arguments in test cases
     "ANN",     # Don't require annotations in tests
-    "FBT",     # Allow boolean args in tests
-    "D",       # Don't require docstrings in tests
+]
+"**/*.pyi" = [
+    "N801",    # Ignore CapWords for stubs
 ]
 "benchmarks/**/*.py" = [
     "T201",    # Allow print statements in benchmarks
@@ -185,7 +186,7 @@ line-ending = "auto"
 [tool.basedpyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
-extraPaths = ["../hipr/src", "../pdval/src"]
+extraPaths = ["../nonfig/src", "../validated/src"]
 
 # ============================================================
 # IMPORT AND MODULE CHECKS
@@ -381,8 +382,8 @@ members = ["."]
 
 [tool.uv.sources]
 indikator = { workspace = true }
-pdval = { path = "../pdval", editable = true }
-hipr = { path = "../hipr", editable = true }
+validated = { path = "../validated", editable = true }
+nonfig = { path = "../nonfig", editable = true }
 
 [dependency-groups]
 dev = [

@@ -4,14 +4,13 @@ This module provides MFI calculation, a momentum indicator that uses both
 price and volume to measure buying and selling pressure.
 """
 
-from typing import Literal
-
-from hipr import Ge, Gt, Hyper, configurable
+from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Ge as GeValidator,
   HasColumns,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -24,8 +23,9 @@ from indikator._mfi_numba import compute_mfi_numba
 def mfi(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "close", "volume"]],
-    GeValidator[Literal["high", "low"]],
+    HasColumns(["high", "low", "close", "volume"]),
+    GeValidator("high", "low"),
+    NonEmpty,
   ],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,

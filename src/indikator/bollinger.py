@@ -4,11 +4,12 @@ This module provides Bollinger Bands calculation, a volatility indicator
 consisting of a moving average with upper and lower bands.
 """
 
-from hipr import Ge, Gt, Hyper, configurable
+from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Finite,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -17,7 +18,7 @@ from pdval import (
 @configurable
 @validated
 def bollinger_bands(
-  data: Validated[pd.Series, Finite],
+  data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 20,
   num_std: Hyper[float, Gt[0.0]] = 2.0,
 ) -> pd.DataFrame:

@@ -4,10 +4,11 @@ This module calculates rolling correlation between a stock and its sector ETF
 to measure how closely the stock moves with the broader sector.
 """
 
-from hipr import Ge, Hyper, Le, configurable
+from nonfig import Ge, Hyper, Le, configurable
 import pandas as pd
-from pdval import (
+from validated import (
   Finite,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -19,8 +20,8 @@ MAX_NAN_RATIO = 0.5
 @configurable
 @validated
 def sector_correlation(
-  stock_data: Validated[pd.Series, Finite],
-  sector_data: Validated[pd.Series, Finite] | None = None,
+  stock_data: Validated[pd.Series, Finite, NonEmpty],
+  sector_data: Validated[pd.Series, Finite, NonEmpty] | None = None,
   *,
   window: Hyper[int, Ge[2]] = 20,
   default_value: Hyper[float, Ge[-1.0], Le[1.0]] = 0.0,

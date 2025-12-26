@@ -4,11 +4,12 @@ This module calculates relative volume, which measures current trading volume
 relative to the average volume over a lookback period.
 """
 
-from hipr import Ge, Gt, Hyper, configurable
+from nonfig import Ge, Gt, Hyper, configurable
 import pandas as pd
-from pdval import (
+from validated import (
   Datetime,
   Index,
+  NonEmpty,
   NonNegative,
   Validated,
   validated,
@@ -25,7 +26,7 @@ __all__ = ["rvol", "rvol_intraday"]
 @configurable
 @validated
 def rvol(
-  data: Validated[pd.Series, NonNegative],
+  data: Validated[pd.Series, NonNegative, NonEmpty],
   window: Hyper[int, Ge[2]] = 20,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:
@@ -88,7 +89,7 @@ def rvol(
 @configurable
 @validated
 def rvol_intraday(
-  data: Validated[pd.Series, NonNegative, Index[Datetime]],
+  data: Validated[pd.Series, NonNegative, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[1]] = _DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,

@@ -4,16 +4,17 @@ This module provides opening range calculation, a popular day trading
 strategy that identifies the high/low range of the first N minutes.
 """
 
-from typing import Literal, cast
+from typing import cast
 
-from hipr import Ge, Hyper, configurable
+from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Datetime,
   Ge as GeValidator,
   HasColumns,
   Index,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -24,9 +25,10 @@ from pdval import (
 def opening_range(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "close"]],
-    Index[Datetime],
-    GeValidator[Literal["high", "low"]],
+    HasColumns(["high", "low", "close"]),
+    Index(Datetime),
+    GeValidator("high", "low"),
+    NonEmpty,
   ],
   minutes: Hyper[int, Ge[1]] = 30,
   session_start: str = "09:30",

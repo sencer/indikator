@@ -8,13 +8,13 @@
 
 **High-Performance Technical Indicators for Python**
 
-`indikator` is a powerful, type-safe Python library for financial market analysis. It provides a comprehensive suite of technical indicators optimized with **Numba** for high performance, validated with **pdval**, and configurable via **hipr**.
+`indikator` is a powerful, type-safe Python library for financial market analysis. It provides a comprehensive suite of technical indicators optimized with **Numba** for high performance, validated with **validated**, and configurable via **nonfig**.
 
 ## Key Features
 
 *   🚀 **High Performance**: Critical calculations are JIT-compiled using `Numba` for near-C speeds.
-*   🛡️ **Type-Safe & Validated**: Built with strict type checking (`basedpyright`) and runtime data validation (`pdval`).
-*   ⚙️ **Configurable**: Flexible parameter management using `hipr`'s hierarchical configuration system.
+*   🛡️ **Type-Safe & Validated**: Built with strict type checking (`basedpyright`) and runtime data validation (`validated`).
+*   ⚙️ **Configurable**: Flexible parameter management using `nonfig`'s hierarchical configuration system.
 *   🐼 **Pandas Integration**: Seamlessly works with pandas DataFrames and Series.
 *   📦 **Modern Stack**: Managed with `uv`, linted with `ruff`, and tested with `pytest`.
 

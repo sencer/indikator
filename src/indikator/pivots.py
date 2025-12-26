@@ -6,13 +6,14 @@ identifying potential support and resistance levels based on previous periods.
 
 from typing import Literal
 
-from hipr import configurable
+from nonfig import configurable
 import pandas as pd
-from pdval import (
+from validated import (
   Datetime,
   Ge as GeValidator,
   HasColumns,
   Index,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -23,9 +24,10 @@ from pdval import (
 def pivot_points(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "close"]],
-    Index[Datetime],
-    GeValidator[Literal["high", "low"]],
+    HasColumns(["high", "low", "close"]),
+    Index(Datetime),
+    GeValidator("high", "low"),
+    NonEmpty,
   ],
   method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
   period: Literal["D", "W", "ME"] = "D",

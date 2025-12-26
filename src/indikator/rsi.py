@@ -7,11 +7,12 @@ indicators.
 
 from typing import TYPE_CHECKING, cast
 
-from hipr import Ge, Gt, Hyper, configurable
+from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Finite,
+  NonEmpty,
   Validated,
   validated,
 )
@@ -25,7 +26,7 @@ from indikator._rsi_numba import compute_rsi_numba
 @configurable
 @validated
 def rsi(
-  data: Validated[pd.Series, Finite],
+  data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,
 ) -> pd.Series:

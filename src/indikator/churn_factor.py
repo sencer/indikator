@@ -5,14 +5,15 @@ relative to the price range. High churn indicates lots of trading within a
 narrow price range.
 """
 
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, cast
 
-from hipr import Gt, Hyper, configurable
+from nonfig import Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
-from pdval import (
+from validated import (
   Ge as ColsGe,
   HasColumns,
+  NonEmpty,
   NonNegative,
   Validated,
   validated,
@@ -27,9 +28,10 @@ if TYPE_CHECKING:
 def churn_factor(
   data: Validated[
     pd.DataFrame,
-    HasColumns[Literal["high", "low", "volume"]],
-    ColsGe[Literal["high", "low"]],
+    HasColumns(["high", "low", "volume"]),
+    ColsGe("high", "low"),
     NonNegative,
+    NonEmpty,
   ],
   epsilon: Hyper[float, Gt[0.0]] = 1e-9,
   fill_strategy: str = "zero",
