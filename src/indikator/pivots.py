@@ -6,9 +6,7 @@ identifying potential support and resistance levels based on previous periods.
 
 from typing import Literal
 
-from nonfig import configurable
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   Ge as GeValidator,
@@ -16,12 +14,14 @@ from validated import (
   Index,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import configurable
+import pandas as pd
 
 
 @configurable
-@validated
+@validate
 def pivot_points(
   data: Validated[
     pd.DataFrame,

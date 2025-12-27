@@ -5,9 +5,9 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import Protocol, TypedDict
 
+from datawarden import Finite, NonEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Finite, NonEmpty, Validated
 
 class _sector_correlation_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

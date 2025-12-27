@@ -7,15 +7,15 @@ indicators.
 
 from typing import TYPE_CHECKING, cast
 
-from nonfig import Ge, Gt, Hyper, configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Finite,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Gt, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
@@ -25,7 +25,7 @@ from indikator._rsi_numba import compute_rsi_numba
 
 
 @configurable
-@validated
+@validate
 def rsi(
   data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 14,

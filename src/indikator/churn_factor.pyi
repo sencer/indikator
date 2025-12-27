@@ -5,9 +5,16 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Literal, Protocol, TypedDict, override
 
+from datawarden import (
+  Finite,
+  Ge as ColsGe,
+  HasColumns,
+  NonEmpty,
+  NonNegative,
+  Validated,
+)
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Finite, Ge as ColsGe, HasColumns, NonEmpty, NonNegative, Validated
 
 class _churn_factor_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

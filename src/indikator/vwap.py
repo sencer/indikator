@@ -6,10 +6,7 @@ institutional traders for execution quality and price reference.
 
 from typing import TYPE_CHECKING, Literal, cast
 
-from nonfig import configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   Ge as GeValidator,
@@ -17,8 +14,11 @@ from validated import (
   Index,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import configurable
+import numpy as np
+import pandas as pd
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
@@ -27,7 +27,7 @@ from indikator._vwap_numba import compute_anchored_vwap_numba, compute_vwap_numb
 
 
 @configurable
-@validated
+@validate
 def vwap(
   data: Validated[
     pd.DataFrame,
@@ -115,7 +115,7 @@ def vwap(
 
 
 @configurable
-@validated
+@validate
 def vwap_anchored(
   data: Validated[
     pd.DataFrame,
@@ -194,7 +194,7 @@ def vwap_anchored(
             [anchor_datetime], method="nearest"
           ),
         )
-        anchor_index = int(indexer_result[0])  # pyright: ignore[reportAny]
+        anchor_index = int(indexer_result[0])
       except Exception as e:
         raise ValueError(
           f"Could not find anchor_datetime {anchor_datetime} in index"

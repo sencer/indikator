@@ -5,9 +5,9 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
+from datawarden import Finite, Ge as GeValidator, HasColumns, NonEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Finite, Ge as GeValidator, HasColumns, NonEmpty, Validated
 
 class _mfi_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

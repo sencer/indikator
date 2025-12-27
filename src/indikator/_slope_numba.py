@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 MIN_WINDOW_SIZE = 2  # Minimum window size for linear regression
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_slope_numba(
   closes: NDArray[np.float64], window: int
 ) -> NDArray[np.float64]:

@@ -4,22 +4,22 @@ This module provides OBV calculation, a cumulative volume-based indicator
 that relates volume to price change.
 """
 
-from nonfig import configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Finite,
   HasColumns,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import configurable
+import numpy as np
+import pandas as pd
 
 from indikator._obv_numba import compute_obv_numba
 
 
 @configurable
-@validated
+@validate
 def obv(
   data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
 ) -> pd.Series:

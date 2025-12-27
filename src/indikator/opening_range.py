@@ -6,10 +6,7 @@ strategy that identifies the high/low range of the first N minutes.
 
 from typing import cast
 
-from nonfig import Ge, Hyper, configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   Ge as GeValidator,
@@ -17,12 +14,15 @@ from validated import (
   Index,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 
 @configurable
-@validated
+@validate
 def opening_range(
   data: Validated[
     pd.DataFrame,

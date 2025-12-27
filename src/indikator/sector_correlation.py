@@ -4,20 +4,20 @@ This module calculates rolling correlation between a stock and its sector ETF
 to measure how closely the stock moves with the broader sector.
 """
 
-from nonfig import Ge, Hyper, Le, configurable
-import pandas as pd
-from validated import (
+from datawarden import (
   Finite,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Hyper, Le, configurable
+import pandas as pd
 
 from indikator._constants import MAX_NAN_RATIO
 
 
 @configurable
-@validated
+@validate
 def sector_correlation(
   stock_data: Validated[pd.Series, Finite, NonEmpty],
   sector_data: Validated[pd.Series, Finite, NonEmpty] | None = None,

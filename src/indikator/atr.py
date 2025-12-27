@@ -5,18 +5,18 @@ the average range of price movement. Essential for position sizing and
 stop-loss placement.
 """
 
-from nonfig import Ge, Hyper, configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   HasColumns,
   Index,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 from indikator._atr_numba import compute_atr_numba, compute_true_range_numba
 from indikator._constants import DEFAULT_MIN_SAMPLES
@@ -24,7 +24,7 @@ from indikator._intraday import intraday_aggregate
 
 
 @configurable
-@validated
+@validate
 def atr(
   data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty],
   window: Hyper[int, Ge[1]] = 14,
@@ -88,7 +88,7 @@ def atr(
 
 
 @configurable
-@validated
+@validate
 def atr_intraday(
   data: Validated[
     pd.DataFrame,

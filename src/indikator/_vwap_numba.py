@@ -15,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_vwap_numba(
   typical_prices: NDArray[np.float64],
   volumes: NDArray[np.float64],
@@ -62,7 +62,7 @@ def compute_vwap_numba(
   return vwap
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_anchored_vwap_numba(
   typical_prices: NDArray[np.float64],
   volumes: NDArray[np.float64],

@@ -4,24 +4,24 @@ This module provides a generic Z-Score calculator that measures how many
 standard deviations a value is away from its rolling mean.
 """
 
-from nonfig import Ge, Gt, Hyper, configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   Index,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Gt, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_stats
 
 
 @configurable
-@validated
+@validate
 def zscore(
   data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 20,
@@ -62,7 +62,7 @@ def zscore(
 
 
 @configurable
-@validated
+@validate
 def zscore_intraday(
   data: Validated[pd.Series, Finite, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,

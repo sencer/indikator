@@ -4,17 +4,17 @@ This module calculates relative volume, which measures current trading volume
 relative to the average volume over a lookback period.
 """
 
-from nonfig import Ge, Gt, Hyper, configurable
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   Index,
   NonEmpty,
   NonNegative,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Gt, Hyper, configurable
+import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
@@ -23,7 +23,7 @@ __all__ = ["rvol", "rvol_intraday"]
 
 
 @configurable
-@validated
+@validate
 def rvol(
   data: Validated[pd.Series, NonNegative, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 14,
@@ -85,7 +85,7 @@ def rvol(
 
 
 @configurable
-@validated
+@validate
 def rvol_intraday(
   data: Validated[pd.Series, NonNegative, Finite, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,

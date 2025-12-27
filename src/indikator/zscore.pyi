@@ -5,9 +5,9 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
+from datawarden import Datetime, Finite, Index, NonEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Datetime, Finite, Index, NonEmpty, Validated
 
 class _zscore_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

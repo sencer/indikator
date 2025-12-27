@@ -5,9 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import Literal, Protocol, TypedDict
 
-from nonfig import MakeableModel as _NCMakeableModel
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Finite,
   Ge as GeValidator,
@@ -16,6 +14,8 @@ from validated import (
   NonEmpty,
   Validated,
 )
+from nonfig import MakeableModel as _NCMakeableModel
+import pandas as pd
 
 class _vwap_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

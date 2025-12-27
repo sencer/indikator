@@ -13,7 +13,7 @@ requires-python = ">=3.12"
 dependencies = [
     "python-dotenv",
     "typing-extensions>=4.12",
-    "validated>=0.1.0",
+    "datawarden>=0.1.0",
     "nonfig>=0.1.0",
     "numpy>=2.3.5",
     "numba>=0.62.1",
@@ -185,7 +185,7 @@ line-ending = "auto"
 [tool.basedpyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
-extraPaths = ["../nonfig/src", "../validated/src"]
+extraPaths = ["../nonfig/src", "../datawarden/src"]
 
 # ============================================================
 # IMPORT AND MODULE CHECKS
@@ -205,8 +205,8 @@ reportOptionalCall = true
 reportOptionalIterable = true
 reportOptionalContextManager = true
 reportOptionalOperand = true
-reportAny = true  # Prohibir Any completamente
-reportExplicitAny = true
+reportAny = false
+reportExplicitAny = false
 reportIgnoreCommentWithoutRule = false  # No permitir # type: ignore sin código
 reportPrivateLocalImportUsage = true
 
@@ -381,7 +381,7 @@ members = ["."]
 
 [tool.uv.sources]
 indikator = { workspace = true }
-validated = { path = "../validated", editable = true }
+datawarden = { path = "../datawarden", editable = true }
 nonfig = { path = "../nonfig", editable = true }
 
 [dependency-groups]

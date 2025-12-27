@@ -15,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_rsi_numba(
   prices: NDArray[np.float64],
   window: int,

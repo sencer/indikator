@@ -15,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_true_range_numba(
   highs: NDArray[np.float64],
   lows: NDArray[np.float64],
@@ -57,7 +57,7 @@ def compute_true_range_numba(
   return tr
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_atr_numba(
   true_ranges: NDArray[np.float64],
   window: int,

@@ -1,33 +1,33 @@
+from datawarden import Finite, Validated, validate
 from nonfig import Ge, Hyper, Lt, configurable
 import numpy as np
 import pandas as pd
 import pytest
-from validated import Finite, Validated, validated
 
 # Define functions with different decorator orders
 
 
 @configurable
-@validated
+@validate
 def fn_correct_order(
   data: Validated[pd.Series, Finite],
   param: Hyper[float, Ge[0], Lt[1]] = 0.5,  # noqa: ARG001
 ):
-  """Correct order: @configurable (top) wraps @validated (bottom).
+  """Correct order: @configurable (top) wraps @validate (bottom).
   Config.make() should return a function that includes validation.
   """
   return data
 
 
 class TestValidationConfigIntegration:
-  """Integration tests for @configurable and @validated decorators."""
+  """Integration tests for @configurable and @validate decorators."""
 
   def setup_method(self):
     self.valid_data = pd.Series([1.0, 2.0, 3.0])
     self.invalid_data = pd.Series([1.0, np.inf, 3.0])
 
   def test_correct_order_validates_input(self):
-    """Test that @configurable @validated (top-down) preserves validation in made function."""
+    """Test that @configurable @validate (top-down) preserves validation in made function."""
     made_fn = fn_correct_order.Config(param=0.3).make()
 
     # Valid data should pass
@@ -39,13 +39,13 @@ class TestValidationConfigIntegration:
       made_fn(self.invalid_data)
 
   def test_incorrect_order_still_validates(self):
-    """Test that @validated @configurable (top-down) still validates input.
+    """Test that @validate @configurable (top-down) still validates input.
 
-    While @configurable @validated is the recommended order, the reverse
+    While @configurable @validate is the recommended order, the reverse
     order now works due to changes in validated/nonfig. Both orders provide validation.
     """
 
-    @validated
+    @validate
     @configurable
     def fn_incorrect_order(
       data: Validated[pd.Series, Finite],

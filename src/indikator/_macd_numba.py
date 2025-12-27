@@ -15,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_ema_numba(
   prices: NDArray[np.float64],
   window: int,
@@ -79,7 +79,7 @@ def compute_ema_numba(
   return ema
 
 
-@jit(nopython=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_macd_numba(
   prices: NDArray[np.float64],
   fast_period: int,
@@ -101,25 +101,18 @@ def compute_macd_numba(
   Returns:
     Tuple of (macd, signal, histogram) arrays
   """
-  n = len(prices)
-
   # Calculate fast and slow EMAs
   fast_ema = compute_ema_numba(prices, fast_period)
   slow_ema = compute_ema_numba(prices, slow_period)
 
   # Calculate MACD line
-  macd = np.full(n, np.nan)
-  for i in range(n):
-    if not np.isnan(fast_ema[i]) and not np.isnan(slow_ema[i]):
-      macd[i] = fast_ema[i] - slow_ema[i]
+  # Operations on NaN produce NaN, so we can subtract arrays directly
+  macd = fast_ema - slow_ema
 
   # Calculate signal line (EMA of MACD)
   signal = compute_ema_numba(macd, signal_period)
 
   # Calculate histogram
-  histogram = np.full(n, np.nan)
-  for i in range(n):
-    if not np.isnan(macd[i]) and not np.isnan(signal[i]):
-      histogram[i] = macd[i] - signal[i]
+  histogram = macd - signal
 
   return macd, signal, histogram

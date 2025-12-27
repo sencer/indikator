@@ -5,9 +5,9 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
+from datawarden import Finite, NonEmpty, NonNaN, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Finite, NonEmpty, NonNaN, Validated
 
 class _zigzag_legs_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

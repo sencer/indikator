@@ -6,15 +6,15 @@ linear regression. 1,000-8,000x faster than using scipy.linregress.
 
 from typing import TYPE_CHECKING, cast
 
-from nonfig import Ge, Hyper, configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Finite,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Ge, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
@@ -24,7 +24,7 @@ from indikator._slope_numba import compute_slope_numba
 
 
 @configurable
-@validated
+@validate
 def slope(
   data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 20,

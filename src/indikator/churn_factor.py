@@ -7,18 +7,18 @@ narrow price range.
 
 from typing import TYPE_CHECKING, Literal, cast
 
-from nonfig import Gt, Hyper, configurable
-import numpy as np
-import pandas as pd
-from validated import (
+from datawarden import (
   Finite,
   Ge as ColsGe,
   HasColumns,
   NonEmpty,
   NonNegative,
   Validated,
-  validated,
+  validate,
 )
+from nonfig import Gt, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @configurable
-@validated
+@validate
 def churn_factor(
   data: Validated[
     pd.DataFrame,

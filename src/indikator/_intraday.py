@@ -7,14 +7,14 @@ useful for indicators that need to account for intraday seasonality patterns.
 from collections.abc import Callable
 from typing import Literal, cast
 
-import pandas as pd
-from validated import (
+from datawarden import (
   Datetime,
   Index,
   NonEmpty,
   Validated,
-  validated,
+  validate,
 )
+import pandas as pd
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
 
@@ -41,7 +41,7 @@ def _get_lookback_data(
   return lookback_data, dt_index
 
 
-@validated
+@validate
 def intraday_aggregate(
   data: Validated[pd.Series, Index(Datetime), NonEmpty],
   agg_func: AggFunc | Callable[[pd.Series], float],
@@ -78,8 +78,7 @@ def intraday_aggregate(
     if agg_func == "min" or agg_func is pd.Series.min:
       return exp.min().shift(1)
 
-    func = cast("Callable[[pd.Series], float]", agg_func)
-    return exp.apply(func, raw=False).shift(1)
+    return exp.apply(agg_func, raw=False).shift(1)
 
   agg_values = lookback_data.groupby(  # pyright: ignore[reportUnknownMemberType]
     "__indikator_time_slot__", group_keys=False
@@ -88,7 +87,7 @@ def intraday_aggregate(
   return pd.Series(agg_values, index=data.index, dtype=float)
 
 
-@validated
+@validate
 def intraday_stats(
   data: Validated[pd.Series, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
@@ -113,10 +112,10 @@ def intraday_stats(
     "__indikator_time_slot__", group_keys=False
   )["__indikator_value__"]
 
-  mean_values = grouped.transform(
+  mean_values = grouped.transform(  # pyright: ignore[reportUnknownMemberType]
     lambda g: g.expanding(min_periods=min_samples).mean().shift(1)
   )
-  std_values = grouped.transform(
+  std_values = grouped.transform(  # pyright: ignore[reportUnknownMemberType]
     lambda g: g.expanding(min_periods=min_samples).std().shift(1)
   )
 
