@@ -88,7 +88,7 @@ class _zscore_intraday_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    data: Validated[pd.Series, Index(Datetime), NonEmpty],
+    data: Validated[pd.Series, Finite, Index(Datetime), NonEmpty],
     lookback_days: int | None = ...,
   ) -> pd.Series: ...
 
@@ -172,7 +172,7 @@ class zscore_intraday:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Index(Datetime), NonEmpty],
+    data: Validated[pd.Series, Finite, Index(Datetime), NonEmpty],
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,

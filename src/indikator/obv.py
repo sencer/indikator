@@ -22,7 +22,7 @@ from indikator._obv_numba import compute_obv_numba
 @validated
 def obv(
   data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate On-Balance Volume (OBV).
 
   OBV is a cumulative indicator that adds volume on up days and subtracts
@@ -84,5 +84,5 @@ def obv(
   # Calculate OBV using Numba-optimized function
   obv_values = compute_obv_numba(closes, volumes)
 
-  # Create result dataframe with only indicator column
-  return pd.DataFrame({"obv": obv_values}, index=data.index)
+  # Return only the indicator (minimal return philosophy)
+  return pd.Series(obv_values, index=data.index, name="obv")

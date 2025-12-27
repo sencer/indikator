@@ -19,13 +19,13 @@ class TestOBV:
     result = obv(data)
 
     # Check column
-    assert "obv" in result.columns
+    assert isinstance(result, pd.Series)
 
     # Check shape
     assert len(result) == len(data)
 
     # Check OBV is calculated
-    assert not result["obv"].isna().any()
+    assert not result.isna().any()
 
   def test_obv_manual_calculation(self):
     """Test OBV with manual calculation."""
@@ -37,19 +37,19 @@ class TestOBV:
     result = obv(data)
 
     # First bar: OBV = volume = 1000
-    assert result["obv"].iloc[0] == 1000.0
+    assert result.iloc[0] == 1000.0
 
     # Second bar: close up (102 > 100), OBV = 1000 + 1200 = 2200
-    assert result["obv"].iloc[1] == 2200.0
+    assert result.iloc[1] == 2200.0
 
     # Third bar: close down (101 < 102), OBV = 2200 - 900 = 1300
-    assert result["obv"].iloc[2] == 1300.0
+    assert result.iloc[2] == 1300.0
 
     # Fourth bar: close up (103 > 101), OBV = 1300 + 1500 = 2800
-    assert result["obv"].iloc[3] == 2800.0
+    assert result.iloc[3] == 2800.0
 
     # Fifth bar: close up (105 > 103), OBV = 2800 + 1100 = 3900
-    assert result["obv"].iloc[4] == 3900.0
+    assert result.iloc[4] == 3900.0
 
   def test_obv_flat_price(self):
     """Test OBV when price is flat."""
@@ -61,9 +61,9 @@ class TestOBV:
     result = obv(data)
 
     # OBV should not change when price is flat
-    assert result["obv"].iloc[0] == 1000.0  # First bar
-    assert result["obv"].iloc[1] == 1000.0  # No change (price flat)
-    assert result["obv"].iloc[2] == 1000.0  # No change (price flat)
+    assert result.iloc[0] == 1000.0  # First bar
+    assert result.iloc[1] == 1000.0  # No change (price flat)
+    assert result.iloc[2] == 1000.0  # No change (price flat)
 
   def test_obv_empty_data(self):
     """Test OBV with empty dataframe."""
@@ -89,4 +89,4 @@ class TestOBV:
     result = obv(data)
 
     # All prices increasing, OBV should be increasing
-    assert (result["obv"].diff().dropna() > 0).all()
+    assert (result.diff().dropna() > 0).all()

@@ -68,20 +68,20 @@ class TestMFI:
 
     result = mfi(data, window=5)
 
-    # Check columns
-    assert "mfi" in result.columns
-    assert "typical_price" in result.columns
+    # Check return type is Series
+    assert isinstance(result, pd.Series)
+    assert result.name == "mfi"
 
     # Check shape
     assert len(result) == len(data)
 
     # Check MFI is calculated after window
-    assert result["mfi"].isna().iloc[:5].all()
-    assert not result["mfi"].isna().iloc[5:].all()
+    assert result.isna().iloc[:5].all()
+    assert not result.isna().iloc[5:].all()
 
     # Check MFI is in range [0, 100]
-    assert (result["mfi"].dropna() >= 0).all()
-    assert (result["mfi"].dropna() <= 100).all()
+    assert (result.dropna() >= 0).all()
+    assert (result.dropna() <= 100).all()
 
   def test_mfi_typical_price(self):
     """Test MFI typical price calculation."""
@@ -94,11 +94,10 @@ class TestMFI:
 
     result = mfi(data, window=2)
 
-    # Typical price = (H + L + C) / 3
-    expected_typical = (data["high"] + data["low"] + data["close"]) / 3
-    pd.testing.assert_series_equal(
-      result["typical_price"], expected_typical, check_names=False
-    )
+    # Now returns only MFI values (typical_price is internal)
+    assert isinstance(result, pd.Series)
+    assert result.name == "mfi"
+    assert len(result) == len(data)
 
   def test_mfi_empty_data(self):
     """Test MFI with empty dataframe."""
@@ -131,4 +130,4 @@ class TestMFI:
     result_long = mfi(data, window=10)
 
     # Short window should have values earlier
-    assert result_short["mfi"].notna().sum() > result_long["mfi"].notna().sum()
+    assert result_short.notna().sum() > result_long.notna().sum()

@@ -32,7 +32,7 @@ def bollinger_bands(
   - Middle Band = SMA(close, window)
   - Upper Band = Middle Band + (std_dev * num_std)
   - Lower Band = Middle Band - (std_dev * num_std)
-  - Bandwidth = (Upper Band - Lower Band) / Middle Band
+  - Bandwidth = (Upper Band - Lower Band) / abs(Middle Band)
   - %B = (Price - Lower Band) / (Upper Band - Lower Band)
 
   Interpretation:
@@ -83,9 +83,10 @@ def bollinger_bands(
   upper = middle + (std * num_std)
   lower = middle - (std * num_std)
 
-  # Calculate bandwidth (volatility measure)
-  # Avoid division by zero
-  bandwidth = np.where(middle > 0, (upper - lower) / middle, np.nan)
+  # Calculate bandwidth (volatility measure as percentage of middle)
+  # Use abs(middle) to handle negative-centered data (spreads, oscillators)
+  abs_middle = np.abs(middle)
+  bandwidth = np.where(abs_middle > 0, (upper - lower) / abs_middle, np.nan)
 
   # Calculate %B (position within bands)
   # Return NaN when bands collapse (consistent with bandwidth)

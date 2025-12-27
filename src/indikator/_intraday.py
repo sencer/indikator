@@ -5,7 +5,7 @@ useful for indicators that need to account for intraday seasonality patterns.
 """
 
 from collections.abc import Callable
-from typing import cast
+from typing import Literal, cast
 
 import pandas as pd
 from validated import (
@@ -18,13 +18,16 @@ from validated import (
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
 
+# Optimized aggregation functions (use these for best performance)
+AggFunc = Literal["mean", "std", "median", "min", "max"]
+
 __all__ = ["intraday_aggregate", "intraday_stats"]
 
 
 @validated
 def intraday_aggregate(
   data: Validated[pd.Series, Index(Datetime), NonEmpty],
-  agg_func: str | Callable[[pd.Series], float],
+  agg_func: AggFunc | Callable[[pd.Series], float],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
 ) -> pd.Series:
@@ -50,8 +53,8 @@ def intraday_aggregate(
 
   # We need to group by time, but Series groupby is less flexible for temporary columns
   # So we'll convert to DataFrame temporarily for the operation
-  df = data.to_frame(name="_value")
-  df["_time_slot"] = dt_index.time
+  df = data.to_frame(name="__indikator_value__")
+  df["__indikator_time_slot__"] = dt_index.time
 
   # Filter to lookback period if specified
   if lookback_days is not None:
@@ -80,12 +83,12 @@ def intraday_aggregate(
 
     # Fallback to slow generic apply for custom functions
     # expanding().apply() calculates aggregate including current, so shift by 1
-    func = cast("Callable[[pd.Series], float]", agg_func)
+    func = cast("Callable[[pd.Series], float]", agg_func)  # pyright: ignore[reportUnnecessaryCast]
     return exp.apply(func, raw=False).shift(1)
 
   agg_values = lookback_data.groupby(  # pyright: ignore[reportUnknownMemberType]
-    "_time_slot", group_keys=False
-  )["_value"].transform(expanding_agg_shifted)
+    "__indikator_time_slot__", group_keys=False
+  )["__indikator_value__"].transform(expanding_agg_shifted)
 
   # Reindex to match original data index
   return pd.Series(agg_values, index=data.index, dtype=float)
@@ -116,8 +119,8 @@ def intraday_stats(
   # Cast index to DatetimeIndex for type checker
   dt_index = cast("pd.DatetimeIndex", data.index)
 
-  df = data.to_frame(name="_value")
-  df["_time_slot"] = dt_index.time
+  df = data.to_frame(name="__indikator_value__")
+  df["__indikator_time_slot__"] = dt_index.time
 
   # Filter to lookback period if specified
   if lookback_days is not None:
@@ -134,8 +137,8 @@ def intraday_stats(
     return group.expanding(min_periods=min_samples).std().shift(1)
 
   grouped = lookback_data.groupby(  # pyright: ignore[reportUnknownMemberType]
-    "_time_slot", group_keys=False
-  )["_value"]
+    "__indikator_time_slot__", group_keys=False
+  )["__indikator_value__"]
 
   mean_values = grouped.transform(expanding_mean_shifted)  # pyright: ignore[reportUnknownMemberType]
   std_values = grouped.transform(expanding_std_shifted)  # pyright: ignore[reportUnknownMemberType]

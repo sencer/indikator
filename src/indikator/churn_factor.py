@@ -38,7 +38,7 @@ def churn_factor(
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
   fill_strategy: Literal["zero", "nan", "forward_fill"] = "zero",
   fill_value: float | None = None,
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate Churn Factor (Volume / High-Low Range).
 
   High churn indicates high volume with little price movement, suggesting
@@ -87,5 +87,6 @@ def churn_factor(
   if fill_strategy == "zero" and fill_value is not None:
     churn = churn.where(price_range > epsilon, fill_value)
 
-  # Create result dataframe with only indicator column
-  return pd.DataFrame({"churn_factor": churn}, index=data.index)
+  # Return only the indicator (minimal return philosophy)
+  churn.name = "churn_factor"
+  return churn

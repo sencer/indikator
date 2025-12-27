@@ -18,7 +18,7 @@ class _atr_Bound(Protocol):
     data: Validated[
       pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty
     ],
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _atr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr.
@@ -103,7 +103,7 @@ class atr:
       pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty
     ],
     window: int = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _atr_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -112,10 +112,14 @@ class _atr_intraday_Bound(Protocol):
   def __call__(
     self,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close"]), Index(Datetime), NonEmpty
+      pd.DataFrame,
+      HasColumns(["high", "low", "close"]),
+      Finite,
+      Index(Datetime),
+      NonEmpty,
     ],
     lookback_days: int | None = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _atr_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr_intraday.
@@ -192,8 +196,12 @@ class atr_intraday:
   def __new__(
     cls,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close"]), Index(Datetime), NonEmpty
+      pd.DataFrame,
+      HasColumns(["high", "low", "close"]),
+      Finite,
+      Index(Datetime),
+      NonEmpty,
     ],
     lookback_days: int | None = ...,
     min_samples: int = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...

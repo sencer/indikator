@@ -24,7 +24,7 @@ class _mfi_Bound(Protocol):
       Finite,
       NonEmpty,
     ],
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _mfi_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for mfi.
@@ -122,4 +122,4 @@ class mfi:
     ],
     window: int = ...,
     epsilon: float = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...

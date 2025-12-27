@@ -28,7 +28,7 @@ from indikator._intraday import intraday_aggregate
 def atr(
   data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty],
   window: Hyper[int, Ge[1]] = 14,
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate Average True Range (ATR).
 
   ATR measures market volatility by calculating the average of true ranges
@@ -83,11 +83,8 @@ def atr(
   true_ranges = compute_true_range_numba(highs, lows, closes)
   atr_values = compute_atr_numba(true_ranges, window)
 
-  # Create result dataframe with only indicator columns
-  return pd.DataFrame(
-    {"true_range": true_ranges, "atr": atr_values},
-    index=data.index,
-  )
+  # Return only the indicator (minimal return philosophy)
+  return pd.Series(atr_values, index=data.index, name="atr")
 
 
 @configurable
@@ -96,12 +93,13 @@ def atr_intraday(
   data: Validated[
     pd.DataFrame,
     HasColumns(["high", "low", "close"]),
+    Finite,
     Index(Datetime),
     NonEmpty,
   ],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate time-of-day adjusted ATR (intraday volatility).
 
   Compares current volatility to the historical average volatility for that
@@ -161,8 +159,6 @@ def atr_intraday(
     min_samples=min_samples,
   )
 
-  # Create result dataframe with only indicator columns
-  return pd.DataFrame(
-    {"true_range": true_ranges, "atr_intraday": avg_tr_by_time},
-    index=data.index,
-  )
+  # Return only the indicator (minimal return philosophy)
+  avg_tr_by_time.name = "atr_intraday"
+  return avg_tr_by_time

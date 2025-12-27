@@ -24,7 +24,7 @@ class _churn_factor_Bound(Protocol):
     ],
     fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
     fill_value: float | None = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _churn_factor_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for churn_factor.
@@ -87,4 +87,4 @@ class churn_factor:
     fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
     fill_value: float | None = ...,
     epsilon: float = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...

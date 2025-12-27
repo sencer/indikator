@@ -68,21 +68,15 @@ class TestVWAP:
 
     result = vwap(data)
 
-    # Check columns
-    assert "vwap" in result.columns
-    assert "typical_price" in result.columns
+    # Check return type is Series
+    assert isinstance(result, pd.Series)
+    assert result.name == "vwap"
 
     # Check shape
     assert len(result) == len(data)
 
     # Check VWAP is calculated
-    assert not result["vwap"].isna().any()
-
-    # Check typical price is calculated correctly
-    expected_typical = (data["high"] + data["low"] + data["close"]) / 3
-    pd.testing.assert_series_equal(
-      result["typical_price"], expected_typical, check_names=False
-    )
+    assert not result.isna().any()
 
   def test_vwap_manual_calculation(self):
     """Test VWAP with manual calculation."""
@@ -101,13 +95,13 @@ class TestVWAP:
 
     # Typical prices: (102+100+101)/3=101, (104+102+103)/3=103, (106+104+105)/3=105
     # VWAP at bar 0: 101 * 100 / 100 = 101
-    assert abs(result["vwap"].iloc[0] - 101.0) < 0.01
+    assert abs(result.iloc[0] - 101.0) < 0.01
 
     # VWAP at bar 1: (101*100 + 103*100) / 200 = 102
-    assert abs(result["vwap"].iloc[1] - 102.0) < 0.01
+    assert abs(result.iloc[1] - 102.0) < 0.01
 
     # VWAP at bar 2: (101*100 + 103*100 + 105*100) / 300 = 103
-    assert abs(result["vwap"].iloc[2] - 103.0) < 0.01
+    assert abs(result.iloc[2] - 103.0) < 0.01
 
   def test_vwap_session_reset(self):
     """Test VWAP resets at session boundaries."""
@@ -127,7 +121,7 @@ class TestVWAP:
     # VWAP should reset each day
     # Since prices are constant, VWAP should equal typical price
     expected_typical = (data["high"] + data["low"] + data["close"]) / 3
-    pd.testing.assert_series_equal(result["vwap"], expected_typical, check_names=False)
+    pd.testing.assert_series_equal(result, expected_typical, check_names=False)
 
   def test_vwap_empty_data(self):
     """Test VWAP with empty dataframe."""
@@ -164,15 +158,15 @@ class TestVWAPAnchored:
 
     result = vwap_anchored(data, anchor_index=2)
 
-    # Check columns
-    assert "vwap_anchored" in result.columns
-    assert "typical_price" in result.columns
+    # Check return type is Series
+    assert isinstance(result, pd.Series)
+    assert result.name == "vwap_anchored"
 
     # Before anchor should be NaN
-    assert result["vwap_anchored"].iloc[:2].isna().all()
+    assert result.iloc[:2].isna().all()
 
     # After anchor should have values
-    assert not result["vwap_anchored"].iloc[2:].isna().any()
+    assert not result.iloc[2:].isna().any()
 
   def test_vwap_anchored_by_datetime(self):
     """Test anchored VWAP with datetime anchor."""
@@ -190,10 +184,10 @@ class TestVWAPAnchored:
     result = vwap_anchored(data, anchor_datetime="2024-01-03")
 
     # Before anchor should be NaN
-    assert result["vwap_anchored"].iloc[:2].isna().all()
+    assert result.iloc[:2].isna().all()
 
     # After anchor should have values
-    assert not result["vwap_anchored"].iloc[2:].isna().any()
+    assert not result.iloc[2:].isna().any()
 
   def test_vwap_anchored_validation(self):
     """Test anchored VWAP parameter validation."""
@@ -238,7 +232,7 @@ class TestVWAPAnchored:
 
     result = vwap(data, session_freq="W")
 
-    assert "vwap" in result.columns
+    assert isinstance(result, pd.Series)
     assert len(result) == len(data)
 
   def test_vwap_monthly_session(self):
@@ -256,5 +250,5 @@ class TestVWAPAnchored:
 
     result = vwap(data, session_freq="ME")
 
-    assert "vwap" in result.columns
+    assert isinstance(result, pd.Series)
     assert len(result) == len(data)

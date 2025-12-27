@@ -28,7 +28,7 @@ class _vwap_Bound(Protocol):
       NonEmpty,
     ],
     session_freq: Literal["D", "W", "ME"] = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _vwap_ConfigDict(TypedDict, total=False):
   pass
@@ -96,7 +96,7 @@ class vwap:
       NonEmpty,
     ],
     session_freq: Literal["D", "W", "ME"] = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _vwap_anchored_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -107,7 +107,7 @@ class _vwap_anchored_Bound(Protocol):
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _vwap_anchored_ConfigDict(TypedDict, total=False):
   pass
@@ -176,4 +176,4 @@ class vwap_anchored:
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...

@@ -7,7 +7,7 @@ from typing import ClassVar, Protocol, TypedDict, override
 
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Datetime, Index, NonEmpty, NonNegative, Validated
+from validated import Datetime, Finite, Index, NonEmpty, NonNegative, Validated
 
 class _rvol_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -109,7 +109,7 @@ class _rvol_intraday_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    data: Validated[pd.Series, NonNegative, Index(Datetime), NonEmpty],
+    data: Validated[pd.Series, NonNegative, Finite, Index(Datetime), NonEmpty],
     lookback_days: int | None = ...,
   ) -> pd.Series: ...
 
@@ -184,7 +184,7 @@ class rvol_intraday:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, NonNegative, Index(Datetime), NonEmpty],
+    data: Validated[pd.Series, NonNegative, Finite, Index(Datetime), NonEmpty],
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,

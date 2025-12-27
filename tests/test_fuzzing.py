@@ -159,20 +159,20 @@ def intraday_data(draw):
 @settings(max_examples=10, deadline=None)
 @given(data=ohlcv_data(), window=st.integers(min_value=2, max_value=50))
 @pytest.mark.parametrize(
-  "func, col_check",
+  "func, series_name",
   [
     (atr, "atr"),
     (mfi, "mfi"),
   ],
 )
-def test_ohlcv_window_indicators(func, col_check, data, window):
+def test_ohlcv_window_indicators(func, series_name, data, window):
   """Fuzz test for indicators taking DataFrame + window."""
   result = func(data, window=window)
-  assert isinstance(result, pd.DataFrame)
-  assert col_check in result.columns
+  assert isinstance(result, pd.Series)
+  assert result.name == series_name
   assert len(result) == len(data)
-  if not result[col_check].isna().all():
-    assert np.isfinite(result[col_check].dropna()).all()
+  if not result.isna().all():
+    assert np.isfinite(result.dropna()).all()
 
 
 @settings(max_examples=10, deadline=None)
@@ -180,7 +180,8 @@ def test_ohlcv_window_indicators(func, col_check, data, window):
 def test_obv_fuzz(data):
   """Fuzz test for OBV (no window)."""
   result = obv(data)
-  assert "obv" in result.columns
+  assert isinstance(result, pd.Series)
+  assert result.name == "obv"
   assert len(result) == len(data)
 
 
@@ -189,7 +190,8 @@ def test_obv_fuzz(data):
 def test_churn_factor_fuzz(data):
   """Fuzz test for Churn Factor."""
   result = churn_factor(data)
-  assert "churn_factor" in result.columns
+  assert isinstance(result, pd.Series)
+  assert result.name == "churn_factor"
   assert len(result) == len(data)
 
 
@@ -230,9 +232,10 @@ def test_bollinger_fuzz(data, window):
 @given(data=intraday_data())
 def test_intraday_indicators(data):
   """Fuzz test for intraday variants."""
-  # ATR Intraday
+  # ATR Intraday - now returns Series
   res_atr = atr_intraday(data, min_samples=2)
-  assert "atr_intraday" in res_atr.columns
+  assert isinstance(res_atr, pd.Series)
+  assert res_atr.name == "atr_intraday"
 
   # Z-Score Intraday
   res_z = zscore_intraday(data["close"], min_samples=2)
@@ -242,7 +245,7 @@ def test_intraday_indicators(data):
   res_rvol = rvol_intraday(data["volume"], min_samples=2)
   assert len(res_rvol) == len(data)
 
-  # Opening Range
+  # Opening Range - still returns DataFrame (multiple outputs)
   res_or = opening_range(data, minutes=15)  # using 15m since we generate 30m per day
   assert "or_high" in res_or.columns
 
@@ -287,7 +290,8 @@ def test_macd_fuzz(data, fast, slow, signal):
 def test_vwap_fuzz(data):
   """Fuzz test for VWAP."""
   result = vwap(data)
-  assert "vwap" in result.columns
+  assert isinstance(result, pd.Series)
+  assert result.name == "vwap"
 
 
 @settings(max_examples=10, deadline=None)
@@ -300,7 +304,8 @@ def test_vwap_anchored_fuzz(data, anchor_idx):
   if anchor_idx >= len(data):
     anchor_idx = 0
   result = vwap_anchored(data, anchor_index=anchor_idx)
-  assert "vwap_anchored" in result.columns
+  assert isinstance(result, pd.Series)
+  assert result.name == "vwap_anchored"
 
 
 @settings(max_examples=10, deadline=None)

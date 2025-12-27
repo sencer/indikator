@@ -55,22 +55,19 @@ class TestATR:
 
     result = atr(data, window=5)
 
-    # Check columns
-    assert "atr" in result.columns
-    assert "true_range" in result.columns
+    # Check return type is Series with correct name
+    assert isinstance(result, pd.Series)
+    assert result.name == "atr"
 
     # Check shape
     assert len(result) == len(data)
 
-    # Check true range is calculated
-    assert not result["true_range"].isna().all()
-
     # Check ATR is calculated after window
-    assert result["atr"].isna().iloc[:4].all()  # First 4 bars should be NaN
-    assert not result["atr"].isna().iloc[4:].all()  # After window should have values
+    assert result.isna().iloc[:4].all()  # First 4 bars should be NaN
+    assert not result.isna().iloc[4:].all()  # After window should have values
 
     # Check ATR is positive
-    assert (result["atr"].dropna() > 0).all()
+    assert (result.dropna() > 0).all()
 
   def test_atr_empty_data(self):
     """Test ATR with empty dataframe."""
@@ -97,14 +94,11 @@ class TestATR:
 
     result = atr(data, window=2)
 
-    # First TR = high - low = 105 - 100 = 5
-    assert result["true_range"].iloc[0] == 5.0
-
-    # Second TR = max(108-103=5, |108-103|=5, |103-103|=0) = 5
-    assert result["true_range"].iloc[1] == 5.0
-
-    # Third TR = max(107-102=5, |107-106|=1, |102-106|=4) = 5
-    assert result["true_range"].iloc[2] == 5.0
+    # Result is now a Series with just ATR values
+    # True range is internal calculation, not exposed
+    assert isinstance(result, pd.Series)
+    assert result.name == "atr"
+    assert len(result) == 3
 
   def test_atr_window_parameter(self):
     """Test ATR with different window sizes."""
@@ -118,7 +112,7 @@ class TestATR:
     result_long = atr(data, window=10)
 
     # Short window should have values earlier
-    assert result_short["atr"].notna().sum() > result_long["atr"].notna().sum()
+    assert result_short.notna().sum() > result_long.notna().sum()
 
 
 class TestATRIntraday:
@@ -138,9 +132,9 @@ class TestATRIntraday:
 
     result = atr_intraday(data, min_samples=3)
 
-    # Check columns
-    assert "atr_intraday" in result.columns
-    assert "true_range" in result.columns
+    # Check return type is Series with correct name
+    assert isinstance(result, pd.Series)
+    assert result.name == "atr_intraday"
 
     # Check shape
     assert len(result) == len(data)
@@ -178,6 +172,7 @@ class TestATRIntraday:
 
     result = atr_intraday(data, lookback_days=1, min_samples=3)
 
-    # Check intraday ATR is calculated
-    assert "atr_intraday" in result.columns
+    # Check return type is Series
+    assert isinstance(result, pd.Series)
+    assert result.name == "atr_intraday"
     assert len(result) == len(data)

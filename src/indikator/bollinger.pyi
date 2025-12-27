@@ -41,7 +41,7 @@ class _bollinger_bands_Config(_NCMakeableModel[_bollinger_bands_Bound]):
   - Middle Band = SMA(close, window)
   - Upper Band = Middle Band + (std_dev * num_std)
   - Lower Band = Middle Band - (std_dev * num_std)
-  - Bandwidth = (Upper Band - Lower Band) / Middle Band
+  - Bandwidth = (Upper Band - Lower Band) / abs(Middle Band)
   - %B = (Price - Lower Band) / (Upper Band - Lower Band)
 
   Interpretation:

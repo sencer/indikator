@@ -36,7 +36,7 @@ def vwap(
     NonEmpty,
   ],
   session_freq: Literal["D", "W", "ME"] = "D",
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate Volume-Weighted Average Price (VWAP).
 
   VWAP is the ratio of cumulative (price * volume) to cumulative volume,
@@ -108,11 +108,8 @@ def vwap(
   # Calculate VWAP using Numba-optimized function
   vwap_values = compute_vwap_numba(typical_prices, volumes, reset_mask)
 
-  # Create result dataframe with only indicator columns
-  return pd.DataFrame(
-    {"typical_price": typical_price, "vwap": vwap_values},
-    index=data.index,
-  )
+  # Return only the indicator (minimal return philosophy)
+  return pd.Series(vwap_values, index=data.index, name="vwap")
 
 
 @configurable
@@ -125,7 +122,7 @@ def vwap_anchored(
   ],
   anchor_index: int | None = None,
   anchor_datetime: pd.Timestamp | str | None = None,
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate Anchored VWAP from a specific point in time.
 
   Anchored VWAP calculates VWAP starting from a specific bar forward,
@@ -223,8 +220,5 @@ def vwap_anchored(
   # Calculate anchored VWAP using Numba-optimized function
   vwap_values = compute_anchored_vwap_numba(typical_prices, volumes, anchor_index)
 
-  # Create result dataframe with only indicator columns
-  return pd.DataFrame(
-    {"typical_price": typical_price, "vwap_anchored": vwap_values},
-    index=data.index,
-  )
+  # Return only the indicator (minimal return philosophy)
+  return pd.Series(vwap_values, index=data.index, name="vwap_anchored")

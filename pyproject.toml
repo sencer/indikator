@@ -11,7 +11,6 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "types-requests",
     "python-dotenv",
     "typing-extensions>=4.12",
     "validated>=0.1.0",

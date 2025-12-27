@@ -14,7 +14,7 @@ class _obv_Bound(Protocol):
   def __call__(
     self,
     data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...
 
 class _obv_ConfigDict(TypedDict, total=False):
   pass
@@ -85,4 +85,4 @@ class obv:
   def __new__(
     cls,
     data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
-  ) -> pd.DataFrame: ...
+  ) -> pd.Series: ...

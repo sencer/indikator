@@ -72,7 +72,6 @@ class _zigzag_legs_Config(_NCMakeableModel[_zigzag_legs_Bound]):
 
   Raises:
     ValueError: If data contains NaN or infinite values
-    pandera.errors.SchemaError: If validation fails
 
   Example:
     >>> import pandas as pd

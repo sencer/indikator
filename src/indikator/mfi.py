@@ -32,7 +32,7 @@ def mfi(
   ],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.DataFrame:
+) -> pd.Series:
   """Calculate Money Flow Index (MFI).
 
   MFI is a momentum indicator that uses both price and volume to measure
@@ -93,8 +93,5 @@ def mfi(
   # Calculate MFI using Numba-optimized function
   mfi_values = compute_mfi_numba(typical_prices, volumes, window, epsilon)
 
-  # Create result dataframe with only indicator columns
-  return pd.DataFrame(
-    {"typical_price": typical_prices, "mfi": mfi_values},
-    index=data.index,
-  )
+  # Return only the indicator (minimal return philosophy)
+  return pd.Series(mfi_values, index=data.index, name="mfi")

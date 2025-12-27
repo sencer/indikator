@@ -64,7 +64,7 @@ def zscore(
 @configurable
 @validated
 def zscore_intraday(
-  data: Validated[pd.Series, Index(Datetime), NonEmpty],
+  data: Validated[pd.Series, Finite, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,

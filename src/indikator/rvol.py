@@ -8,6 +8,7 @@ from nonfig import Ge, Gt, Hyper, configurable
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   Index,
   NonEmpty,
   NonNegative,
@@ -86,7 +87,7 @@ def rvol(
 @configurable
 @validated
 def rvol_intraday(
-  data: Validated[pd.Series, NonNegative, Index(Datetime), NonEmpty],
+  data: Validated[pd.Series, NonNegative, Finite, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
