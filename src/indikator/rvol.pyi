@@ -16,7 +16,7 @@ class _rvol_Bound(Protocol):
   @property
   def epsilon(self) -> float: ...
   def __call__(
-    self, data: Validated[pd.Series, NonNegative, NonEmpty]
+    self, data: Validated[pd.Series, NonNegative, Finite, NonEmpty]
   ) -> pd.Series: ...
 
 class _rvol_ConfigDict(TypedDict, total=False):
@@ -96,7 +96,7 @@ class rvol:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, NonNegative, NonEmpty],
+    data: Validated[pd.Series, NonNegative, Finite, NonEmpty],
     window: int = ...,
     epsilon: float = ...,
   ) -> pd.Series: ...

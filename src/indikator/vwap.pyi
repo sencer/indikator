@@ -9,6 +9,7 @@ from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   Ge as GeValidator,
   HasColumns,
   Index,
@@ -25,6 +26,7 @@ class _vwap_Bound(Protocol):
       HasColumns(["high", "low", "close", "volume"]),
       Index(Datetime),
       GeValidator("high", "low"),
+      Finite,
       NonEmpty,
     ],
     session_freq: Literal["D", "W", "ME"] = ...,
@@ -93,6 +95,7 @@ class vwap:
       HasColumns(["high", "low", "close", "volume"]),
       Index(Datetime),
       GeValidator("high", "low"),
+      Finite,
       NonEmpty,
     ],
     session_freq: Literal["D", "W", "ME"] = ...,
@@ -103,7 +106,7 @@ class _vwap_anchored_Bound(Protocol):
   def __call__(
     self,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), NonEmpty
+      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NonEmpty
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
@@ -172,7 +175,7 @@ class vwap_anchored:
   def __new__(
     cls,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), NonEmpty
+      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NonEmpty
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,

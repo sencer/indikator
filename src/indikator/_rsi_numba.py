@@ -44,28 +44,16 @@ def compute_rsi_numba(
   if n < window + 1:  # Need at least window+1 bars (for first change)
     return rsi
 
-  # Calculate price changes
-  changes = np.zeros(n)
-  for i in range(1, n):
-    changes[i] = prices[i] - prices[i - 1]
-
-  # Separate gains and losses
-  gains = np.zeros(n)
-  losses = np.zeros(n)
-
-  for i in range(1, n):
-    if changes[i] > 0:
-      gains[i] = changes[i]
-    else:
-      losses[i] = -changes[i]  # Store as positive value
-
   # Calculate initial average gain and loss (simple average)
   avg_gain = 0.0
   avg_loss = 0.0
 
   for i in range(1, window + 1):
-    avg_gain += gains[i]
-    avg_loss += losses[i]
+    change = prices[i] - prices[i - 1]
+    if change > 0:
+      avg_gain += change
+    elif change < 0:
+      avg_loss -= change
 
   avg_gain /= window
   avg_loss /= window
@@ -79,8 +67,12 @@ def compute_rsi_numba(
 
   # Calculate subsequent RSI values using Wilder's smoothing
   for i in range(window + 1, n):
-    avg_gain = (avg_gain * (window - 1) + gains[i]) / window
-    avg_loss = (avg_loss * (window - 1) + losses[i]) / window
+    change = prices[i] - prices[i - 1]
+    gain = change if change > 0.0 else 0.0
+    loss = -change if change < 0.0 else 0.0
+
+    avg_gain = (avg_gain * (window - 1) + gain) / window
+    avg_loss = (avg_loss * (window - 1) + loss) / window
 
     if avg_loss < epsilon:
       rsi[i] = 100.0  # No losses, RSI = 100

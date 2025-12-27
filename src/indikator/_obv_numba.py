@@ -48,11 +48,8 @@ def compute_obv_numba(
 
   # Subsequent bars: add/subtract based on price direction
   for i in range(1, n):
-    if closes[i] > closes[i - 1]:
-      obv[i] = obv[i - 1] + volumes[i]
-    elif closes[i] < closes[i - 1]:
-      obv[i] = obv[i - 1] - volumes[i]
-    else:
-      obv[i] = obv[i - 1]
+    # Branchless sign: 1 if up, -1 if down, 0 if flat
+    sign = (closes[i] > closes[i - 1]) - (closes[i] < closes[i - 1])
+    obv[i] = obv[i - 1] + sign * volumes[i]
 
   return obv

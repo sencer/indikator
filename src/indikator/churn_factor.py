@@ -11,6 +11,7 @@ from nonfig import Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
 from validated import (
+  Finite,
   Ge as ColsGe,
   HasColumns,
   NonEmpty,
@@ -33,6 +34,7 @@ def churn_factor(
     HasColumns(["high", "low", "volume"]),
     ColsGe("high", "low"),
     NonNegative,
+    Finite,
     NonEmpty,
   ],
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,

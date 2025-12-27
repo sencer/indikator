@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   Ge as GeValidator,
   HasColumns,
   Index,
@@ -28,6 +29,7 @@ def opening_range(
     HasColumns(["high", "low", "close"]),
     Index(Datetime),
     GeValidator("high", "low"),
+    Finite,
     NonEmpty,
   ],
   minutes: Hyper[int, Ge[1]] = 30,

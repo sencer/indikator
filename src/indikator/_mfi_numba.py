@@ -51,52 +51,46 @@ def compute_mfi_numba(
   if n < window + 1:  # Need window+1 bars for first calculation
     return mfi
 
-  # Calculate money flow
-  money_flow = typical_prices * volumes
-
-  # Precompute directional money flow arrays
-  # +1 for positive direction, -1 for negative, 0 for flat
-  pos_mf_contrib = np.zeros(n, dtype=np.float64)
-  neg_mf_contrib = np.zeros(n, dtype=np.float64)
-
-  for i in range(1, n):
-    if typical_prices[i] > typical_prices[i - 1]:
-      pos_mf_contrib[i] = money_flow[i]
-    elif typical_prices[i] < typical_prices[i - 1]:
-      neg_mf_contrib[i] = money_flow[i]
-
   # Initialize window sums for the first valid position
   pos_mf_sum = 0.0
   neg_mf_sum = 0.0
 
   # Initialize: sum the first window of contributions (indices 1 to window)
   for i in range(1, window + 1):
-    pos_mf_sum += pos_mf_contrib[i]
-    neg_mf_sum += neg_mf_contrib[i]
+    mf = typical_prices[i] * volumes[i]
+    if typical_prices[i] > typical_prices[i - 1]:
+      pos_mf_sum += mf
+    elif typical_prices[i] < typical_prices[i - 1]:
+      neg_mf_sum += mf
 
   # Calculate MFI for position 'window' (first valid)
-  if neg_mf_sum < epsilon:
-    mfi[window] = 100.0
-  else:
-    money_ratio = pos_mf_sum / neg_mf_sum
-    mfi[window] = 100.0 - (100.0 / (1.0 + money_ratio))
+  mfi[window] = (
+    100.0 if neg_mf_sum < epsilon else 100.0 - (100.0 / (1.0 + pos_mf_sum / neg_mf_sum))
+  )
 
   # Slide the window: O(n) instead of O(n*window)
   for i in range(window + 1, n):
-    # Add new element entering the window
-    pos_mf_sum += pos_mf_contrib[i]
-    neg_mf_sum += neg_mf_contrib[i]
+    # Add new element entering the window at index i
+    mf_in = typical_prices[i] * volumes[i]
+    if typical_prices[i] > typical_prices[i - 1]:
+      pos_mf_sum += mf_in
+    elif typical_prices[i] < typical_prices[i - 1]:
+      neg_mf_sum += mf_in
 
-    # Remove old element leaving the window
-    # The element leaving is at index (i - window)
-    pos_mf_sum -= pos_mf_contrib[i - window]
-    neg_mf_sum -= neg_mf_contrib[i - window]
+    # Remove old element leaving the window at index (i - window)
+    # The contribution at index j depends on j and j-1
+    j = i - window
+    mf_out = typical_prices[j] * volumes[j]
+    if typical_prices[j] > typical_prices[j - 1]:
+      pos_mf_sum -= mf_out
+    elif typical_prices[j] < typical_prices[j - 1]:
+      neg_mf_sum -= mf_out
 
     # Calculate MFI
-    if neg_mf_sum < epsilon:
-      mfi[i] = 100.0  # No selling pressure, MFI = 100
-    else:
-      money_ratio = pos_mf_sum / neg_mf_sum
-      mfi[i] = 100.0 - (100.0 / (1.0 + money_ratio))
+    mfi[i] = (
+      100.0
+      if neg_mf_sum < epsilon
+      else 100.0 - (100.0 / (1.0 + pos_mf_sum / neg_mf_sum))
+    )
 
   return mfi

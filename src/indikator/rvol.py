@@ -25,7 +25,7 @@ __all__ = ["rvol", "rvol_intraday"]
 @configurable
 @validated
 def rvol(
-  data: Validated[pd.Series, NonNegative, NonEmpty],
+  data: Validated[pd.Series, NonNegative, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:

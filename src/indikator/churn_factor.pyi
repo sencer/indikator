@@ -7,7 +7,7 @@ from typing import ClassVar, Literal, Protocol, TypedDict, override
 
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Ge as ColsGe, HasColumns, NonEmpty, NonNegative, Validated
+from validated import Finite, Ge as ColsGe, HasColumns, NonEmpty, NonNegative, Validated
 
 class _churn_factor_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -20,6 +20,7 @@ class _churn_factor_Bound(Protocol):
       HasColumns(["high", "low", "volume"]),
       ColsGe("high", "low"),
       NonNegative,
+      Finite,
       NonEmpty,
     ],
     fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
@@ -82,6 +83,7 @@ class churn_factor:
       HasColumns(["high", "low", "volume"]),
       ColsGe("high", "low"),
       NonNegative,
+      Finite,
       NonEmpty,
     ],
     fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,

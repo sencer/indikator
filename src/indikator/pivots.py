@@ -10,6 +10,7 @@ from nonfig import configurable
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   Ge as GeValidator,
   HasColumns,
   Index,
@@ -27,6 +28,7 @@ def pivot_points(
     HasColumns(["high", "low", "close"]),
     Index(Datetime),
     GeValidator("high", "low"),
+    Finite,
     NonEmpty,
   ],
   method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",

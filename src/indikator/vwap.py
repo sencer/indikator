@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   Ge as GeValidator,
   HasColumns,
   Index,
@@ -33,6 +34,7 @@ def vwap(
     HasColumns(["high", "low", "close", "volume"]),
     Index(Datetime),
     GeValidator("high", "low"),
+    Finite,
     NonEmpty,
   ],
   session_freq: Literal["D", "W", "ME"] = "D",
@@ -118,6 +120,7 @@ def vwap_anchored(
   data: Validated[
     pd.DataFrame,
     HasColumns(["high", "low", "close", "volume"]),
+    Finite,
     NonEmpty,
   ],
   anchor_index: int | None = None,

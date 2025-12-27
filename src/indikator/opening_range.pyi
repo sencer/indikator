@@ -9,6 +9,7 @@ from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   Ge as GeValidator,
   HasColumns,
   Index,
@@ -27,6 +28,7 @@ class _opening_range_Bound(Protocol):
       HasColumns(["high", "low", "close"]),
       Index(Datetime),
       GeValidator("high", "low"),
+      Finite,
       NonEmpty,
     ],
     session_start: str = ...,
@@ -124,6 +126,7 @@ class opening_range:
       HasColumns(["high", "low", "close"]),
       Index(Datetime),
       GeValidator("high", "low"),
+      Finite,
       NonEmpty,
     ],
     session_start: str = ...,
