@@ -90,9 +90,16 @@ def opening_range(
   dt_index = cast("pd.DatetimeIndex", data.index)
   session_date = dt_index.normalize()
 
+  # Validate and parse session start time
+  try:
+    or_start_time = pd.Timestamp(f"1900-01-01 {session_start}").time()
+  except ValueError as e:
+    raise ValueError(
+      f"Invalid session_start format '{session_start}'. Expected 'HH:MM' (e.g., '09:30')."
+    ) from e
+
   # Create time-based filter for opening range period
   time_of_day = dt_index.time
-  or_start_time = pd.Timestamp(f"1900-01-01 {session_start}").time()
   or_end_time = (
     pd.Timestamp(f"1900-01-01 {session_start}") + pd.Timedelta(minutes=minutes)
   ).time()
@@ -128,12 +135,14 @@ def opening_range(
     default=0,
   ).astype(np.int8)
 
-  # Create result dataframe with only the columns we want
-  data_copy = data.copy()
-  data_copy["or_high"] = df_work["or_high"].values
-  data_copy["or_low"] = df_work["or_low"].values
-  data_copy["or_mid"] = df_work["or_mid"].values
-  data_copy["or_range"] = df_work["or_range"].values
-  data_copy["or_breakout"] = df_work["or_breakout"].values
-
-  return data_copy
+  # Create result dataframe with only indicator columns
+  return pd.DataFrame(
+    {
+      "or_high": df_work["or_high"].values,
+      "or_low": df_work["or_low"].values,
+      "or_mid": df_work["or_mid"].values,
+      "or_range": df_work["or_range"].values,
+      "or_breakout": df_work["or_breakout"].values,
+    },
+    index=data.index,
+  )

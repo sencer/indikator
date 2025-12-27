@@ -88,12 +88,12 @@ def bollinger_bands(
   bandwidth = np.where(middle > 0, (upper - lower) / middle, np.nan)
 
   # Calculate %B (position within bands)
-  # Avoid division by zero
+  # Return NaN when bands collapse (consistent with bandwidth)
   band_range = upper - lower
   percent_b = np.where(
     band_range > 0,
     (data - lower) / band_range,
-    0.5,  # Default to middle if bands collapsed
+    np.nan,  # NaN when bands collapse (no range to measure)
   )
 
   # Create result dataframe

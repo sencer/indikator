@@ -8,6 +8,7 @@ from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
 from validated import (
+  Finite,
   Ge as GeValidator,
   HasColumns,
   NonEmpty,
@@ -15,6 +16,7 @@ from validated import (
   validated,
 )
 
+from indikator._constants import DEFAULT_EPSILON
 from indikator._mfi_numba import compute_mfi_numba
 
 
@@ -25,10 +27,11 @@ def mfi(
     pd.DataFrame,
     HasColumns(["high", "low", "close", "volume"]),
     GeValidator("high", "low"),
+    Finite,
     NonEmpty,
   ],
   window: Hyper[int, Ge[2]] = 14,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.DataFrame:
   """Calculate Money Flow Index (MFI).
 
@@ -61,7 +64,7 @@ def mfi(
     epsilon: Small value to prevent division by zero
 
   Returns:
-    DataFrame with 'mfi' column added
+    DataFrame with 'mfi' and 'typical_price' columns
 
   Raises:
     ValueError: If required columns missing or data contains NaN/Inf
@@ -90,9 +93,8 @@ def mfi(
   # Calculate MFI using Numba-optimized function
   mfi_values = compute_mfi_numba(typical_prices, volumes, window, epsilon)
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["typical_price"] = typical_prices
-  data_copy["mfi"] = mfi_values
-
-  return data_copy
+  # Create result dataframe with only indicator columns
+  return pd.DataFrame(
+    {"typical_price": typical_prices, "mfi": mfi_values},
+    index=data.index,
+  )

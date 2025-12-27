@@ -3,7 +3,6 @@
 This module contains JIT-compiled functions for ATR calculation.
 Separated for better code organization and testability.
 """
-# pyright: reportAny=false
 
 from __future__ import annotations
 
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_true_range_numba(
   highs: NDArray[np.float64],
   lows: NDArray[np.float64],
@@ -58,7 +57,7 @@ def compute_true_range_numba(
   return tr
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_atr_numba(
   true_ranges: NDArray[np.float64],
   window: int,

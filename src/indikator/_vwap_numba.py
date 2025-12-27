@@ -4,8 +4,6 @@ This module contains JIT-compiled functions for VWAP calculation.
 Separated for better code organization and testability.
 """
 
-# pyright: reportAny=false
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -17,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_vwap_numba(
   typical_prices: NDArray[np.float64],
   volumes: NDArray[np.float64],
@@ -64,7 +62,7 @@ def compute_vwap_numba(
   return vwap
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_anchored_vwap_numba(
   typical_prices: NDArray[np.float64],
   volumes: NDArray[np.float64],

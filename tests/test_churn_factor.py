@@ -24,14 +24,13 @@ class TestBasicFunctionality:
   def test_returns_dataframe_with_churn_factor_column(
     self, basic_ohlcv_df: pd.DataFrame
   ) -> None:
-    """Should add churn_factor column to DataFrame."""
+    """Should return DataFrame with only churn_factor column."""
     result = churn_factor(basic_ohlcv_df)
 
     assert isinstance(result, pd.DataFrame)
     assert "churn_factor" in result.columns
-    assert "high" in result.columns
-    assert "low" in result.columns
-    assert "volume" in result.columns
+    # New behavior: only indicator columns are returned
+    assert len(result.columns) == 1
 
   def test_does_not_modify_original_dataframe(
     self, basic_ohlcv_df: pd.DataFrame
@@ -291,12 +290,13 @@ class TestFullOHLCVData:
       "volume": [1000, 2000, 1500],
     })
 
-  def test_preserves_all_original_columns(self, full_ohlcv_df: pd.DataFrame) -> None:
-    """Should preserve all original OHLCV columns."""
+  def test_only_indicator_columns_returned(self, full_ohlcv_df: pd.DataFrame) -> None:
+    """Should return only indicator columns, not original columns."""
     result = churn_factor(full_ohlcv_df)
 
-    assert all(col in result.columns for col in full_ohlcv_df.columns)
+    # New behavior: only indicator columns are returned
     assert "churn_factor" in result.columns
+    assert len(result.columns) == 1
 
   def test_churn_calculation_with_full_ohlcv(self, full_ohlcv_df: pd.DataFrame) -> None:
     """Should correctly calculate churn with full OHLCV data."""

@@ -7,14 +7,17 @@ from typing import ClassVar, Protocol, TypedDict, override
 
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Datetime, HasColumns, Index, NonEmpty, Validated
+from validated import Datetime, Finite, HasColumns, Index, NonEmpty, Validated
 
 class _atr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def window(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), NonEmpty]
+    self,
+    data: Validated[
+      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty
+    ],
   ) -> pd.DataFrame: ...
 
 class _atr_ConfigDict(TypedDict, total=False):
@@ -62,7 +65,7 @@ class _atr_Config(_NCMakeableModel[_atr_Bound]):
     DataFrame with 'atr' and 'true_range' columns added
 
   Raises:
-    ValueError: If required columns are missing or data contains NaN/Inf
+    ValueError: If required columns are missing or data is empty
 
   Example:
     >>> import pandas as pd
@@ -96,7 +99,9 @@ class atr:
   window: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), NonEmpty],
+    data: Validated[
+      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty
+    ],
     window: int = ...,
   ) -> pd.DataFrame: ...
 
@@ -148,7 +153,7 @@ class _atr_intraday_Config(_NCMakeableModel[_atr_intraday_Bound]):
     min_samples: Minimum historical samples required per time slot
 
   Returns:
-    DataFrame with 'atr_intraday' and 'true_range' columns added
+    DataFrame with 'atr_intraday' and 'true_range' columns
 
   Raises:
     ValueError: If required columns missing or index is not DatetimeIndex

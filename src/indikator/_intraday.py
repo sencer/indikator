@@ -16,8 +16,7 @@ from validated import (
   validated,
 )
 
-# Minimum samples required per time slot before calculating aggregate
-_MIN_SAMPLES_PER_SLOT = 3
+from indikator._constants import DEFAULT_MIN_SAMPLES
 
 __all__ = ["intraday_aggregate", "intraday_stats"]
 
@@ -27,7 +26,7 @@ def intraday_aggregate(
   data: Validated[pd.Series, Index(Datetime), NonEmpty],
   agg_func: str | Callable[[pd.Series], float],
   lookback_days: int | None = None,
-  min_samples: int = _MIN_SAMPLES_PER_SLOT,
+  min_samples: int = DEFAULT_MIN_SAMPLES,
 ) -> pd.Series:
   """Generic intraday aggregation by time-of-day.
 
@@ -38,7 +37,7 @@ def intraday_aggregate(
     data: Series with DatetimeIndex
     agg_func: Aggregation function name ("mean", "std") or callable
     lookback_days: Days to look back (None = all history)
-    min_samples: Minimum samples required per time slot
+    min_samples: Minimum observations required before calculating aggregate (NaN until met)
 
   Returns:
     Series with aggregated values for each bar's time slot
@@ -96,7 +95,7 @@ def intraday_aggregate(
 def intraday_stats(
   data: Validated[pd.Series, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
-  min_samples: int = _MIN_SAMPLES_PER_SLOT,
+  min_samples: int = DEFAULT_MIN_SAMPLES,
 ) -> tuple[pd.Series, pd.Series]:
   """Compute both mean and std by time-of-day in a single pass.
 
@@ -106,7 +105,7 @@ def intraday_stats(
   Args:
     data: Series with DatetimeIndex
     lookback_days: Days to look back (None = all history)
-    min_samples: Minimum samples required per time slot
+    min_samples: Minimum observations required before calculating aggregate (NaN until met)
 
   Returns:
     Tuple of (mean_series, std_series)

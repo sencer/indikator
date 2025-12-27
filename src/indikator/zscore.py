@@ -16,10 +16,8 @@ from validated import (
   validated,
 )
 
+from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_stats
-
-# Default minimum samples per time slot
-_DEFAULT_MIN_SAMPLES = 3
 
 
 @configurable
@@ -27,7 +25,7 @@ _DEFAULT_MIN_SAMPLES = 3
 def zscore(
   data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 20,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
   """Calculate Z-Score (Standard Score) over a rolling window.
 
@@ -68,8 +66,8 @@ def zscore(
 def zscore_intraday(
   data: Validated[pd.Series, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
-  min_samples: Hyper[int, Ge[2]] = _DEFAULT_MIN_SAMPLES,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
+  min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
   """Calculate time-of-day adjusted Z-Score.
 
@@ -94,7 +92,7 @@ def zscore_intraday(
   Args:
     data: Series with DatetimeIndex
     lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum historical samples required per time slot
+    min_samples: Minimum observations required before calculating aggregate (NaN until met)
     epsilon: Small value to prevent division by zero
 
   Returns:

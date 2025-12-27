@@ -9,8 +9,6 @@ from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 from validated import Finite, NonEmpty, Validated
 
-MAX_NAN_RATIO: ...
-
 class _sector_correlation_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(

@@ -7,7 +7,7 @@ from typing import ClassVar, Protocol, TypedDict, override
 
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import Ge as GeValidator, HasColumns, NonEmpty, Validated
+from validated import Finite, Ge as GeValidator, HasColumns, NonEmpty, Validated
 
 class _mfi_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -21,6 +21,7 @@ class _mfi_Bound(Protocol):
       pd.DataFrame,
       HasColumns(["high", "low", "close", "volume"]),
       GeValidator("high", "low"),
+      Finite,
       NonEmpty,
     ],
   ) -> pd.DataFrame: ...
@@ -70,7 +71,7 @@ class _mfi_Config(_NCMakeableModel[_mfi_Bound]):
     epsilon: Small value to prevent division by zero
 
   Returns:
-    DataFrame with 'mfi' column added
+    DataFrame with 'mfi' and 'typical_price' columns
 
   Raises:
     ValueError: If required columns missing or data contains NaN/Inf
@@ -116,6 +117,7 @@ class mfi:
       pd.DataFrame,
       HasColumns(["high", "low", "close", "volume"]),
       GeValidator("high", "low"),
+      Finite,
       NonEmpty,
     ],
     window: int = ...,

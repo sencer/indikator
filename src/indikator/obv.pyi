@@ -7,12 +7,13 @@ from typing import Protocol, TypedDict
 
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-from validated import HasColumns, NonEmpty, Validated
+from validated import Finite, HasColumns, NonEmpty, Validated
 
 class _obv_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
-    self, data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), NonEmpty]
+    self,
+    data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
   ) -> pd.DataFrame: ...
 
 class _obv_ConfigDict(TypedDict, total=False):
@@ -60,7 +61,7 @@ class _obv_Config(_NCMakeableModel[_obv_Bound]):
     data: OHLCV DataFrame with 'close' and 'volume' columns
 
   Returns:
-    DataFrame with 'obv' column added
+    DataFrame with 'obv' column
 
   Raises:
     ValueError: If required columns missing or data contains NaN/Inf
@@ -82,5 +83,6 @@ class obv:
   Config = _obv_Config
   ConfigDict = _obv_ConfigDict
   def __new__(
-    cls, data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), NonEmpty]
+    cls,
+    data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
   ) -> pd.DataFrame: ...

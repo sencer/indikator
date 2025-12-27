@@ -3,7 +3,6 @@
 This module contains JIT-compiled functions for zigzag leg counting.
 Separated for better code organization and testability.
 """
-# pyright: reportAttributeAccessIssue=false, reportAny=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
 
 from __future__ import annotations
 
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_zigzag_legs_numba(
   closes: NDArray[np.float64],
   threshold: float,

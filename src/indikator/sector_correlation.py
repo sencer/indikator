@@ -13,8 +13,7 @@ from validated import (
   validated,
 )
 
-# Maximum ratio of NaN values allowed in aligned data before using default
-MAX_NAN_RATIO = 0.5
+from indikator._constants import MAX_NAN_RATIO
 
 
 @configurable

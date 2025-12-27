@@ -3,7 +3,6 @@
 This module contains JIT-compiled functions for RSI calculation.
 Separated for better code organization and testability.
 """
-# pyright: reportAny=false
 
 from __future__ import annotations
 
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_rsi_numba(
   prices: NDArray[np.float64],
   window: int,

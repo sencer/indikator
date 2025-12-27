@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from validated import (
   Datetime,
+  Finite,
   HasColumns,
   Index,
   NonEmpty,
@@ -18,16 +19,14 @@ from validated import (
 )
 
 from indikator._atr_numba import compute_atr_numba, compute_true_range_numba
+from indikator._constants import DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
-
-# Default minimum samples per time slot for intraday ATR
-_DEFAULT_MIN_SAMPLES = 3
 
 
 @configurable
 @validated
 def atr(
-  data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), NonEmpty],
+  data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty],
   window: Hyper[int, Ge[1]] = 14,
 ) -> pd.DataFrame:
   """Calculate Average True Range (ATR).
@@ -63,7 +62,7 @@ def atr(
     DataFrame with 'atr' and 'true_range' columns added
 
   Raises:
-    ValueError: If required columns are missing or data contains NaN/Inf
+    ValueError: If required columns are missing or data is empty
 
   Example:
     >>> import pandas as pd
@@ -84,12 +83,11 @@ def atr(
   true_ranges = compute_true_range_numba(highs, lows, closes)
   atr_values = compute_atr_numba(true_ranges, window)
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["true_range"] = true_ranges
-  data_copy["atr"] = atr_values
-
-  return data_copy
+  # Create result dataframe with only indicator columns
+  return pd.DataFrame(
+    {"true_range": true_ranges, "atr": atr_values},
+    index=data.index,
+  )
 
 
 @configurable
@@ -102,7 +100,7 @@ def atr_intraday(
     NonEmpty,
   ],
   lookback_days: int | None = None,
-  min_samples: Hyper[int, Ge[2]] = _DEFAULT_MIN_SAMPLES,
+  min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
 ) -> pd.DataFrame:
   """Calculate time-of-day adjusted ATR (intraday volatility).
 
@@ -128,7 +126,7 @@ def atr_intraday(
     min_samples: Minimum historical samples required per time slot
 
   Returns:
-    DataFrame with 'atr_intraday' and 'true_range' columns added
+    DataFrame with 'atr_intraday' and 'true_range' columns
 
   Raises:
     ValueError: If required columns missing or index is not DatetimeIndex
@@ -163,9 +161,8 @@ def atr_intraday(
     min_samples=min_samples,
   )
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["true_range"] = true_ranges
-  data_copy["atr_intraday"] = avg_tr_by_time
-
-  return data_copy
+  # Create result dataframe with only indicator columns
+  return pd.DataFrame(
+    {"true_range": true_ranges, "atr_intraday": avg_tr_by_time},
+    index=data.index,
+  )

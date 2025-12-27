@@ -1,6 +1,6 @@
 """Indikator - Technical indicators library."""
 
-__version__ = "0.1.7"
+__version__ = "0.2.0"
 
 from indikator.atr import atr, atr_intraday
 from indikator.bollinger import bollinger_bands

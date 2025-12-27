@@ -20,6 +20,7 @@ from validated import (
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._constants import DEFAULT_EPSILON
 from indikator._rsi_numba import compute_rsi_numba
 
 
@@ -28,7 +29,7 @@ from indikator._rsi_numba import compute_rsi_numba
 def rsi(
   data: Validated[pd.Series, Finite, NonEmpty],
   window: Hyper[int, Ge[2]] = 14,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
   """Calculate Relative Strength Index (RSI).
 

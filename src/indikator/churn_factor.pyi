@@ -3,7 +3,7 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import ClassVar, Protocol, TypedDict, override
+from typing import ClassVar, Literal, Protocol, TypedDict, override
 
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
@@ -22,7 +22,7 @@ class _churn_factor_Bound(Protocol):
       NonNegative,
       NonEmpty,
     ],
-    fill_strategy: str = ...,
+    fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
     fill_value: float | None = ...,
   ) -> pd.DataFrame: ...
 
@@ -50,11 +50,10 @@ class _churn_factor_Config(_NCMakeableModel[_churn_factor_Bound]):
     fill_value: Custom value to use when fill_strategy='zero' (default: 0.0)
 
   Returns:
-    DataFrame with 'churn_factor' column added
+    DataFrame with 'churn_factor' column
 
   Raises:
-    ValueError: If required columns missing
-    pandera.errors.SchemaError: If validation fails
+    ValueError: If required columns missing or validation fails
 
   Configuration:
       epsilon (float)
@@ -85,7 +84,7 @@ class churn_factor:
       NonNegative,
       NonEmpty,
     ],
-    fill_strategy: str = ...,
+    fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
     fill_value: float | None = ...,
     epsilon: float = ...,
   ) -> pd.DataFrame: ...

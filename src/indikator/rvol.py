@@ -15,10 +15,8 @@ from validated import (
   validated,
 )
 
+from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
-
-# Default minimum samples per time slot
-_DEFAULT_MIN_SAMPLES = 3
 
 __all__ = ["rvol", "rvol_intraday"]
 
@@ -27,8 +25,8 @@ __all__ = ["rvol", "rvol_intraday"]
 @validated
 def rvol(
   data: Validated[pd.Series, NonNegative, NonEmpty],
-  window: Hyper[int, Ge[2]] = 20,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
+  window: Hyper[int, Ge[2]] = 14,
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
   """Calculate Relative Volume (RVOL).
 
@@ -60,7 +58,6 @@ def rvol(
 
   Raises:
     ValueError: If validation fails
-    pandera.errors.SchemaError: If validation fails
 
   Example:
     >>> import pandas as pd
@@ -91,8 +88,8 @@ def rvol(
 def rvol_intraday(
   data: Validated[pd.Series, NonNegative, Index(Datetime), NonEmpty],
   lookback_days: int | None = None,
-  min_samples: Hyper[int, Ge[1]] = _DEFAULT_MIN_SAMPLES,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
+  min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
   """Calculate intraday RVOL based on time-of-day historical averages.
 
@@ -116,7 +113,7 @@ def rvol_intraday(
   Args:
     data: Series (e.g., volume) with DatetimeIndex
     lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum historical samples required per time slot
+    min_samples: Minimum observations required before calculating aggregate (NaN until met)
     epsilon: Small value to prevent division by zero
 
   Returns:

@@ -3,7 +3,6 @@
 This module contains JIT-compiled functions for OBV calculation.
 Separated for better code organization and testability.
 """
-# pyright: reportAny=false
 
 from __future__ import annotations
 
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_obv_numba(
   closes: NDArray[np.float64],
   volumes: NDArray[np.float64],

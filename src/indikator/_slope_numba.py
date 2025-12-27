@@ -4,8 +4,6 @@ This module contains JIT-compiled functions for slope calculation.
 Separated for better code organization and testability.
 """
 
-# pyright: reportAny=false
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -20,7 +18,7 @@ if TYPE_CHECKING:
 MIN_WINDOW_SIZE = 2  # Minimum window size for linear regression
 
 
-@jit(nopython=True)  # pyright: ignore[reportUntypedFunctionDecorator]  # pragma: no cover
+@jit(nopython=True)  # pragma: no cover
 def compute_slope_numba(
   closes: NDArray[np.float64], window: int
 ) -> NDArray[np.float64]:

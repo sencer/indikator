@@ -8,6 +8,7 @@ from nonfig import configurable
 import numpy as np
 import pandas as pd
 from validated import (
+  Finite,
   HasColumns,
   NonEmpty,
   Validated,
@@ -20,7 +21,7 @@ from indikator._obv_numba import compute_obv_numba
 @configurable
 @validated
 def obv(
-  data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), NonEmpty],
+  data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
 ) -> pd.DataFrame:
   """Calculate On-Balance Volume (OBV).
 
@@ -61,7 +62,7 @@ def obv(
     data: OHLCV DataFrame with 'close' and 'volume' columns
 
   Returns:
-    DataFrame with 'obv' column added
+    DataFrame with 'obv' column
 
   Raises:
     ValueError: If required columns missing or data contains NaN/Inf
@@ -83,8 +84,5 @@ def obv(
   # Calculate OBV using Numba-optimized function
   obv_values = compute_obv_numba(closes, volumes)
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["obv"] = obv_values
-
-  return data_copy
+  # Create result dataframe with only indicator column
+  return pd.DataFrame({"obv": obv_values}, index=data.index)

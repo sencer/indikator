@@ -108,12 +108,11 @@ def vwap(
   # Calculate VWAP using Numba-optimized function
   vwap_values = compute_vwap_numba(typical_prices, volumes, reset_mask)
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["typical_price"] = typical_price
-  data_copy["vwap"] = vwap_values
-
-  return data_copy
+  # Create result dataframe with only indicator columns
+  return pd.DataFrame(
+    {"typical_price": typical_price, "vwap": vwap_values},
+    index=data.index,
+  )
 
 
 @configurable
@@ -224,9 +223,8 @@ def vwap_anchored(
   # Calculate anchored VWAP using Numba-optimized function
   vwap_values = compute_anchored_vwap_numba(typical_prices, volumes, anchor_index)
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["typical_price"] = typical_price
-  data_copy["vwap_anchored"] = vwap_values
-
-  return data_copy
+  # Create result dataframe with only indicator columns
+  return pd.DataFrame(
+    {"typical_price": typical_price, "vwap_anchored": vwap_values},
+    index=data.index,
+  )

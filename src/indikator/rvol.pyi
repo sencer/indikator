@@ -63,7 +63,6 @@ class _rvol_Config(_NCMakeableModel[_rvol_Bound]):
 
   Raises:
     ValueError: If validation fails
-    pandera.errors.SchemaError: If validation fails
 
   Example:
     >>> import pandas as pd
@@ -150,7 +149,7 @@ class _rvol_intraday_Config(_NCMakeableModel[_rvol_intraday_Bound]):
   Args:
     data: Series (e.g., volume) with DatetimeIndex
     lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum historical samples required per time slot
+    min_samples: Minimum observations required before calculating aggregate (NaN until met)
     epsilon: Small value to prevent division by zero
 
   Returns:

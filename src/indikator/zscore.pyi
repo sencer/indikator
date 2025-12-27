@@ -129,7 +129,7 @@ class _zscore_intraday_Config(_NCMakeableModel[_zscore_intraday_Bound]):
   Args:
     data: Series with DatetimeIndex
     lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum historical samples required per time slot
+    min_samples: Minimum observations required before calculating aggregate (NaN until met)
     epsilon: Small value to prevent division by zero
 
   Returns:

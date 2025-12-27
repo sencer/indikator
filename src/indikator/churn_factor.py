@@ -5,7 +5,7 @@ relative to the price range. High churn indicates lots of trading within a
 narrow price range.
 """
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 from nonfig import Gt, Hyper, configurable
 import numpy as np
@@ -18,6 +18,8 @@ from validated import (
   Validated,
   validated,
 )
+
+from indikator._constants import DEFAULT_EPSILON
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
@@ -33,8 +35,8 @@ def churn_factor(
     NonNegative,
     NonEmpty,
   ],
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
-  fill_strategy: str = "zero",
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
+  fill_strategy: Literal["zero", "nan", "forward_fill"] = "zero",
   fill_value: float | None = None,
 ) -> pd.DataFrame:
   """Calculate Churn Factor (Volume / High-Low Range).
@@ -49,11 +51,10 @@ def churn_factor(
     fill_value: Custom value to use when fill_strategy='zero' (default: 0.0)
 
   Returns:
-    DataFrame with 'churn_factor' column added
+    DataFrame with 'churn_factor' column
 
   Raises:
-    ValueError: If required columns missing
-    pandera.errors.SchemaError: If validation fails
+    ValueError: If required columns missing or validation fails
   """
   # Calculate range
   price_range = data["high"] - data["low"]
@@ -86,8 +87,5 @@ def churn_factor(
   if fill_strategy == "zero" and fill_value is not None:
     churn = churn.where(price_range > epsilon, fill_value)
 
-  # Create result dataframe
-  data_copy = data.copy()
-  data_copy["churn_factor"] = churn
-
-  return data_copy
+  # Create result dataframe with only indicator column
+  return pd.DataFrame({"churn_factor": churn}, index=data.index)
