@@ -59,7 +59,7 @@ def atr(
     window: Smoothing period (default: 14, Wilder's original)
 
   Returns:
-    DataFrame with 'atr' and 'true_range' columns added
+    Series with ATR values (NaN for initial bars where window not satisfied)
 
   Raises:
     ValueError: If required columns are missing or data is empty
@@ -124,7 +124,7 @@ def atr_intraday(
     min_samples: Minimum historical samples required per time slot
 
   Returns:
-    DataFrame with 'atr_intraday' and 'true_range' columns
+    Series with time-of-day adjusted ATR values (NaN until min_samples met per time slot)
 
   Raises:
     ValueError: If required columns missing or index is not DatetimeIndex

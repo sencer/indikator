@@ -29,7 +29,8 @@ dev = [
     "poethepoet",
     "radon",
     "skylos",
-    "pre-commit"
+    "pre-commit",
+    "pdoc"
 ]
 
 [tool.setuptools.packages.find]
@@ -81,6 +82,10 @@ quality = [
     {cmd = "radon cc . -a -nb"},
     {cmd = "skylos . --quality --danger"},
 ]
+
+# Run with: poe docs or uv run poe docs
+# Generate API documentation
+docs = {cmd = "pdoc src/indikator -o docs --docformat google"}
 
 # ============================================================
 # RUFF CONFIGURATION - MAXIMUM STRICTNESS

@@ -62,7 +62,7 @@ class _atr_Config(_NCMakeableModel[_atr_Bound]):
     window: Smoothing period (default: 14, Wilder's original)
 
   Returns:
-    DataFrame with 'atr' and 'true_range' columns added
+    Series with ATR values (NaN for initial bars where window not satisfied)
 
   Raises:
     ValueError: If required columns are missing or data is empty
@@ -157,7 +157,7 @@ class _atr_intraday_Config(_NCMakeableModel[_atr_intraday_Bound]):
     min_samples: Minimum historical samples required per time slot
 
   Returns:
-    DataFrame with 'atr_intraday' and 'true_range' columns
+    Series with time-of-day adjusted ATR values (NaN until min_samples met per time slot)
 
   Raises:
     ValueError: If required columns missing or index is not DatetimeIndex

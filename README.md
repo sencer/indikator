@@ -132,6 +132,7 @@ This project uses `uv` for dependency management and `poe` for task running.
 *   **Format**: `uv run ruff format`
 *   **Type Check**: `uv run basedpyright`
 *   **Run All Checks**: `uv run poe quality`
+*   **Generate Docs**: `uv run poe docs`
 
 ## License
 

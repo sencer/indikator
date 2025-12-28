@@ -71,7 +71,7 @@ class _mfi_Config(_NCMakeableModel[_mfi_Bound]):
     epsilon: Small value to prevent division by zero
 
   Returns:
-    DataFrame with 'mfi' and 'typical_price' columns
+    Series with MFI values (0-100 range, NaN for initial bars)
 
   Raises:
     ValueError: If required columns missing or data contains NaN/Inf

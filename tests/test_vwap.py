@@ -210,6 +210,41 @@ class TestVWAPAnchored:
     with pytest.raises(ValueError, match="out of range"):
       vwap_anchored(data, anchor_index=10)
 
+  def test_vwap_anchored_datetime_requires_datetime_index(self):
+    """Test anchor_datetime raises error if index is not DatetimeIndex."""
+    data = pd.DataFrame({
+      "high": [102.0, 104.0, 106.0],
+      "low": [100.0, 102.0, 104.0],
+      "close": [101.0, 103.0, 105.0],
+      "volume": [100.0, 100.0, 100.0],
+    })
+
+    # Using anchor_datetime with non-DatetimeIndex should raise
+    with pytest.raises(ValueError, match="anchor_datetime requires DatetimeIndex"):
+      vwap_anchored(data, anchor_datetime="2024-01-01")
+
+  def test_vwap_anchored_datetime_as_timestamp(self):
+    """Test anchor_datetime works with pd.Timestamp object (not just string)."""
+    dates = pd.date_range("2024-01-01", periods=5, freq="D")
+    data = pd.DataFrame(
+      {
+        "high": [102.0, 104.0, 106.0, 108.0, 110.0],
+        "low": [100.0, 102.0, 104.0, 106.0, 108.0],
+        "close": [101.0, 103.0, 105.0, 107.0, 109.0],
+        "volume": [100.0, 100.0, 100.0, 100.0, 100.0],
+      },
+      index=dates,
+    )
+
+    # Use pd.Timestamp directly instead of string
+    result = vwap_anchored(data, anchor_datetime=pd.Timestamp("2024-01-03"))
+
+    # Before anchor should be NaN
+    assert result.iloc[:2].isna().all()
+
+    # After anchor should have values
+    assert not result.iloc[2:].isna().any()
+
   def test_vwap_anchored_empty_data(self):
     """Test anchored VWAP with empty dataframe."""
     data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)

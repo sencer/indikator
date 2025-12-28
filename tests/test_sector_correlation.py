@@ -181,6 +181,32 @@ class TestTimestampAlignment:
     # Should return default due to poor alignment
     assert (result == 0.0).all()
 
+  def test_high_nan_ratio_after_alignment_returns_default(self) -> None:
+    """Cover the high NaN ratio branch at line 64.
+
+    The sector data has partial overlap with stock data, so it passes
+    the overlap_count >= window check. After reindexing to stock's index
+    and forward fill, more than 50% of values are NaN (ffill can't fill
+    values before the first observation).
+    """
+    # Stock: 10 data points (2024-01-01 to 2024-01-01 09:00)
+    stock_index = pd.date_range("2024-01-01 00:00", periods=10, freq="1h")
+    # Sector: 3 data points starting much later, but has enough overlap
+    # We need at least overlap_count >= window (3), so sector has
+    # points at hours 7, 8, 9 which overlap with stock's 08:00 and 09:00
+    sector_index = pd.date_range("2024-01-01 07:00", periods=3, freq="1h")
+
+    stock = pd.Series(np.arange(100.0, 110.0), index=stock_index)
+    sector = pd.Series([1000.0, 1010.0, 1020.0], index=sector_index)
+
+    # Overlap = 3 (at 07:00, 08:00, 09:00), window = 3
+    # After reindex to stock: indices 0-6 will be NaN, 7-9 will have values
+    # NaN ratio = 7/10 = 0.7 > MAX_NAN_RATIO (0.5)
+    result = sector_correlation(stock, sector, window=3, default_value=-0.5)
+
+    # Should return default due to high NaN ratio after alignment
+    assert (result == -0.5).all()
+
 
 class TestParameterValidation:
   """Test parameter validation and constraints."""

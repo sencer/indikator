@@ -1,7 +1,8 @@
-"""Technical indicators module.
+"""ZigZag Legs indicator module.
 
-This module provides optimized technical analysis indicators using Numba JIT compilation.
-Type checking is limited for Numba-compiled functions since numba doesn't provide type stubs.
+This module provides zigzag leg counting with Elliott Wave-style market
+structure tracking. It distinguishes between corrections (temporary moves
+against the trend) and trend changes (structure breaks).
 """
 
 from datawarden import (
