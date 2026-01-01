@@ -9,8 +9,8 @@ from datawarden import (
   Finite,
   Ge as ColsGe,
   HasColumns,
-  NonEmpty,
   NonNegative,
+  NotEmpty,
   Validated,
 )
 from nonfig import MakeableModel as _NCMakeableModel
@@ -25,10 +25,10 @@ class _churn_factor_Bound(Protocol):
     data: Validated[
       pd.DataFrame,
       HasColumns(["high", "low", "volume"]),
-      ColsGe("high", "low"),
       NonNegative,
       Finite,
-      NonEmpty,
+      ColsGe("high", "low"),
+      NotEmpty,
     ],
     fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
     fill_value: float | None = ...,
@@ -88,10 +88,10 @@ class churn_factor:
     data: Validated[
       pd.DataFrame,
       HasColumns(["high", "low", "volume"]),
-      ColsGe("high", "low"),
       NonNegative,
       Finite,
-      NonEmpty,
+      ColsGe("high", "low"),
+      NotEmpty,
     ],
     fill_strategy: Literal["zero", "nan", "forward_fill"] = ...,
     fill_value: float | None = ...,

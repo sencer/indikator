@@ -86,7 +86,7 @@ class TestBollingerBands:
   def test_bollinger_empty_data(self) -> None:
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="Data must not be empty"):
+    with pytest.raises(ValueError, match="non-empty"):
       bollinger_bands(empty_data)
 
   def test_bollinger_window_parameter(self):

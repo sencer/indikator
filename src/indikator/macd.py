@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 
 from datawarden import (
   Finite,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -25,7 +25,7 @@ from indikator._macd_numba import compute_macd_numba
 @configurable
 @validate
 def macd(
-  data: Validated[pd.Series, Finite, NonEmpty],
+  data: Validated[pd.Series, Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   signal_period: Hyper[int, Ge[1]] = 9,

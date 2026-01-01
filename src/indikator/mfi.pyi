@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, Ge as GeValidator, HasColumns, NonEmpty, Validated
+from datawarden import Finite, Ge as GeValidator, HasColumns, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -20,9 +20,9 @@ class _mfi_Bound(Protocol):
     data: Validated[
       pd.DataFrame,
       HasColumns(["high", "low", "close", "volume"]),
-      GeValidator("high", "low"),
       Finite,
-      NonEmpty,
+      GeValidator("high", "low"),
+      NotEmpty,
     ],
   ) -> pd.Series: ...
 
@@ -116,9 +116,9 @@ class mfi:
     data: Validated[
       pd.DataFrame,
       HasColumns(["high", "low", "close", "volume"]),
-      GeValidator("high", "low"),
       Finite,
-      NonEmpty,
+      GeValidator("high", "low"),
+      NotEmpty,
     ],
     window: int = ...,
     epsilon: float = ...,

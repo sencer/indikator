@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, NonEmpty, NonNaN, Validated
+from datawarden import Finite, NotEmpty, NotIsNaN, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -20,7 +20,7 @@ class _zigzag_legs_Bound(Protocol):
   @property
   def epsilon(self) -> float: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NonEmpty, NonNaN]
+    self, data: Validated[pd.Series, Finite, NotEmpty, NotIsNaN]
   ) -> pd.Series: ...
 
 class _zigzag_legs_ConfigDict(TypedDict, total=False):
@@ -126,7 +126,7 @@ class zigzag_legs:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NonEmpty, NonNaN],
+    data: Validated[pd.Series, Finite, NotEmpty, NotIsNaN],
     threshold: float = ...,
     min_distance_pct: float = ...,
     confirmation_bars: int = ...,

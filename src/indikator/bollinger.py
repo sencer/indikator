@@ -6,7 +6,7 @@ consisting of a moving average with upper and lower bands.
 
 from datawarden import (
   Finite,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -18,7 +18,7 @@ import pandas as pd
 @configurable
 @validate
 def bollinger_bands(
-  data: Validated[pd.Series, Finite, NonEmpty],
+  data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
   num_std: Hyper[float, Gt[0.0]] = 2.0,
 ) -> pd.DataFrame:

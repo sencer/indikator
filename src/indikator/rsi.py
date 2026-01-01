@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 from datawarden import (
   Finite,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -27,7 +27,7 @@ from indikator._rsi_numba import compute_rsi_numba
 @configurable
 @validate
 def rsi(
-  data: Validated[pd.Series, Finite, NonEmpty],
+  data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:

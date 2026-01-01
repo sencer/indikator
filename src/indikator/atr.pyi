@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Datetime, Finite, HasColumns, Index, NonEmpty, Validated
+from datawarden import Datetime, Finite, HasColumns, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -16,7 +16,7 @@ class _atr_Bound(Protocol):
   def __call__(
     self,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty
+      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NotEmpty
     ],
   ) -> pd.Series: ...
 
@@ -100,7 +100,7 @@ class atr:
   def __new__(
     cls,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty
+      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NotEmpty
     ],
     window: int = ...,
   ) -> pd.Series: ...
@@ -116,7 +116,7 @@ class _atr_intraday_Bound(Protocol):
       HasColumns(["high", "low", "close"]),
       Finite,
       Index(Datetime),
-      NonEmpty,
+      NotEmpty,
     ],
     lookback_days: int | None = ...,
   ) -> pd.Series: ...
@@ -200,7 +200,7 @@ class atr_intraday:
       HasColumns(["high", "low", "close"]),
       Finite,
       Index(Datetime),
-      NonEmpty,
+      NotEmpty,
     ],
     lookback_days: int | None = ...,
     min_samples: int = ...,

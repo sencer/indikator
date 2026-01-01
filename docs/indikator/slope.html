@@ -68,7 +68,7 @@
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">datawarden</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>  <span class="n">Finite</span><span class="p">,</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>  <span class="n">NonEmpty</span><span class="p">,</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>  <span class="n">NotEmpty</span><span class="p">,</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>  <span class="n">Validated</span><span class="p">,</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>  <span class="n">validate</span><span class="p">,</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="p">)</span>
@@ -86,7 +86,7 @@
 </span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="nd">@configurable</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="nd">@validate</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="k">def</span><span class="w"> </span><span class="nf">slope</span><span class="p">(</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>  <span class="n">data</span><span class="p">:</span> <span class="n">Validated</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Finite</span><span class="p">,</span> <span class="n">NonEmpty</span><span class="p">],</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>  <span class="n">data</span><span class="p">:</span> <span class="n">Validated</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Finite</span><span class="p">,</span> <span class="n">NotEmpty</span><span class="p">],</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>  <span class="n">window</span><span class="p">:</span> <span class="n">Hyper</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Ge</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
 </span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="w">  </span><span class="sd">&quot;&quot;&quot;Calculate the slope of linear regression over a rolling window.</span>
@@ -128,7 +128,7 @@
         <div class="decorator decorator-validate">@validate</div>
 
         <span class="def">def</span>
-        <span class="name">slope</span><span class="signature pdoc-code multiline">(<span class="param">	data: Annotated[pandas.core.series.Series, &lt;class &#x27;datawarden.validators.value.Finite&#x27;&gt;, &lt;class &#x27;datawarden.validators.value.NonEmpty&#x27;&gt;],</span><span class="param">	window: Annotated[int, &lt;class &#x27;nonfig.models.HyperMarker&#x27;&gt;, Ge(ge=2)] = 20</span><span class="return-annotation">) -> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>:</span></span>
+        <span class="name">slope</span><span class="signature pdoc-code multiline">(<span class="param">	data: Annotated[pandas.core.series.Series, &lt;class &#x27;datawarden.validators.value.Finite&#x27;&gt;, &lt;class &#x27;datawarden.validators.value.NotEmpty&#x27;&gt;],</span><span class="param">	window: Annotated[int, &lt;class &#x27;nonfig.models.HyperMarker&#x27;&gt;, Ge(ge=2)] = 20</span><span class="return-annotation">) -> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>:</span></span>
 
                 <label class="view-source-button" for="slope-view-source"><span>View Source</span></label>
 
@@ -137,7 +137,7 @@
             <div class="pdoc-code codehilite"><pre><span></span><span id="slope-27"><a href="#slope-27"><span class="linenos">27</span></a><span class="nd">@configurable</span>
 </span><span id="slope-28"><a href="#slope-28"><span class="linenos">28</span></a><span class="nd">@validate</span>
 </span><span id="slope-29"><a href="#slope-29"><span class="linenos">29</span></a><span class="k">def</span><span class="w"> </span><span class="nf">slope</span><span class="p">(</span>
-</span><span id="slope-30"><a href="#slope-30"><span class="linenos">30</span></a>  <span class="n">data</span><span class="p">:</span> <span class="n">Validated</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Finite</span><span class="p">,</span> <span class="n">NonEmpty</span><span class="p">],</span>
+</span><span id="slope-30"><a href="#slope-30"><span class="linenos">30</span></a>  <span class="n">data</span><span class="p">:</span> <span class="n">Validated</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Finite</span><span class="p">,</span> <span class="n">NotEmpty</span><span class="p">],</span>
 </span><span id="slope-31"><a href="#slope-31"><span class="linenos">31</span></a>  <span class="n">window</span><span class="p">:</span> <span class="n">Hyper</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Ge</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
 </span><span id="slope-32"><a href="#slope-32"><span class="linenos">32</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
 </span><span id="slope-33"><a href="#slope-33"><span class="linenos">33</span></a><span class="w">  </span><span class="sd">&quot;&quot;&quot;Calculate the slope of linear regression over a rolling window.</span>

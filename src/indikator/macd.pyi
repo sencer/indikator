@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, NonEmpty, Validated
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -17,7 +17,7 @@ class _macd_Bound(Protocol):
   def slow_period(self) -> int: ...
   @property
   def signal_period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NonEmpty]) -> pd.DataFrame: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.DataFrame: ...
 
 class _macd_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for macd.
@@ -116,7 +116,7 @@ class macd:
   signal_period: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NonEmpty],
+    data: Validated[pd.Series, Finite, NotEmpty],
     fast_period: int = ...,
     slow_period: int = ...,
     signal_period: int = ...,

@@ -11,8 +11,8 @@ from datawarden import (
   Finite,
   Ge as ColsGe,
   HasColumns,
-  NonEmpty,
   NonNegative,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -32,10 +32,10 @@ def churn_factor(
   data: Validated[
     pd.DataFrame,
     HasColumns(["high", "low", "volume"]),
-    ColsGe("high", "low"),
     NonNegative,
     Finite,
-    NonEmpty,
+    ColsGe("high", "low"),
+    NotEmpty,
   ],
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
   fill_strategy: Literal["zero", "nan", "forward_fill"] = "zero",

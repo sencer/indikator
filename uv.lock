@@ -516,7 +516,7 @@ wheels = [
 
 [[package]]
 name = "datawarden"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "../datawarden" }
 dependencies = [
     { name = "loguru" },
@@ -528,15 +528,24 @@ dependencies = [
 requires-dist = [
     { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.31.7" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=0.10.0" },
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.90.0" },
     { name = "loguru", specifier = ">=0.7.0" },
+    { name = "mkdocs", marker = "extra == 'dev'", specifier = ">=1.5.0" },
+    { name = "mkdocs-material", marker = "extra == 'dev'", specifier = ">=9.4.0" },
+    { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'", specifier = ">=0.23.0" },
+    { name = "numba", marker = "extra == 'numba'", specifier = ">=0.59.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "pandas", specifier = ">=2.0.0" },
+    { name = "pandas-stubs", marker = "extra == 'dev'", specifier = ">=2.0.0" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.5.0" },
+    { name = "pyarrow", marker = "extra == 'dev'", specifier = ">=14.0.0" },
+    { name = "pyarrow", marker = "extra == 'pyarrow'", specifier = ">=14.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
     { name = "twine", marker = "extra == 'dev'", specifier = ">=4.0.0" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["numba", "pyarrow", "dev"]
 
 [[package]]
 name = "debugpy"
@@ -1647,7 +1656,7 @@ wheels = [
 
 [[package]]
 name = "nonfig"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "../nonfig" }
 dependencies = [
     { name = "annotated-types" },
@@ -1658,15 +1667,25 @@ dependencies = [
 requires-dist = [
     { name = "annotated-types", specifier = ">=0.6.0" },
     { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.31.7" },
+    { name = "beartype", marker = "extra == 'dev'", specifier = ">=0.15.0" },
+    { name = "flax", marker = "extra == 'dev'", specifier = ">=0.7.0" },
+    { name = "jax", marker = "extra == 'dev'", specifier = ">=0.4.0" },
+    { name = "jaxlib", marker = "extra == 'dev'", specifier = ">=0.4.0" },
+    { name = "jaxtyping", marker = "extra == 'dev'", specifier = ">=0.2.0" },
+    { name = "mkdocs-material", marker = "extra == 'dev'", specifier = ">=9.6.0" },
+    { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'", specifier = ">=0.28.0" },
     { name = "numpy", marker = "extra == 'dev'", specifier = ">=2.3.5" },
     { name = "pandas", marker = "extra == 'dev'", specifier = ">=2.3.3" },
     { name = "pandas-stubs", marker = "extra == 'dev'", specifier = ">=2.0.0" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
+    { name = "pyyaml", marker = "extra == 'dev'", specifier = ">=6.0.0" },
+    { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["dev", "yaml"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "flowmark", specifier = ">=0.5.7" }]

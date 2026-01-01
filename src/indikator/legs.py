@@ -7,8 +7,8 @@ against the trend) and trend changes (structure breaks).
 
 from datawarden import (
   Finite,
-  NonEmpty,
-  NonNaN,
+  NotEmpty,
+  NotIsNaN,
   Validated,
   validate,
 )
@@ -22,7 +22,7 @@ from indikator._legs_numba import compute_zigzag_legs_numba
 @configurable
 @validate
 def zigzag_legs(
-  data: Validated[pd.Series, Finite, NonEmpty, NonNaN],
+  data: Validated[pd.Series, Finite, NotEmpty, NotIsNaN],
   threshold: Hyper[float, Ge[0.0], Le[1.0]] = 0.01,
   min_distance_pct: Hyper[float, Ge[0.0], Le[1.0]] = 0.005,
   confirmation_bars: Hyper[int, Ge[0]] = 2,

@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, NonEmpty, Validated
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -15,7 +15,7 @@ class _rsi_Bound(Protocol):
   def window(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NonEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _rsi_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rsi.
@@ -106,7 +106,7 @@ class rsi:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NonEmpty],
+    data: Validated[pd.Series, Finite, NotEmpty],
     window: int = ...,
     epsilon: float = ...,
   ) -> pd.Series: ...

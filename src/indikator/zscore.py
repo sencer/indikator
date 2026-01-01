@@ -8,7 +8,7 @@ from datawarden import (
   Datetime,
   Finite,
   Index,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -23,7 +23,7 @@ from indikator._intraday import intraday_stats
 @configurable
 @validate
 def zscore(
-  data: Validated[pd.Series, Finite, NonEmpty],
+  data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
@@ -64,7 +64,7 @@ def zscore(
 @configurable
 @validate
 def zscore_intraday(
-  data: Validated[pd.Series, Finite, Index(Datetime), NonEmpty],
+  data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,

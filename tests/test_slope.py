@@ -48,7 +48,7 @@ class TestBasicFunctionality:
 
   def test_empty_dataframe_returns_empty_series(self) -> None:
     """Should raise ValueError if input is empty."""
-    with pytest.raises(ValueError, match="Data must not be empty"):
+    with pytest.raises(ValueError, match="non-empty"):
       slope(pd.Series(dtype=float))
 
 

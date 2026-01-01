@@ -10,7 +10,7 @@ from typing import Literal, cast
 from datawarden import (
   Datetime,
   Index,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -43,7 +43,7 @@ def _get_lookback_data(
 
 @validate
 def intraday_aggregate(
-  data: Validated[pd.Series, Index(Datetime), NonEmpty],
+  data: Validated[pd.Series, Index(Datetime), NotEmpty],
   agg_func: AggFunc | Callable[[pd.Series], float],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
@@ -89,7 +89,7 @@ def intraday_aggregate(
 
 @validate
 def intraday_stats(
-  data: Validated[pd.Series, Index(Datetime), NonEmpty],
+  data: Validated[pd.Series, Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
 ) -> tuple[pd.Series, pd.Series]:

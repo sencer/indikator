@@ -11,7 +11,7 @@ from datawarden import (
   Ge as GeValidator,
   HasColumns,
   Index,
-  NonEmpty,
+  NotEmpty,
   Validated,
 )
 from nonfig import MakeableModel as _NCMakeableModel
@@ -27,9 +27,9 @@ class _opening_range_Bound(Protocol):
       pd.DataFrame,
       HasColumns(["high", "low", "close"]),
       Index(Datetime),
-      GeValidator("high", "low"),
       Finite,
-      NonEmpty,
+      GeValidator("high", "low"),
+      NotEmpty,
     ],
     session_start: str = ...,
   ) -> pd.DataFrame: ...
@@ -125,9 +125,9 @@ class opening_range:
       pd.DataFrame,
       HasColumns(["high", "low", "close"]),
       Index(Datetime),
-      GeValidator("high", "low"),
       Finite,
-      NonEmpty,
+      GeValidator("high", "low"),
+      NotEmpty,
     ],
     session_start: str = ...,
     minutes: int = ...,

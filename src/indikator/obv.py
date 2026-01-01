@@ -7,7 +7,7 @@ that relates volume to price change.
 from datawarden import (
   Finite,
   HasColumns,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -21,7 +21,7 @@ from indikator._obv_numba import compute_obv_numba
 @configurable
 @validate
 def obv(
-  data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
+  data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NotEmpty],
 ) -> pd.Series:
   """Calculate On-Balance Volume (OBV).
 

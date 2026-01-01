@@ -11,7 +11,7 @@ from datawarden import (
   Ge as GeValidator,
   HasColumns,
   Index,
-  NonEmpty,
+  NotEmpty,
   Validated,
 )
 from nonfig import MakeableModel as _NCMakeableModel
@@ -25,9 +25,9 @@ class _vwap_Bound(Protocol):
       pd.DataFrame,
       HasColumns(["high", "low", "close", "volume"]),
       Index(Datetime),
-      GeValidator("high", "low"),
       Finite,
-      NonEmpty,
+      GeValidator("high", "low"),
+      NotEmpty,
     ],
     session_freq: Literal["D", "W", "ME"] = ...,
   ) -> pd.Series: ...
@@ -94,9 +94,9 @@ class vwap:
       pd.DataFrame,
       HasColumns(["high", "low", "close", "volume"]),
       Index(Datetime),
-      GeValidator("high", "low"),
       Finite,
-      NonEmpty,
+      GeValidator("high", "low"),
+      NotEmpty,
     ],
     session_freq: Literal["D", "W", "ME"] = ...,
   ) -> pd.Series: ...
@@ -106,7 +106,7 @@ class _vwap_anchored_Bound(Protocol):
   def __call__(
     self,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NonEmpty
+      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NotEmpty
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
@@ -175,7 +175,7 @@ class vwap_anchored:
   def __new__(
     cls,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NonEmpty
+      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NotEmpty
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,

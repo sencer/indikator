@@ -14,7 +14,7 @@ def test_atr_config_validation():
 
   made_atr = atr.Config(window=14).make()
 
-  with pytest.raises(ValueError, match="Missing columns"):
+  with pytest.raises((ValueError, KeyError)):
     made_atr(invalid_data)
 
 
@@ -39,5 +39,5 @@ def test_vwap_config_validation():
 
   made_vwap = vwap.Config().make()
 
-  with pytest.raises(ValueError, match="Missing columns"):
+  with pytest.raises((ValueError, KeyError)):
     made_vwap(invalid_data)

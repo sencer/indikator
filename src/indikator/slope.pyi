@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, NonEmpty, Validated
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -13,7 +13,7 @@ class _slope_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def window(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NonEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _slope_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for slope.
@@ -65,5 +65,5 @@ class slope:
   ConfigDict = _slope_ConfigDict
   window: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NonEmpty], window: int = ...
+    cls, data: Validated[pd.Series, Finite, NotEmpty], window: int = ...
   ) -> pd.Series: ...

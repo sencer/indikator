@@ -69,7 +69,7 @@ class TestOBV:
     """Test OBV with empty dataframe."""
     data = pd.DataFrame(columns=["close", "volume"]).astype(float)
 
-    with pytest.raises(ValueError, match="Data must not be empty"):
+    with pytest.raises(ValueError, match="non-empty"):
       obv(data)
 
   def test_obv_validation_missing_columns(self):

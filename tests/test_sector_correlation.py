@@ -40,7 +40,7 @@ class TestBasicFunctionality:
 
   def test_empty_series_returns_empty(self) -> None:
     """Should raise ValueError if input Series is empty."""
-    with pytest.raises(ValueError, match="Data must not be empty"):
+    with pytest.raises(ValueError, match="non-empty"):
       sector_correlation(pd.Series(dtype=float))
 
 
@@ -124,7 +124,7 @@ class TestMissingDataHandling:
     stock_data = pd.Series([100.0, 101.0, 102.0])
     empty_sector = pd.Series(dtype=float)
 
-    with pytest.raises(ValueError, match="Data must not be empty"):
+    with pytest.raises(ValueError, match="non-empty"):
       sector_correlation(stock_data, empty_sector)
 
   def test_insufficient_window_data_returns_default(self) -> None:

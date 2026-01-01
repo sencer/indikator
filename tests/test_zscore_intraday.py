@@ -113,7 +113,7 @@ class TestZScoreIntraday:
   def test_empty_dataframe(self) -> None:
     """Empty input should raise ValueError."""
     empty_data = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
-    with pytest.raises(ValueError, match="Data must not be empty"):
+    with pytest.raises(ValueError, match="non-empty"):
       zscore_intraday(empty_data)
 
   def test_zero_std_protection(self):

@@ -6,7 +6,7 @@ to measure how closely the stock moves with the broader sector.
 
 from datawarden import (
   Finite,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -19,8 +19,8 @@ from indikator._constants import MAX_NAN_RATIO
 @configurable
 @validate
 def sector_correlation(
-  stock_data: Validated[pd.Series, Finite, NonEmpty],
-  sector_data: Validated[pd.Series, Finite, NonEmpty] | None = None,
+  stock_data: Validated[pd.Series, Finite, NotEmpty],
+  sector_data: Validated[pd.Series, Finite, NotEmpty] | None = None,
   *,
   window: Hyper[int, Ge[2]] = 20,
   default_value: Hyper[float, Ge[-1.0], Le[1.0]] = 0.0,

@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import Protocol, TypedDict
 
-from datawarden import Finite, HasColumns, NonEmpty, Validated
+from datawarden import Finite, HasColumns, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -13,7 +13,7 @@ class _obv_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
+    data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _obv_ConfigDict(TypedDict, total=False):
@@ -84,5 +84,5 @@ class obv:
   ConfigDict = _obv_ConfigDict
   def __new__(
     cls,
-    data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NonEmpty],
+    data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NotEmpty],
   ) -> pd.Series: ...

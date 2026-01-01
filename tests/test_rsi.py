@@ -70,7 +70,7 @@ class TestRSI:
     def test_rsi_empty_data(self) -> None:  # noqa: ARG001
       """Should raise ValueError when data is empty."""
       empty_data = pd.Series([], dtype=float)
-      with pytest.raises(ValueError, match="Data must not be empty"):
+      with pytest.raises(ValueError, match="non-empty"):
         rsi(empty_data)
 
   def test_rsi_insufficient_data(self):

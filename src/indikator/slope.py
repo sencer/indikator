@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 
 from datawarden import (
   Finite,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -26,7 +26,7 @@ from indikator._slope_numba import compute_slope_numba
 @configurable
 @validate
 def slope(
-  data: Validated[pd.Series, Finite, NonEmpty],
+  data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
 ) -> pd.Series:
   """Calculate the slope of linear regression over a rolling window.

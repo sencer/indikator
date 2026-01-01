@@ -10,7 +10,7 @@ from datawarden import (
   Finite,
   HasColumns,
   Index,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -26,7 +26,7 @@ from indikator._intraday import intraday_aggregate
 @configurable
 @validate
 def atr(
-  data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NonEmpty],
+  data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NotEmpty],
   window: Hyper[int, Ge[1]] = 14,
 ) -> pd.Series:
   """Calculate Average True Range (ATR).
@@ -95,7 +95,7 @@ def atr_intraday(
     HasColumns(["high", "low", "close"]),
     Finite,
     Index(Datetime),
-    NonEmpty,
+    NotEmpty,
   ],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,

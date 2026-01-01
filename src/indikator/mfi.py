@@ -8,7 +8,7 @@ from datawarden import (
   Finite,
   Ge as GeValidator,
   HasColumns,
-  NonEmpty,
+  NotEmpty,
   Validated,
   validate,
 )
@@ -26,9 +26,9 @@ def mfi(
   data: Validated[
     pd.DataFrame,
     HasColumns(["high", "low", "close", "volume"]),
-    GeValidator("high", "low"),
     Finite,
-    NonEmpty,
+    GeValidator("high", "low"),
+    NotEmpty,
   ],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,

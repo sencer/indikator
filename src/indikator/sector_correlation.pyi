@@ -5,7 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import Protocol, TypedDict
 
-from datawarden import Finite, NonEmpty, Validated
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -13,8 +13,8 @@ class _sector_correlation_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    stock_data: Validated[pd.Series, Finite, NonEmpty],
-    sector_data: Validated[pd.Series, Finite, NonEmpty] | None = ...,
+    stock_data: Validated[pd.Series, Finite, NotEmpty],
+    sector_data: Validated[pd.Series, Finite, NotEmpty] | None = ...,
   ) -> pd.Series: ...
 
 class _sector_correlation_ConfigDict(TypedDict, total=False):
@@ -51,6 +51,6 @@ class sector_correlation:
   ConfigDict = _sector_correlation_ConfigDict
   def __new__(
     cls,
-    stock_data: Validated[pd.Series, Finite, NonEmpty],
-    sector_data: Validated[pd.Series, Finite, NonEmpty] | None = ...,
+    stock_data: Validated[pd.Series, Finite, NotEmpty],
+    sector_data: Validated[pd.Series, Finite, NotEmpty] | None = ...,
   ) -> pd.Series: ...
