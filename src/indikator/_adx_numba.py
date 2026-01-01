@@ -55,9 +55,6 @@ def compute_adx_numba(
   minus_dm = np.zeros(n)
   tr = np.zeros(n)
 
-  # Welles Wilder initialization
-  tr[0] = high[0] - low[0]
-
   # Calculate directional movements and true range
   for i in range(1, n):
     up_move = high[i] - high[i - 1]
@@ -84,21 +81,21 @@ def compute_adx_numba(
   smoothed_minus_dm = 0.0
   smoothed_tr = 0.0
 
-  for i in range(period):
+  for i in range(1, period + 1):
     smoothed_plus_dm += plus_dm[i]
     smoothed_minus_dm += minus_dm[i]
     smoothed_tr += tr[i]
 
-  # Calculate first DI values
+  # Calculate first DI values at index 'period'
   if smoothed_tr > 1e-10:
-    plus_di[period - 1] = 100.0 * smoothed_plus_dm / smoothed_tr
-    minus_di[period - 1] = 100.0 * smoothed_minus_dm / smoothed_tr
+    plus_di[period] = 100.0 * smoothed_plus_dm / smoothed_tr
+    minus_di[period] = 100.0 * smoothed_minus_dm / smoothed_tr
   else:
-    plus_di[period - 1] = 0.0
-    minus_di[period - 1] = 0.0
+    plus_di[period] = 0.0
+    minus_di[period] = 0.0
 
   # Continue smoothing using Wilder's method
-  for i in range(period, n):
+  for i in range(period + 1, n):
     smoothed_plus_dm = smoothed_plus_dm - (smoothed_plus_dm / period) + plus_dm[i]
     smoothed_minus_dm = smoothed_minus_dm - (smoothed_minus_dm / period) + minus_dm[i]
     smoothed_tr = smoothed_tr - (smoothed_tr / period) + tr[i]
@@ -112,14 +109,14 @@ def compute_adx_numba(
 
   # Calculate DX and ADX
   dx = np.zeros(n)
-  for i in range(period - 1, n):
+  for i in range(period, n):
     di_sum = plus_di[i] + minus_di[i]
     if di_sum > 1e-10:
       dx[i] = 100.0 * abs(plus_di[i] - minus_di[i]) / di_sum
     else:
       dx[i] = 0.0
 
-  # First ADX is average of first 'period' DX values starting from index period-1
+  # First ADX is average of first 'period' DX values
   if n >= period * 2:
     adx_sum = 0.0
     for i in range(period, period * 2):
