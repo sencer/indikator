@@ -9,6 +9,8 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import ADXResult
+
 class _adx_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
@@ -18,7 +20,7 @@ class _adx_Bound(Protocol):
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.DataFrame: ...
+  ) -> ADXResult: ...
 
 class _adx_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for adx.
@@ -110,4 +112,4 @@ class adx:
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
     period: int = ...,
-  ) -> pd.DataFrame: ...
+  ) -> ADXResult: ...

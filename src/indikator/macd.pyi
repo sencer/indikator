@@ -9,6 +9,8 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import MACDResult
+
 class _macd_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
@@ -17,7 +19,7 @@ class _macd_Bound(Protocol):
   def slow_period(self) -> int: ...
   @property
   def signal_period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.DataFrame: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MACDResult: ...
 
 class _macd_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for macd.
@@ -120,4 +122,4 @@ class macd:
     fast_period: int = ...,
     slow_period: int = ...,
     signal_period: int = ...,
-  ) -> pd.DataFrame: ...
+  ) -> MACDResult: ...

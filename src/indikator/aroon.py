@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._aroon_numba import compute_aroon_numba
+from indikator._results import AROONResult
 
 
 @configurable
@@ -28,7 +29,7 @@ def aroon(
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 25,
-) -> pd.DataFrame:
+) -> AROONResult:
   """Calculate AROON indicator.
 
   AROON measures trend strength by tracking how many periods since
@@ -83,11 +84,4 @@ def aroon(
   # Calculate AROON using Numba-optimized function
   aroon_up, aroon_down, aroon_osc = compute_aroon_numba(high_vals, low_vals, period)
 
-  return pd.DataFrame(
-    {
-      "aroon_up": aroon_up,
-      "aroon_down": aroon_down,
-      "aroon_osc": aroon_osc,
-    },
-    index=high.index,
-  )
+  return AROONResult(aroon_up, aroon_down, aroon_osc, high.index)

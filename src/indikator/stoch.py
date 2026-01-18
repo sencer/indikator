@@ -19,6 +19,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._results import StochResult
 from indikator._stoch_numba import compute_stoch_numba
 
 
@@ -31,7 +32,7 @@ def stoch(  # noqa: PLR0913, PLR0917
   k_period: Hyper[int, Ge[2]] = 14,
   k_slowing: Hyper[int, Ge[1]] = 3,
   d_period: Hyper[int, Ge[1]] = 3,
-) -> pd.DataFrame:
+) -> StochResult:
   """Calculate Stochastic Oscillator.
 
   The Stochastic Oscillator is a momentum indicator comparing closing price
@@ -96,7 +97,4 @@ def stoch(  # noqa: PLR0913, PLR0917
     high_arr, low_arr, close_arr, k_period, k_slowing, d_period
   )
 
-  return pd.DataFrame(
-    {"stoch_k": stoch_k, "stoch_d": stoch_d},
-    index=close.index,
-  )
+  return StochResult(stoch_k, stoch_d, close.index)

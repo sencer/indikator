@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from indikator._results import BollingerResult  # noqa: PLC2701
 from indikator.bollinger import bollinger_bands
 
 
@@ -52,14 +53,10 @@ class TestBollingerBands:
 
     # Check upper band >= middle band (where both are not NaN)
     valid_mask = result["bb_upper"].notna() & result["bb_middle"].notna()
-    assert (
-      result.loc[valid_mask, "bb_upper"] >= result.loc[valid_mask, "bb_middle"]
-    ).all()
+    assert (result["bb_upper"][valid_mask] >= result["bb_middle"][valid_mask]).all()
 
     # Check lower band <= middle band (where both are not NaN)
-    assert (
-      result.loc[valid_mask, "bb_lower"] <= result.loc[valid_mask, "bb_middle"]
-    ).all()
+    assert (result["bb_lower"][valid_mask] <= result["bb_middle"][valid_mask]).all()
 
   def test_bollinger_dataframe(self):
     """Test Bollinger Bands with DataFrame input."""
@@ -69,7 +66,8 @@ class TestBollingerBands:
     })
     # Pass Series directly
     result = bollinger_bands(data["close"], window=5, num_std=2.0)
-    assert isinstance(result, pd.DataFrame)
+
+    assert isinstance(result, BollingerResult)
     assert "bb_middle" in result.columns
 
   def test_bollinger_percent_b(self):

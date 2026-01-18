@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._adx_numba import compute_adx_numba
+from indikator._results import ADXResult
 
 
 @configurable
@@ -29,7 +30,7 @@ def adx(
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> pd.DataFrame:
+) -> ADXResult:
   """Calculate Average Directional Index (ADX).
 
   ADX measures trend strength regardless of direction. It's derived from
@@ -101,7 +102,4 @@ def adx(
     high_arr, low_arr, close_arr, period
   )
 
-  return pd.DataFrame(
-    {"adx": adx_values, "plus_di": plus_di, "minus_di": minus_di},
-    index=close.index,
-  )
+  return ADXResult(adx_values, plus_di, minus_di, close.index)

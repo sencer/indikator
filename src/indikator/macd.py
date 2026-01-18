@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._macd_numba import compute_macd_numba
+from indikator._results import MACDResult
 
 
 @configurable
@@ -29,7 +30,7 @@ def macd(
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   signal_period: Hyper[int, Ge[1]] = 9,
-) -> pd.DataFrame:
+) -> MACDResult:
   """Calculate MACD (Moving Average Convergence Divergence).
 
   MACD is a trend-following momentum indicator that shows the relationship
@@ -96,8 +97,4 @@ def macd(
     values, fast_period, slow_period, signal_period
   )
 
-  # Create result dataframe
-  return pd.DataFrame(
-    {"macd": macd_line, "macd_signal": signal_line, "macd_histogram": histogram},
-    index=data.index,
-  )
+  return MACDResult(macd_line, signal_line, histogram, data.index)

@@ -9,6 +9,8 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import AROONResult
+
 class _aroon_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
@@ -17,7 +19,7 @@ class _aroon_Bound(Protocol):
     self,
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.DataFrame: ...
+  ) -> AROONResult: ...
 
 class _aroon_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for aroon.
@@ -97,4 +99,4 @@ class aroon:
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     period: int = ...,
-  ) -> pd.DataFrame: ...
+  ) -> AROONResult: ...

@@ -14,6 +14,8 @@ from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
 
+from indikator._results import BollingerResult
+
 
 @configurable
 @validate
@@ -21,7 +23,7 @@ def bollinger_bands(
   data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
   num_std: Hyper[float, Gt[0.0]] = 2.0,
-) -> pd.DataFrame:
+) -> BollingerResult:
   """Calculate Bollinger Bands.
 
   Bollinger Bands consist of a middle band (SMA) and two outer bands that
@@ -97,14 +99,11 @@ def bollinger_bands(
     np.nan,  # NaN when bands collapse (no range to measure)
   )
 
-  # Create result dataframe
-  return pd.DataFrame(
-    {
-      "bb_middle": middle,
-      "bb_upper": upper,
-      "bb_lower": lower,
-      "bb_bandwidth": bandwidth,
-      "bb_percent": percent_b,
-    },
-    index=data.index,
+  return BollingerResult(
+    middle.values,
+    upper.values,
+    lower.values,
+    bandwidth if isinstance(bandwidth, np.ndarray) else np.array(bandwidth),
+    percent_b if isinstance(percent_b, np.ndarray) else np.array(percent_b),
+    data.index,
   )

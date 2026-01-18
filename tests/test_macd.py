@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from indikator._results import MACDResult  # noqa: PLC2701
 from indikator.macd import macd
 
 # Try to import talib for comparison tests
@@ -28,8 +29,8 @@ class TestMACD:
 
     # Check columns
     assert "macd" in result.columns
-    assert "macd_signal" in result.columns
-    assert "macd_histogram" in result.columns
+    assert "signal" in result.columns
+    assert "histogram" in result.columns
 
     # Check shape
     assert len(result) == len(prices)
@@ -58,7 +59,8 @@ class TestMACD:
     })
     # Pass Series directly
     result = macd(data["close"])
-    assert isinstance(result, pd.DataFrame)
+
+    assert isinstance(result, MACDResult)
     assert "macd" in result.columns
 
   def test_macd_validation_fast_slow(self):
@@ -82,13 +84,10 @@ class TestMACD:
 
     result = macd(prices, fast_period=5, slow_period=10, signal_period=3)
 
-    # Histogram should equal MACD - Signal (where both are not NaN)
     valid_mask = result["macd"].notna() & result["macd_signal"].notna()
-    expected_histogram = (
-      result.loc[valid_mask, "macd"] - result.loc[valid_mask, "macd_signal"]
-    )
+    expected_histogram = result["macd"][valid_mask] - result["macd_signal"][valid_mask]
     pd.testing.assert_series_equal(
-      result.loc[valid_mask, "macd_histogram"],
+      result["macd_histogram"][valid_mask],
       expected_histogram,
       check_names=False,
       atol=1e-10,

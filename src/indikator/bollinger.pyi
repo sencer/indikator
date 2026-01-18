@@ -9,13 +9,17 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import BollingerResult
+
 class _bollinger_bands_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def window(self) -> int: ...
   @property
   def num_std(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.DataFrame: ...
+  def __call__(
+    self, data: Validated[pd.Series, Finite, NotEmpty]
+  ) -> BollingerResult: ...
 
 class _bollinger_bands_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for bollinger_bands.
@@ -111,4 +115,4 @@ class bollinger_bands:
     data: Validated[pd.Series, Finite, NotEmpty],
     window: int = ...,
     num_std: float = ...,
-  ) -> pd.DataFrame: ...
+  ) -> BollingerResult: ...

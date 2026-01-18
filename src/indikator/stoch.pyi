@@ -9,6 +9,8 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import StochResult
+
 class _stoch_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
@@ -22,7 +24,7 @@ class _stoch_Bound(Protocol):
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.DataFrame: ...
+  ) -> StochResult: ...
 
 class _stoch_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for stoch.
@@ -123,4 +125,4 @@ class stoch:
     k_period: int = ...,
     k_slowing: int = ...,
     d_period: int = ...,
-  ) -> pd.DataFrame: ...
+  ) -> StochResult: ...
