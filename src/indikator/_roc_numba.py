@@ -13,6 +13,8 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-10  # Minimum denominator value
+
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_roc_numba(
@@ -38,7 +40,7 @@ def compute_roc_numba(
 
   for i in range(period, n):
     prev_price = prices[i - period]
-    if abs(prev_price) > 1e-10:
+    if abs(prev_price) > EPSILON:
       roc[i] = ((prices[i] - prev_price) / prev_price) * 100.0
     else:
       roc[i] = 0.0

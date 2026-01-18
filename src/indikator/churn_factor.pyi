@@ -5,14 +5,7 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Literal, Protocol, TypedDict, override
 
-from datawarden import (
-  Finite,
-  Ge as ColsGe,
-  HasColumns,
-  NonNegative,
-  NotEmpty,
-  Validated,
-)
+from datawarden import Finite, Ge as ColsGe, HasColumns, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -25,7 +18,6 @@ class _churn_factor_Bound(Protocol):
     data: Validated[
       pd.DataFrame,
       HasColumns(["high", "low", "volume"]),
-      NonNegative,
       Finite,
       ColsGe("high", "low"),
       NotEmpty,
@@ -88,7 +80,6 @@ class churn_factor:
     data: Validated[
       pd.DataFrame,
       HasColumns(["high", "low", "volume"]),
-      NonNegative,
       Finite,
       ColsGe("high", "low"),
       NotEmpty,

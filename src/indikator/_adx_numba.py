@@ -14,9 +14,11 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-10  # Minimum denominator value
+
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
-def compute_adx_numba(
+def compute_adx_numba(  # noqa: C901, PLR0912, PLR0914, PLR0915
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
@@ -98,7 +100,7 @@ def compute_adx_numba(
   smoothed_tr = smoothed_tr - smoothed_tr / period + tr[period]
 
   # First DI at index 'period'
-  if smoothed_tr > 1e-10:
+  if smoothed_tr > EPSILON:
     plus_di[period] = 100.0 * smoothed_plus_dm / smoothed_tr
     minus_di[period] = 100.0 * smoothed_minus_dm / smoothed_tr
   else:
@@ -111,7 +113,7 @@ def compute_adx_numba(
     smoothed_minus_dm = smoothed_minus_dm - smoothed_minus_dm / period + minus_dm[i]
     smoothed_tr = smoothed_tr - smoothed_tr / period + tr[i]
 
-    if smoothed_tr > 1e-10:
+    if smoothed_tr > EPSILON:
       plus_di[i] = 100.0 * smoothed_plus_dm / smoothed_tr
       minus_di[i] = 100.0 * smoothed_minus_dm / smoothed_tr
     else:
@@ -122,7 +124,7 @@ def compute_adx_numba(
   dx = np.zeros(n)
   for i in range(period, n):
     di_sum = plus_di[i] + minus_di[i]
-    if di_sum > 1e-10:
+    if di_sum > EPSILON:
       dx[i] = 100.0 * abs(plus_di[i] - minus_di[i]) / di_sum
     else:
       dx[i] = 0.0

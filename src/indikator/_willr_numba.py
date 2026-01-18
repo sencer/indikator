@@ -13,6 +13,8 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-10  # Minimum denominator value
+
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_willr_numba(
@@ -50,7 +52,7 @@ def compute_willr_numba(
       lowest_low = min(lowest_low, low[j])
 
     range_hl = highest_high - lowest_low
-    if range_hl > 1e-10:
+    if range_hl > EPSILON:
       willr[i] = -100.0 * (highest_high - close[i]) / range_hl
     else:
       willr[i] = -50.0  # Neutral if no range

@@ -13,6 +13,8 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-10  # Minimum denominator value
+
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_cci_numba(
@@ -67,7 +69,7 @@ def compute_cci_numba(
     mean_deviation = md_sum / period
 
     # Calculate CCI
-    if mean_deviation > 1e-10:
+    if mean_deviation > EPSILON:
       cci[i] = (tp[i] - sma) / (0.015 * mean_deviation)
     else:
       cci[i] = 0.0

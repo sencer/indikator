@@ -14,6 +14,8 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-10  # Minimum denominator value
+
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_cmo_numba(
@@ -67,7 +69,7 @@ def compute_cmo_numba(
 
   # First CMO
   total = avg_gain + avg_loss
-  if total > 1e-10:
+  if total > EPSILON:
     cmo[period] = 100.0 * (avg_gain - avg_loss) / total
   else:
     cmo[period] = 0.0
@@ -78,7 +80,7 @@ def compute_cmo_numba(
     avg_loss = (avg_loss * (period - 1) + losses[i]) / period
 
     total = avg_gain + avg_loss
-    if total > 1e-10:
+    if total > EPSILON:
       cmo[i] = 100.0 * (avg_gain - avg_loss) / total
     else:
       cmo[i] = 0.0

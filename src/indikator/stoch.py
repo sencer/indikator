@@ -24,7 +24,7 @@ from indikator._stoch_numba import compute_stoch_numba
 
 @configurable
 @validate
-def stoch(
+def stoch(  # noqa: PLR0913, PLR0917
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],

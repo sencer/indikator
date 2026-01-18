@@ -13,9 +13,11 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-10  # Minimum denominator value
+
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
-def compute_stoch_numba(
+def compute_stoch_numba(  # noqa: C901, PLR0913, PLR0917
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
@@ -57,7 +59,7 @@ def compute_stoch_numba(
       lowest_low = min(lowest_low, low[j])
 
     range_hl = highest_high - lowest_low
-    if range_hl > 1e-10:
+    if range_hl > EPSILON:
       raw_stoch[i] = 100.0 * (close[i] - lowest_low) / range_hl
     else:
       raw_stoch[i] = 50.0  # Neutral if no range
