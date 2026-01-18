@@ -39,7 +39,7 @@ class TestBasicFunctionality:
   def test_empty_series_returns_empty_series(self) -> None:
     """Empty input should raise ValueError."""
     empty_series = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       rvol(empty_series)
 
 

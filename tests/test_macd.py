@@ -6,6 +6,14 @@ import pytest
 
 from indikator.macd import macd
 
+# Try to import talib for comparison tests
+try:
+  import talib  # type: ignore[import-untyped]
+
+  HAS_TALIB = True
+except ImportError:
+  HAS_TALIB = False
+
 
 class TestMACD:
   """Tests for MACD indicator."""
@@ -13,7 +21,7 @@ class TestMACD:
   def test_macd_basic(self):
     """Test MACD basic calculation."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 4
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 4,
     )
 
     result = macd(prices, fast_period=5, slow_period=10, signal_period=3)
@@ -63,13 +71,13 @@ class TestMACD:
   def test_macd_empty_data(self) -> None:
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       macd(empty_data)
 
   def test_macd_histogram(self):
     """Test MACD histogram calculation."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 5
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 5,
     )
 
     result = macd(prices, fast_period=5, slow_period=10, signal_period=3)
@@ -99,3 +107,38 @@ class TestMACD:
 
     with pytest.raises(ValueError, match="must be finite"):
       macd(prices)
+
+  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+  def test_macd_matches_talib(self):
+    """Test MACD matches TA-Lib output."""
+    np.random.seed(42)
+    prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
+
+    result = macd(prices, fast_period=12, slow_period=26, signal_period=9)
+    talib_macd, talib_signal, talib_hist = talib.MACD(
+      prices.values, fastperiod=12, slowperiod=26, signalperiod=9
+    )
+
+    # Compare MACD line
+    valid_mask = result["macd"].notna() & ~np.isnan(talib_macd)
+    np.testing.assert_allclose(
+      result["macd"][valid_mask].values,
+      talib_macd[valid_mask],
+      rtol=1e-10,
+    )
+
+    # Compare signal line
+    valid_mask = result["macd_signal"].notna() & ~np.isnan(talib_signal)
+    np.testing.assert_allclose(
+      result["macd_signal"][valid_mask].values,
+      talib_signal[valid_mask],
+      rtol=1e-10,
+    )
+
+    # Compare histogram
+    valid_mask = result["macd_histogram"].notna() & ~np.isnan(talib_hist)
+    np.testing.assert_allclose(
+      result["macd_histogram"][valid_mask].values,
+      talib_hist[valid_mask],
+      rtol=1e-10,
+    )

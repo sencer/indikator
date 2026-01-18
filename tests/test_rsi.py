@@ -6,6 +6,14 @@ import pytest
 
 from indikator.rsi import rsi
 
+# Try to import talib for comparison tests
+try:
+  import talib  # type: ignore[import-untyped]
+
+  HAS_TALIB = True
+except ImportError:
+  HAS_TALIB = False
+
 
 class TestRSI:
   """Tests for RSI indicator."""
@@ -13,7 +21,7 @@ class TestRSI:
   def test_rsi_basic(self):
     """Test RSI basic calculation."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2,
     )
 
     result = rsi(prices, window=5)
@@ -70,7 +78,7 @@ class TestRSI:
     def test_rsi_empty_data(self) -> None:  # noqa: ARG001
       """Should raise ValueError when data is empty."""
       empty_data = pd.Series([], dtype=float)
-      with pytest.raises(ValueError, match="non-empty"):
+      with pytest.raises(ValueError, match="not empty"):
         rsi(empty_data)
 
   def test_rsi_insufficient_data(self):
@@ -84,7 +92,7 @@ class TestRSI:
   def test_rsi_window_parameter(self):
     """Test RSI with different window sizes."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
     result_short = rsi(prices, window=3)
@@ -99,3 +107,20 @@ class TestRSI:
 
     with pytest.raises(ValueError, match="must be finite"):
       rsi(prices)
+
+  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+  def test_rsi_matches_talib(self):
+    """Test RSI matches TA-Lib output."""
+    np.random.seed(42)
+    prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
+
+    result = rsi(prices, window=14)
+    expected = pd.Series(talib.RSI(prices.values, timeperiod=14))
+
+    # Compare non-NaN values (TA-Lib may have different NaN handling)
+    valid_mask = result.notna() & expected.notna()
+    np.testing.assert_allclose(
+      result[valid_mask].values,
+      expected[valid_mask].values,
+      rtol=1e-10,
+    )

@@ -21,7 +21,7 @@ class TestEMA:
   def test_ema_basic(self):
     """Test EMA basic calculation."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2,
     )
 
     result = ema(prices, period=5)
@@ -48,7 +48,7 @@ class TestEMA:
   def test_ema_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       ema(empty_data)
 
   def test_ema_insufficient_data(self):
@@ -62,7 +62,7 @@ class TestEMA:
   def test_ema_period_parameter(self):
     """Test EMA with different period sizes."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
     result_short = ema(prices, period=3)

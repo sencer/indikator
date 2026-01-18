@@ -178,7 +178,7 @@ class TestPivotPoints:
     data = pd.DataFrame(columns=["high", "low", "close"], dtype=float)
     data.index = pd.DatetimeIndex([])
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       pivot_points(data)
 
   def test_pivots_weekly_period(self):

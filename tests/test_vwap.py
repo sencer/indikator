@@ -128,7 +128,7 @@ class TestVWAP:
     data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)
     data.index = pd.DatetimeIndex([])
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       vwap(data)
 
   def test_vwap_requires_datetime_index(self):
@@ -249,7 +249,7 @@ class TestVWAPAnchored:
     """Test anchored VWAP with empty dataframe."""
     data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       vwap_anchored(data, anchor_index=0)
 
   def test_vwap_weekly_session(self):

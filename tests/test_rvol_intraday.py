@@ -39,7 +39,7 @@ class TestIntradayAggregate:
           120,
           240,
           360,  # Day 3: same times
-        ]
+        ],
       },
       index=dates,
     )
@@ -72,10 +72,14 @@ class TestIntradayAggregate:
 
     # All same time (9:30), different days
     mean_result = intraday_aggregate(
-      data["volume"], agg_func=pd.Series.mean, min_samples=1
+      data["volume"],
+      agg_func=pd.Series.mean,
+      min_samples=1,
     )
     std_result = intraday_aggregate(
-      data["volume"], agg_func=pd.Series.std, min_samples=2
+      data["volume"],
+      agg_func=pd.Series.std,
+      min_samples=2,
     )
 
     # Mean should grow as we accumulate samples
@@ -87,7 +91,8 @@ class TestIntradayAggregate:
     assert pd.isna(std_result.iloc[0])
     assert pd.isna(std_result.iloc[1])  # Only 1 sample
     np.testing.assert_almost_equal(
-      std_result.iloc[2], np.std([100, 200], ddof=1)
+      std_result.iloc[2],
+      np.std([100, 200], ddof=1),
     )  # Std of [100, 200]
 
   def test_lookback_days(self):
@@ -112,14 +117,14 @@ class TestIntradayAggregate:
     """Test that non-DatetimeIndex raises error."""
     data = pd.DataFrame({"volume": [100, 200, 300]})  # Integer index
 
-    with pytest.raises(ValueError, match="Index must be DatetimeIndex"):
+    with pytest.raises(ValueError, match="datetime-like"):
       intraday_aggregate(data["volume"], agg_func=pd.Series.mean)
 
   def test_empty_dataframe(self):
     """Test empty DataFrame."""
     data = pd.DataFrame({"volume": []}, index=pd.DatetimeIndex([]))
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       intraday_aggregate(data["volume"], agg_func=pd.Series.mean)
 
 
@@ -152,7 +157,7 @@ class TestRvolIntraday:
           2000,
           4000,
           6000,  # Day 3: 2x spike
-        ]
+        ],
       },
       index=dates,
     )
@@ -187,7 +192,7 @@ class TestRvolIntraday:
           10000,
           1000,
           5000,  # Day 2: spike at open, normal lunch/close
-        ]
+        ],
       },
       index=dates,
     )
@@ -224,7 +229,7 @@ class TestRvolIntraday:
   def test_empty_dataframe(self) -> None:
     """Empty input should raise ValueError."""
     empty_data = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       rvol_intraday(empty_data)
 
   def test_division_by_zero_protection(self):
@@ -237,7 +242,7 @@ class TestRvolIntraday:
           0,
           100,
           200,
-        ]  # First two days zero, then normal
+        ],  # First two days zero, then normal
       },
       index=dates,
     )

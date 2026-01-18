@@ -36,7 +36,7 @@ class TestZScoreIntraday:
           105,
           120,
           115,  # Day 3: +5, +10, -5 deviations
-        ]
+        ],
       },
       index=dates,
     )
@@ -77,7 +77,7 @@ class TestZScoreIntraday:
           101,  # Day 2: Open varies (100->110), Lunch stable (100->101)
           120,
           102,  # Day 3
-        ]
+        ],
       },
       index=dates,
     )
@@ -107,13 +107,13 @@ class TestZScoreIntraday:
     """Test error with non-DatetimeIndex."""
     data = pd.DataFrame({"close": [100, 200, 300]})
 
-    with pytest.raises(ValueError, match="Index must be DatetimeIndex"):
+    with pytest.raises(ValueError, match="datetime-like"):
       zscore_intraday(data["close"])
 
   def test_empty_dataframe(self) -> None:
     """Empty input should raise ValueError."""
     empty_data = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       zscore_intraday(empty_data)
 
   def test_zero_std_protection(self):
@@ -121,7 +121,7 @@ class TestZScoreIntraday:
     dates = pd.date_range("2024-01-01 09:30", periods=3, freq="1D")
     data = pd.DataFrame(
       {
-        "close": [100, 100, 100]  # No variance
+        "close": [100, 100, 100],  # No variance
       },
       index=dates,
     )

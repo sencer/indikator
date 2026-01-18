@@ -1,9 +1,18 @@
 """Tests for MFI (Money Flow Index) indicator."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from indikator.mfi import mfi
+
+# Try to import talib for comparison tests
+try:
+  import talib  # type: ignore[import-untyped]
+
+  HAS_TALIB = True
+except ImportError:
+  HAS_TALIB = False
 
 
 class TestMFI:
@@ -103,7 +112,7 @@ class TestMFI:
     """Test MFI with empty dataframe."""
     data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       mfi(data)
 
   def test_mfi_validation_missing_columns(self):
@@ -131,3 +140,28 @@ class TestMFI:
 
     # Short window should have values earlier
     assert result_short.notna().sum() > result_long.notna().sum()
+
+  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+  def test_mfi_matches_talib(self):
+    """Test MFI matches TA-Lib output."""
+    np.random.seed(42)
+    n = 100
+    close = pd.Series(100.0 + np.cumsum(np.random.randn(n) * 0.5))
+    high = close + np.random.rand(n) * 2
+    low = close - np.random.rand(n) * 2
+    volume = pd.Series(1000.0 + np.random.rand(n) * 500)
+
+    data = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
+
+    result = mfi(data, window=14)
+    expected = pd.Series(
+      talib.MFI(high.values, low.values, close.values, volume.values, timeperiod=14),
+    )
+
+    # Compare non-NaN values
+    valid_mask = result.notna() & expected.notna()
+    np.testing.assert_allclose(
+      result[valid_mask].values,
+      expected[valid_mask].values,
+      rtol=1e-10,
+    )

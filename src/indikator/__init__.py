@@ -3,10 +3,12 @@
 __version__ = "0.2.0"
 
 from indikator.adx import adx
+from indikator.aroon import aroon
 from indikator.atr import atr, atr_intraday
 from indikator.bollinger import bollinger_bands
 from indikator.cci import cci
 from indikator.churn_factor import churn_factor
+from indikator.cmo import cmo
 from indikator.ema import ema
 from indikator.legs import zigzag_legs
 from indikator.macd import macd
@@ -21,17 +23,20 @@ from indikator.sector_correlation import sector_correlation
 from indikator.slope import slope
 from indikator.sma import sma
 from indikator.stoch import stoch
+from indikator.trix import trix
 from indikator.vwap import vwap, vwap_anchored
 from indikator.willr import willr
 from indikator.zscore import zscore, zscore_intraday
 
 __all__ = [
   "adx",
+  "aroon",
   "atr",
   "atr_intraday",
   "bollinger_bands",
   "cci",
   "churn_factor",
+  "cmo",
   "ema",
   "macd",
   "mfi",
@@ -46,6 +51,7 @@ __all__ = [
   "slope",
   "sma",
   "stoch",
+  "trix",
   "vwap",
   "vwap_anchored",
   "willr",

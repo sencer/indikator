@@ -1,9 +1,18 @@
 """Tests for ATR (Average True Range) indicator."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from indikator.atr import atr, atr_intraday
+
+# Try to import talib for comparison tests
+try:
+  import talib  # type: ignore[import-untyped]
+
+  HAS_TALIB = True
+except ImportError:
+  HAS_TALIB = False
 
 
 class TestATR:
@@ -114,6 +123,30 @@ class TestATR:
     # Short window should have values earlier
     assert result_short.notna().sum() > result_long.notna().sum()
 
+  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+  def test_atr_matches_talib(self):
+    """Test ATR matches TA-Lib output."""
+    np.random.seed(42)
+    n = 100
+    close = pd.Series(100.0 + np.cumsum(np.random.randn(n) * 0.5))
+    high = close + np.random.rand(n) * 2
+    low = close - np.random.rand(n) * 2
+
+    data = pd.DataFrame({"high": high, "low": low, "close": close})
+
+    result = atr(data, window=14)
+    expected = pd.Series(
+      talib.ATR(high.values, low.values, close.values, timeperiod=14),
+    )
+
+    # Compare non-NaN values (use relaxed tolerance for Wilder's smoothing differences)
+    valid_mask = result.notna() & expected.notna()
+    np.testing.assert_allclose(
+      result[valid_mask].values,
+      expected[valid_mask].values,
+      rtol=1e-2,  # Relaxed: Wilder's smoothing initialization differs slightly
+    )
+
 
 class TestATRIntraday:
   """Tests for intraday ATR indicator."""
@@ -155,7 +188,7 @@ class TestATRIntraday:
       "close": [101.0, 103.0],
     })
 
-    with pytest.raises(ValueError, match="Index must be DatetimeIndex"):
+    with pytest.raises(ValueError, match="datetime-like"):
       atr_intraday(data)
 
   def test_atr_intraday_lookback_days(self):

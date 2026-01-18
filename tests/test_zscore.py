@@ -36,7 +36,7 @@ class TestBasicFunctionality:
 
   def test_empty_dataframe_returns_empty_series(self) -> None:
     """Should raise ValueError if input is empty."""
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       zscore(pd.Series(dtype=float))
 
 

@@ -33,8 +33,8 @@ def ohlcv_data(draw, index_type="range"):
         st.floats(min_value=1.0, max_value=1000.0, allow_nan=False),
         min_size=n,
         max_size=n,
-      )
-    )
+      ),
+    ),
   )
   ranges = np.array(
     draw(
@@ -42,24 +42,28 @@ def ohlcv_data(draw, index_type="range"):
         st.floats(min_value=0.0, max_value=100.0, allow_nan=False),
         min_size=n,
         max_size=n,
-      )
-    )
+      ),
+    ),
   )
   highs = lows + ranges
 
   open_fracs = np.array(
     draw(
       st.lists(
-        st.floats(min_value=0.0, max_value=1.0, allow_nan=False), min_size=n, max_size=n
-      )
-    )
+        st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
+        min_size=n,
+        max_size=n,
+      ),
+    ),
   )
   close_fracs = np.array(
     draw(
       st.lists(
-        st.floats(min_value=0.0, max_value=1.0, allow_nan=False), min_size=n, max_size=n
-      )
-    )
+        st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
+        min_size=n,
+        max_size=n,
+      ),
+    ),
   )
 
   opens = lows + ranges * open_fracs
@@ -68,9 +72,11 @@ def ohlcv_data(draw, index_type="range"):
   volumes = np.array(
     draw(
       st.lists(
-        st.floats(min_value=0.1, max_value=1e6, allow_nan=False), min_size=n, max_size=n
-      )
-    )
+        st.floats(min_value=0.1, max_value=1e6, allow_nan=False),
+        min_size=n,
+        max_size=n,
+      ),
+    ),
   )
 
   if index_type == "datetime":
@@ -106,8 +112,8 @@ def intraday_data(draw):
         st.floats(min_value=1.0, max_value=1000.0, allow_nan=False),
         min_size=n,
         max_size=n,
-      )
-    )
+      ),
+    ),
   )
   ranges = np.array(
     draw(
@@ -115,24 +121,28 @@ def intraday_data(draw):
         st.floats(min_value=0.0, max_value=10.0, allow_nan=False),
         min_size=n,
         max_size=n,
-      )
-    )
+      ),
+    ),
   )
   highs = lows + ranges
 
   open_fracs = np.array(
     draw(
       st.lists(
-        st.floats(min_value=0.0, max_value=1.0, allow_nan=False), min_size=n, max_size=n
-      )
-    )
+        st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
+        min_size=n,
+        max_size=n,
+      ),
+    ),
   )
   close_fracs = np.array(
     draw(
       st.lists(
-        st.floats(min_value=0.0, max_value=1.0, allow_nan=False), min_size=n, max_size=n
-      )
-    )
+        st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
+        min_size=n,
+        max_size=n,
+      ),
+    ),
   )
 
   opens = lows + ranges * open_fracs
@@ -143,8 +153,8 @@ def intraday_data(draw):
         st.floats(min_value=100.0, max_value=1e6, allow_nan=False),
         min_size=n,
         max_size=n,
-      )
-    )
+      ),
+    ),
   )
 
   return pd.DataFrame(

@@ -22,7 +22,8 @@ class TestBasicFunctionality:
     })
 
   def test_returns_dataframe_with_churn_factor_column(
-    self, basic_ohlcv_df: pd.DataFrame
+    self,
+    basic_ohlcv_df: pd.DataFrame,
   ) -> None:
     """Should return Series with churn_factor name."""
     result = churn_factor(basic_ohlcv_df)
@@ -32,7 +33,8 @@ class TestBasicFunctionality:
     assert result.name == "churn_factor"
 
   def test_does_not_modify_original_dataframe(
-    self, basic_ohlcv_df: pd.DataFrame
+    self,
+    basic_ohlcv_df: pd.DataFrame,
   ) -> None:
     """Should not modify the input DataFrame."""
     original_cols = basic_ohlcv_df.columns.tolist()
@@ -49,7 +51,7 @@ class TestBasicFunctionality:
   def test_empty_dataframe_returns_empty_with_column(self) -> None:
     """Should raise ValueError if input DataFrame is empty."""
     empty_df = pd.DataFrame({"high": [], "low": [], "volume": []})
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       churn_factor(empty_df)
 
 
@@ -124,7 +126,8 @@ class TestZeroRangeHandling:
     })
 
   def test_nan_strategy_returns_nan_for_zero_range(
-    self, zero_range_df: pd.DataFrame
+    self,
+    zero_range_df: pd.DataFrame,
   ) -> None:
     """Should return NaN for zero range bars when using 'nan' strategy."""
     result = churn_factor(zero_range_df, fill_strategy="nan")
@@ -135,7 +138,8 @@ class TestZeroRangeHandling:
     assert not pd.isna(result.iloc[2])
 
   def test_forward_fill_strategy_fills_from_previous(
-    self, zero_range_df: pd.DataFrame
+    self,
+    zero_range_df: pd.DataFrame,
   ) -> None:
     """Should forward fill NaN values when using 'forward_fill' strategy."""
     result = churn_factor(zero_range_df, fill_strategy="forward_fill")

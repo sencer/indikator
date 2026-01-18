@@ -26,8 +26,11 @@ def compute_ema_numba(
 
   The first EMA value is the SMA of the first 'period' values.
 
+  Note: This function assumes clean input (no NaN). Input validation
+  is handled by the public API using datawarden Finite validator.
+
   Args:
-    prices: Array of prices (typically closing prices)
+    prices: Array of prices (must not contain NaN)
     period: Lookback period
 
   Returns:

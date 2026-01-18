@@ -65,7 +65,7 @@ class TestADX:
   def test_adx_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       adx(empty, empty, empty)
 
   def test_adx_insufficient_data(self):
@@ -90,13 +90,13 @@ class TestADX:
 
     result = adx(high, low, close, period=14)
     expected_adx = pd.Series(
-      talib.ADX(high.values, low.values, close.values, timeperiod=14)
+      talib.ADX(high.values, low.values, close.values, timeperiod=14),
     )
     expected_plus_di = pd.Series(
-      talib.PLUS_DI(high.values, low.values, close.values, timeperiod=14)
+      talib.PLUS_DI(high.values, low.values, close.values, timeperiod=14),
     )
     expected_minus_di = pd.Series(
-      talib.MINUS_DI(high.values, low.values, close.values, timeperiod=14)
+      talib.MINUS_DI(high.values, low.values, close.values, timeperiod=14),
     )
 
     # Compare ADX (non-NaN values)

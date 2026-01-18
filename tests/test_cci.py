@@ -50,7 +50,7 @@ class TestCCI:
   def test_cci_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       cci(empty, empty, empty)
 
   def test_cci_insufficient_data(self):
@@ -75,7 +75,7 @@ class TestCCI:
 
     result = cci(high, low, close, period=20)
     expected = pd.Series(
-      talib.CCI(high.values, low.values, close.values, timeperiod=20)
+      talib.CCI(high.values, low.values, close.values, timeperiod=20),
     )
 
     # Compare non-NaN values

@@ -59,7 +59,7 @@ class TestWillR:
   def test_willr_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       willr(empty, empty, empty)
 
   def test_willr_insufficient_data(self):
@@ -84,7 +84,7 @@ class TestWillR:
 
     result = willr(high, low, close, period=14)
     expected = pd.Series(
-      talib.WILLR(high.values, low.values, close.values, timeperiod=14)
+      talib.WILLR(high.values, low.values, close.values, timeperiod=14),
     )
 
     # Compare non-NaN values

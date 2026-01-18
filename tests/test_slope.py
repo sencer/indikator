@@ -48,7 +48,7 @@ class TestBasicFunctionality:
 
   def test_empty_dataframe_returns_empty_series(self) -> None:
     """Should raise ValueError if input is empty."""
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       slope(pd.Series(dtype=float))
 
 
@@ -64,7 +64,8 @@ class TestSlopeCalculation:
     assert (slopes > 0).all()
 
   def test_downtrend_has_negative_slope(
-    self, simple_downtrend_df: pd.DataFrame
+    self,
+    simple_downtrend_df: pd.DataFrame,
   ) -> None:
     """Downtrend should produce negative slope values."""
     result = slope(simple_downtrend_df["close"], window=3)

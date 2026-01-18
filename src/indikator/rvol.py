@@ -8,7 +8,6 @@ from datawarden import (
   Datetime,
   Finite,
   Index,
-  NonNegative,
   NotEmpty,
   Validated,
   validate,
@@ -25,7 +24,7 @@ __all__ = ["rvol", "rvol_intraday"]
 @configurable
 @validate
 def rvol(
-  data: Validated[pd.Series, NonNegative, Finite, NotEmpty],
+  data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> pd.Series:
@@ -87,7 +86,7 @@ def rvol(
 @configurable
 @validate
 def rvol_intraday(
-  data: Validated[pd.Series, NonNegative, Finite, Index(Datetime), NotEmpty],
+  data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,

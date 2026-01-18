@@ -47,7 +47,7 @@ class TestSMA:
   def test_sma_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       sma(empty_data)
 
   def test_sma_insufficient_data(self):
@@ -61,7 +61,7 @@ class TestSMA:
   def test_sma_period_parameter(self):
     """Test SMA with different period sizes."""
     prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3
+      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
     result_short = sma(prices, period=3)

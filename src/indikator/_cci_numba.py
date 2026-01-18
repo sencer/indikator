@@ -47,14 +47,20 @@ def compute_cci_numba(
   # Calculate typical price
   tp = (high + low + close) / 3.0
 
-  for i in range(period - 1, n):
-    # Calculate SMA of typical price
-    sma_sum = 0.0
-    for j in range(i - period + 1, i + 1):
-      sma_sum += tp[j]
-    sma = sma_sum / period
+  # Initialize rolling sum for SMA
+  rolling_sum = 0.0
+  for j in range(period):
+    rolling_sum += tp[j]
 
-    # Calculate mean deviation
+  for i in range(period - 1, n):
+    if i > period - 1:
+      # Slide window: remove oldest, add newest
+      rolling_sum = rolling_sum - tp[i - period] + tp[i]
+
+    sma = rolling_sum / period
+
+    # Mean deviation still requires full loop (can't be optimized with rolling sum
+    # because abs() is non-linear)
     md_sum = 0.0
     for j in range(i - period + 1, i + 1):
       md_sum += abs(tp[j] - sma)

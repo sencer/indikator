@@ -1,9 +1,18 @@
 """Tests for OBV (On-Balance Volume) indicator."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from indikator.obv import obv
+
+# Try to import talib for comparison tests
+try:
+  import talib  # type: ignore[import-untyped]
+
+  HAS_TALIB = True
+except ImportError:
+  HAS_TALIB = False
 
 
 class TestOBV:
@@ -69,7 +78,7 @@ class TestOBV:
     """Test OBV with empty dataframe."""
     data = pd.DataFrame(columns=["close", "volume"]).astype(float)
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       obv(data)
 
   def test_obv_validation_missing_columns(self):
@@ -90,3 +99,24 @@ class TestOBV:
 
     # All prices increasing, OBV should be increasing
     assert (result.diff().dropna() > 0).all()
+
+  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+  def test_obv_matches_talib(self):
+    """Test OBV matches TA-Lib output."""
+    np.random.seed(42)
+    n = 100
+    close = pd.Series(100.0 + np.cumsum(np.random.randn(n) * 0.5))
+    volume = pd.Series(1000.0 + np.random.rand(n) * 500)
+
+    data = pd.DataFrame({"close": close, "volume": volume})
+
+    result = obv(data)
+    expected = pd.Series(talib.OBV(close.values, volume.values))
+
+    # Compare non-NaN values
+    valid_mask = result.notna() & expected.notna()
+    np.testing.assert_allclose(
+      result[valid_mask].values,
+      expected[valid_mask].values,
+      rtol=1e-10,
+    )

@@ -51,7 +51,7 @@ def zigzag_pattern_df() -> pd.DataFrame:
       102.0,
       105.0,
       110.0,  # Up 10%
-    ]
+    ],
   })
 
 
@@ -70,7 +70,7 @@ def noisy_uptrend_df() -> pd.DataFrame:
       106.5,
       106.0,  # Small noise
       110.0,  # Final high
-    ]
+    ],
   })
 
 
@@ -85,7 +85,7 @@ def higher_highs_df() -> pd.DataFrame:
       115.0,  # Higher high
       110.0,  # Higher low
       120.0,  # Higher high
-    ]
+    ],
   })
 
 
@@ -100,7 +100,7 @@ def lower_lows_df() -> pd.DataFrame:
       85.0,  # Lower low
       90.0,  # Lower high
       80.0,  # Lower low
-    ]
+    ],
   })
 
 
@@ -116,7 +116,7 @@ def trend_change_bull_to_bear_df() -> pd.DataFrame:
       110.0,  # Start of reversal
       100.0,  # Breaks previous low (105) - bearish!
       95.0,  # Lower low confirmed
-    ]
+    ],
   })
 
 

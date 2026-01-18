@@ -49,7 +49,7 @@ class TestROC:
   def test_roc_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       roc(empty)
 
   def test_roc_insufficient_data(self):

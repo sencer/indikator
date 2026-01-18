@@ -111,7 +111,7 @@ class TestOpeningRange:
     data = pd.DataFrame(columns=["high", "low", "close"], dtype=float)
     data.index = pd.DatetimeIndex([])
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       opening_range(data)
 
   def test_opening_range_mid_calculation(self):

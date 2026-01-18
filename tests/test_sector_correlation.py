@@ -23,7 +23,9 @@ class TestBasicFunctionality:
     return pd.Series([1000.0, 1020.0, 1050.0, 1080.0, 1100.0], name="close")
 
   def test_returns_series_with_name(
-    self, stock_series: pd.Series, sector_series: pd.Series
+    self,
+    stock_series: pd.Series,
+    sector_series: pd.Series,
   ) -> None:
     """Should return Series with correct name."""
     result = sector_correlation(stock_series, sector_series, window=3)
@@ -32,7 +34,9 @@ class TestBasicFunctionality:
     assert result.name == "sector_correlation"
 
   def test_output_length_matches_input(
-    self, stock_series: pd.Series, sector_series: pd.Series
+    self,
+    stock_series: pd.Series,
+    sector_series: pd.Series,
   ) -> None:
     """Output should have same length as input."""
     result = sector_correlation(stock_series, sector_series, window=3)
@@ -40,7 +44,7 @@ class TestBasicFunctionality:
 
   def test_empty_series_returns_empty(self) -> None:
     """Should raise ValueError if input Series is empty."""
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       sector_correlation(pd.Series(dtype=float))
 
 
@@ -124,7 +128,7 @@ class TestMissingDataHandling:
     stock_data = pd.Series([100.0, 101.0, 102.0])
     empty_sector = pd.Series(dtype=float)
 
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="not empty"):
       sector_correlation(stock_data, empty_sector)
 
   def test_insufficient_window_data_returns_default(self) -> None:
@@ -222,21 +226,27 @@ class TestParameterValidation:
     return pd.Series([1000.0, 1020.0, 1050.0, 1080.0, 1100.0])
 
   def test_default_parameters_work(
-    self, stock_series: pd.Series, sector_series: pd.Series
+    self,
+    stock_series: pd.Series,
+    sector_series: pd.Series,
   ) -> None:
     """Should work with all default parameters."""
     result = sector_correlation(stock_series, sector_series)
     assert isinstance(result, pd.Series)
 
   def test_custom_window(
-    self, stock_series: pd.Series, sector_series: pd.Series
+    self,
+    stock_series: pd.Series,
+    sector_series: pd.Series,
   ) -> None:
     """Should accept custom window parameter."""
     result = sector_correlation(stock_series, sector_series, window=3)
     assert isinstance(result, pd.Series)
 
   def test_custom_default_value(
-    self, stock_series: pd.Series, sector_series: pd.Series
+    self,
+    stock_series: pd.Series,
+    sector_series: pd.Series,
   ) -> None:
     """Should accept custom default_value parameter."""
     result = sector_correlation(stock_series, sector_series, default_value=0.5)
