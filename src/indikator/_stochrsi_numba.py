@@ -133,13 +133,18 @@ def compute_stochrsi_numba(
     else:
       fastk[i] = 100.0  # TA-Lib returns 100 when range is 0
 
-  # Step 3: Compute fastd = SMA(fastk, d_period)
+  # Step 3: Compute fastd = SMA(fastk, d_period) using O(1) rolling sum
   inv_d = 1.0 / d_period
 
-  for i in range(fastd_start, n):
-    d_sum = 0.0
-    for j in range(i - d_period + 1, i + 1):
-      d_sum += fastk[j]
+  # Initialize sum for first fastd
+  d_sum = 0.0
+  for j in range(fastd_start - d_period + 1, fastd_start + 1):
+    d_sum += fastk[j]
+  fastd[fastd_start] = d_sum * inv_d
+
+  # Main loop with O(1) update
+  for i in range(fastd_start + 1, n):
+    d_sum = d_sum - fastk[i - d_period] + fastk[i]
     fastd[i] = d_sum * inv_d
 
   return fastk, fastd

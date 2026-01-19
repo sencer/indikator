@@ -21,9 +21,11 @@ def compute_zscore_numba(
   values: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled Z-Score calculation.
+  """Numba JIT-compiled Z-Score calculation with O(1) rolling update.
 
   Z = (Price - Mean) / StdDev
+
+  Uses O(1) rolling sum/sum_sq updates instead of O(period) recalculation.
 
   Args:
     values: Array of values
@@ -38,76 +40,45 @@ def compute_zscore_numba(
   if n < period:
     return zscore
 
-  # We can reuse compute_sma / std logic or implement rolling loop
-  # Rolling scan
+  inv_period = 1.0 / period
 
-  # Initialize circular buffer
-  circ_buffer = np.zeros(period, dtype=np.float64)
-  idx = 0
-
-  # Fill initial and compute
-  # Standard deviation requires sum_sq and sum
-
-  # Using Welford's algorithm or simple sum/sq_sum for window
-  # Simple is faster for small windows, but precision issues?
-  # For period=20, simple sum is fine.
-
-  # Actually, straightforward implementation:
-  # Maintain sum and sum_sq in window.
-
+  # Initialize sums for first window [0, period-1]
   current_sum = 0.0
   current_sq_sum = 0.0
 
   for i in range(period - 1):
     val = values[i]
-    circ_buffer[i] = val
     current_sum += val
     current_sq_sum += val * val
     zscore[i] = 0.0  # Not enough data
 
-  idx = period - 1  # Next index to overwrite in buffer (circular)
-  # But circular buffer usually indexes 0..period-1.
-  # Let's say buffer[idx] is oldest.
-  # We fill 0..period-2.
-  # Next i=period-1.
+  # First valid zscore at index period-1
+  val = values[period - 1]
+  current_sum += val
+  current_sq_sum += val * val
 
-  # Let's use simple loop for implementation safety
-  for i in range(period - 1, n):
-    val = values[i]
+  mean = current_sum * inv_period
+  variance = current_sq_sum * inv_period - mean * mean
+  if variance <= EPSILON:
+    zscore[period - 1] = 0.0
+  else:
+    zscore[period - 1] = (val - mean) / np.sqrt(variance)
 
-    # We need to add val to sums, and remove oldest (if i >= period)
-    # But first iteration i=period-1: we have period-1 items. Add 1. window total is period.
-    # Wait, circular buffer logic:
-    # We store 'period' items.
+  # Main loop with O(1) rolling update
+  for i in range(period, n):
+    old_val = values[i - period]
+    new_val = values[i]
 
-    # Let's restart logic.
-    # sum of window [i-period+1 : i+1]
+    # O(1) update: subtract old, add new
+    current_sum = current_sum - old_val + new_val
+    current_sq_sum = current_sq_sum - old_val * old_val + new_val * new_val
 
-    # Just calculating slice sum is O(period) per point.
-    # O(N*period). For N=1M, period=20 -> 20M ops. Fast enough.
-    # Rolling update is O(N).
-
-    # Numba loop with slice is fast? Numba doesn't like slices in loops sometimes.
-    # Manual sliding window sum.
-
-    # Re-calc sum for stability
-    window_sum = 0.0
-    window_sq_sum = 0.0
-    for j in range(i - period + 1, i + 1):
-      v = values[j]
-      window_sum += v
-      window_sq_sum += v * v
-
-    mean = window_sum / period
-    variance = (window_sq_sum / period) - (mean * mean)
+    mean = current_sum * inv_period
+    variance = current_sq_sum * inv_period - mean * mean
 
     if variance <= EPSILON:
-      std = 0.0
-      z = 0.0
+      zscore[i] = 0.0
     else:
-      std = np.sqrt(variance)
-      z = (val - mean) / std
-
-    zscore[i] = z
+      zscore[i] = (new_val - mean) / np.sqrt(variance)
 
   return zscore

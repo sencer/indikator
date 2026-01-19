@@ -110,8 +110,16 @@ def compute_sma_numba(
   # Smart Chunking:
   # Divide n into K chunks.
 
+  # Adaptive parallelism: avoid overhead for small arrays
+  total_len = n - period
   num_chunks = 16  # Heuristic for modern CPUs
-  chunk_size = (n - period) // num_chunks
+  if total_len < 4096:
+    num_chunks = 1
+
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
   # We can use `prange(num_chunks)` loop!
 

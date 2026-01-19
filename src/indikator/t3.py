@@ -37,6 +37,6 @@ def t3(
   Returns:
     T3Result
   """
-  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  values = data.to_numpy(dtype=np.float64, copy=False)
   result = compute_t3_numba(values, period, vfactor)
   return T3Result(index=data.index, t3=result)
