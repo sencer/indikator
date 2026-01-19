@@ -1,5 +1,6 @@
 """Tests for EMA (Exponential Moving Average) indicator."""
 
+from datawarden.exceptions import ValidationError
 import numpy as np
 import pandas as pd
 import pytest
@@ -24,7 +25,7 @@ class TestEMA:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2,
     )
 
-    result = ema(prices, period=5)
+    result = ema(prices, period=5).to_pandas()
 
     # Check shape
     assert len(result) == len(prices)
@@ -38,7 +39,7 @@ class TestEMA:
     # Prices with sudden spike at the end
     prices_spike = pd.Series([100.0] * 9 + [110.0])
 
-    result = ema(prices_spike, period=5)
+    result = ema(prices_spike, period=5).to_pandas()
 
     # EMA should react to spike (more than SMA would)
     # After 9 bars of 100, EMA should be close to 100
@@ -48,13 +49,13 @@ class TestEMA:
   def test_ema_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="not empty"):
+    with pytest.raises((ValueError, ValidationError), match="empty"):
       ema(empty_data)
 
   def test_ema_insufficient_data(self):
     """Test EMA with insufficient data."""
     prices = pd.Series([100.0, 101.0])
-    result = ema(prices, period=5)
+    result = ema(prices, period=5).to_pandas()
 
     # Should return all NaN
     assert result.isna().all()
@@ -65,8 +66,8 @@ class TestEMA:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
-    result_short = ema(prices, period=3)
-    result_long = ema(prices, period=10)
+    result_short = ema(prices, period=3).to_pandas()
+    result_long = ema(prices, period=10).to_pandas()
 
     # Short period should have values earlier
     assert result_short.notna().sum() > result_long.notna().sum()
@@ -80,7 +81,7 @@ class TestEMA:
     """Test EMA with Inf values."""
     prices = pd.Series([100.0, 102.0, np.inf, 103.0, 105.0] * 5)
 
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       ema(prices)
 
   @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
@@ -89,7 +90,7 @@ class TestEMA:
     np.random.seed(42)
     prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
 
-    result = ema(prices, period=14)
+    result = ema(prices, period=14).to_pandas()
     expected = pd.Series(talib.EMA(prices.values, timeperiod=14))
 
     # Compare non-NaN values (TA-Lib may have different NaN handling)

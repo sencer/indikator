@@ -5,10 +5,15 @@ the average range of price movement. Essential for position sizing and
 stop-loss placement.
 """
 
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
+
 from datawarden import (
+  Columns,
   Datetime,
   Finite,
-  HasColumns,
   Index,
   NotEmpty,
   Validated,
@@ -21,14 +26,17 @@ import pandas as pd
 from indikator._atr_numba import compute_atr_numba, compute_true_range_numba
 from indikator._constants import DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
+from indikator._results import ATRResult
 
 
 @configurable
 @validate
 def atr(
-  data: Validated[pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NotEmpty],
-  window: Hyper[int, Ge[1]] = 14,
-) -> pd.Series:
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[1]] = 14,
+) -> ATRResult:
   """Calculate Average True Range (ATR).
 
   ATR measures market volatility by calculating the average of true ranges
@@ -46,45 +54,50 @@ def atr(
   - Trend strength assessment (higher ATR = stronger trend)
 
   Uses Wilder's smoothing (similar to EMA):
-  ATR[i] = (ATR[i-1] * (window-1) + TR[i]) / window
+  ATR measures market volatility. It decomposes the entire range of an asset
+  for that period.
+
+  Formula:
+  TR = Max(High-Low, |High-PrevClose|, |Low-PrevClose|)
+  ATR = EMA(TR, period)  (Wilder's Smoothing)
+
+  Interpretation:
+  - High ATR: High volatility (big moves)
+  - Low ATR: Low volatility (consolidation)
+  - Rising ATR: Volatility increasing (possible trend reversal/breakout)
+  - ATR is NOT directional
 
   Features:
   - Numba-optimized for performance
-  - Handles edge cases (first bar, insufficient data)
-  - Returns both ATR and True Range values
   - Standard 14-period default (Wilder's original)
 
   Args:
-    data: OHLCV DataFrame with 'high', 'low', 'close' columns
-    window: Smoothing period (default: 14, Wilder's original)
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    period: Lookback period (default: 14)
 
   Returns:
-    Series with ATR values (NaN for initial bars where window not satisfied)
-
-  Raises:
-    ValueError: If required columns are missing or data is empty
-
-  Example:
-    >>> import pandas as pd
-    >>> data = pd.DataFrame({
-    ...     'high': [102, 104, 103, 106, 108],
-    ...     'low': [100, 101, 100, 103, 105],
-    ...     'close': [101, 103, 102, 105, 107]
-    ... })
-    >>> result = atr(data, window=3)
-    >>> # Returns DataFrame with 'atr' and 'true_range' columns
+    ATRResult(index, atr)
   """
-  # Convert to numpy arrays for Numba
-  highs = np.asarray(data["high"].values, dtype=np.float64)
-  lows = np.asarray(data["low"].values, dtype=np.float64)
-  closes = np.asarray(data["close"].values, dtype=np.float64)
+  # Convert to numpy for Numba
+  high_arr = cast(
+    "NDArray[np.float64]",
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  low_arr = cast(
+    "NDArray[np.float64]",
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  close_arr = cast(
+    "NDArray[np.float64]",
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
 
-  # Calculate true range and ATR using Numba-optimized functions
-  true_ranges = compute_true_range_numba(highs, lows, closes)
-  atr_values = compute_atr_numba(true_ranges, window)
+  # Calculate ATR using Numba-optimized function
+  atr_values = compute_atr_numba(high_arr, low_arr, close_arr, period)
 
-  # Return only the indicator (minimal return philosophy)
-  return pd.Series(atr_values, index=data.index, name="atr")
+  return ATRResult(index=high.index, atr=atr_values)
 
 
 @configurable
@@ -92,7 +105,7 @@ def atr(
 def atr_intraday(
   data: Validated[
     pd.DataFrame,
-    HasColumns(["high", "low", "close"]),
+    Columns(["high", "low", "close"]),
     Finite,
     Index(Datetime),
     NotEmpty,
@@ -141,9 +154,9 @@ def atr_intraday(
     >>> # Returns DataFrame with time-of-day adjusted ATR
   """
   # Calculate true range first
-  highs = np.asarray(data["high"].values, dtype=np.float64)
-  lows = np.asarray(data["low"].values, dtype=np.float64)
-  closes = np.asarray(data["close"].values, dtype=np.float64)
+  highs = data["high"].to_numpy(dtype=np.float64, copy=False)
+  lows = data["low"].to_numpy(dtype=np.float64, copy=False)
+  closes = data["close"].to_numpy(dtype=np.float64, copy=False)
 
   true_ranges = compute_true_range_numba(highs, lows, closes)
 

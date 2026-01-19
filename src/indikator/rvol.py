@@ -13,10 +13,12 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Gt, Hyper, configurable
+import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
+from indikator._results import RVOLResult
 
 __all__ = ["rvol", "rvol_intraday"]
 
@@ -27,60 +29,44 @@ def rvol(
   data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.Series:
-  """Calculate Relative Volume (RVOL).
+) -> RVOLResult:
+  """Calculate Relative Volume (RVOL) using simple moving average.
 
-  Measures current volume relative to average volume over a lookback window.
-  RVOL is a key indicator for identifying unusual trading activity:
-  - RVOL > 1.0: Above-average volume (more activity than usual)
-  - RVOL = 1.0: Average volume (normal activity)
-  - RVOL < 1.0: Below-average volume (less activity than usual)
+  Measures current volume relative to average volume over a rolling window.
 
-  Values significantly above 1.0 (e.g., > 2.0 or > 3.0) indicate
-  exceptional volume that may signal:
-  - Breakouts or breakdowns
-  - News events or earnings
-  - Institutional accumulation/distribution
-  - Potential trend changes
+  Formula:
+  RVOL = Volume / SMA(Volume, window)
 
-  Features:
-  - Division by zero protection with epsilon
-  - Handles insufficient data gracefully (returns 1.0 as neutral)
-  - Simple moving average for stable baseline
+  Interpretation:
+  - RVOL > 1.0: Above-average volume
+  - RVOL > 2.0: High volume spike
+  - RVOL < 1.0: Below-average volume
 
   Args:
     data: Volume Series
-    window: Rolling window size for average volume calculation
+    window: Rolling window size (default: 14)
     epsilon: Small value to prevent division by zero
 
   Returns:
-    Series with RVOL values
-
-  Raises:
-    ValueError: If validation fails
-
-  Example:
-    >>> import pandas as pd
-    >>> data = pd.Series([1000, 1000, 1000, 2000, 3000])
-    >>> result = rvol(data, window=3)
-    >>> # RVOL will be ~1.0 for first bars, then spike to 2.0, 3.0
+    RVOLResult(index, rvol)
   """
-
-  # Handle insufficient data for window
-  if len(data) < window:
-    return pd.Series(1.0, index=data.index, name="rvol")
-
   # Calculate simple moving average of volume
   sma_volume = data.rolling(window=window).mean()
 
-  # Calculate relative volume with division by zero protection
-  # Use where clause to handle zero/NaN denominator
-  rvol_values = pd.Series(1.0, index=data.index, name="rvol")
-  valid_sma = sma_volume > epsilon
+  # Calculate relative volume
+  # Get numpy arrays for calculation
+  vol_arr = data.to_numpy(dtype=np.float64, copy=False)
+  sma_arr = sma_volume.to_numpy(dtype=np.float64, copy=False)
 
-  rvol_values[valid_sma] = data[valid_sma] / sma_volume[valid_sma]
+  rvol_values = np.ones_like(vol_arr)  # Default to 1.0
 
-  return rvol_values
+  # Valid mask where SMA > epsilon
+  # (and handle NaNs in SMA due to window)
+  valid_sma = (sma_arr > epsilon) & ~np.isnan(sma_arr) & ~np.isnan(vol_arr)
+
+  rvol_values[valid_sma] = vol_arr[valid_sma] / sma_arr[valid_sma]
+
+  return RVOLResult(index=data.index, rvol=rvol_values)
 
 
 @configurable
@@ -90,37 +76,27 @@ def rvol_intraday(
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.Series:
+) -> RVOLResult:
   """Calculate intraday RVOL based on time-of-day historical averages.
 
   Compares current volume to the historical average volume for that specific
   time of day (e.g., 10:30 AM today vs. all previous 10:30 AM bars).
 
-  This captures intraday seasonality patterns:
-  - Market open (9:30-10:00) typically has high volume
-  - Lunch (12:00-13:00) typically has low volume
-  - Market close (15:30-16:00) typically has high volume
-
-  Regular RVOL might show "high" during market open even when it's normal
-  for that time. Intraday RVOL correctly identifies "high for this time of day".
+  Formula:
+  RVOL = Volume / AvgVolume(TimeOfDay)
 
   Features:
   - Accounts for natural intraday volume patterns
-  - Configurable lookback period (None = use all history)
-  - Requires minimum samples per time slot for reliability
-  - Division by zero protection
+  - Configurable lookback period
 
   Args:
     data: Series (e.g., volume) with DatetimeIndex
-    lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum observations required before calculating aggregate (NaN until met)
-    epsilon: Small value to prevent division by zero
+    lookback_days: Number of days to look back
+    min_samples: Minimum observations required
+    epsilon: Small value to prevent division by zero asd
 
   Returns:
-    Series with intraday RVOL values
-
-  Raises:
-    ValueError: If index is not DatetimeIndex
+    RVOLResult(index, rvol)
   """
 
   # Get historical averages for each time slot using generic aggregator
@@ -132,9 +108,12 @@ def rvol_intraday(
   )
 
   # Calculate RVOL with division by zero protection
-  rvol_values = pd.Series(1.0, index=data.index, name="rvol_intraday")
-  valid_avg = avg_volume_by_time > epsilon
+  vol_arr = data.to_numpy(dtype=np.float64, copy=False)
+  avg_arr = avg_volume_by_time.to_numpy(dtype=np.float64, copy=False)
 
-  rvol_values[valid_avg] = data[valid_avg].div(avg_volume_by_time[valid_avg])
+  rvol_values = np.ones_like(vol_arr)
 
-  return rvol_values
+  valid_avg = (avg_arr > epsilon) & ~np.isnan(avg_arr) & ~np.isnan(vol_arr)
+  rvol_values[valid_avg] = vol_arr[valid_avg] / avg_arr[valid_avg]
+
+  return RVOLResult(index=data.index, rvol=rvol_values)

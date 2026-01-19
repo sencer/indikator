@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._ema_numba import compute_ema_numba
+from indikator._results import EMAResult
 
 
 @configurable
@@ -27,7 +28,7 @@ from indikator._ema_numba import compute_ema_numba
 def ema(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> pd.Series:
+) -> EMAResult:
   """Calculate Exponential Moving Average (EMA).
 
   EMA is a trend-following indicator that gives more weight to recent prices.
@@ -52,29 +53,22 @@ def ema(
   - Numba-optimized for performance
   - First EMA value is SMA of first 'period' values (standard initialization)
   - Works with any numeric column
+  - Returns named tuple with .to_pandas() conversion
 
   Args:
     data: Input Series.
     period: Lookback period (default: 20)
 
   Returns:
-    Series with EMA values
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109])
-    >>> result = ema(prices, period=5)
+    EMAResult(index, ema_array)
   """
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate EMA using Numba-optimized function
   ema_values = compute_ema_numba(values, period)
 
-  return pd.Series(ema_values, index=data.index, name="ema")
+  return EMAResult(index=data.index, ema=ema_values)

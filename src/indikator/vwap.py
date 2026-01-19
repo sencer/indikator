@@ -4,114 +4,110 @@ This module provides VWAP calculation, a key intraday benchmark used by
 institutional traders for execution quality and price reference.
 """
 
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, cast
 
 from datawarden import (
-  Datetime,
+  Columns,
   Finite,
-  Ge as GeValidator,
-  HasColumns,
-  Index,
   NotEmpty,
   Validated,
   validate,
 )
-from nonfig import configurable
+from nonfig import Hyper, configurable
 import numpy as np
 import pandas as pd
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._results import VWAPResult
 from indikator._vwap_numba import compute_anchored_vwap_numba, compute_vwap_numba
 
 
 @configurable
 @validate
 def vwap(
-  data: Validated[
-    pd.DataFrame,
-    HasColumns(["high", "low", "close", "volume"]),
-    Index(Datetime),
-    Finite,
-    GeValidator("high", "low"),
-    NotEmpty,
-  ],
-  session_freq: Literal["D", "W", "ME"] = "D",
-) -> pd.Series:
-  """Calculate Volume-Weighted Average Price (VWAP).
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+  volume: Validated[pd.Series, Finite, NotEmpty],
+  anchor: Hyper[str | pd.Timedelta | int] = "D",
+) -> VWAPResult:
+  """Calculate Volume Weighted Average Price (VWAP).
 
-  VWAP is the ratio of cumulative (price * volume) to cumulative volume,
-  typically reset at the beginning of each trading session. It represents
-  the average price weighted by volume.
+  VWAP is a trading benchmark that gives the average price a security has
+  traded at throughout the day, based on both volume and price.
 
-  VWAP = Sum(Typical Price * Volume) / Sum(Volume)
-  where Typical Price = (High + Low + Close) / 3
+  Formula:
+  Typical Price = (High + Low + Close) / 3
+  VWAP = Cumulative(Typical Price * Volume) / Cumulative(Volume)
 
-  Institutional traders use VWAP as:
-  - Execution benchmark (am I getting better/worse than VWAP?)
-  - Support/resistance level (price tends to revert to VWAP)
-  - Trend indicator (price above VWAP = bullish, below = bearish)
-  - Entry/exit signal (crossing VWAP can indicate trend changes)
+  Reset:
+  The cumulative sums reset based on the anchor period (e.g., daily 'D').
+
+  Interpretation:
+  - Price > VWAP: Bullish sentiment (buyers are in control)
+  - Price < VWAP: Bearish sentiment (sellers are in control)
+  - VWAP acts as dynamic support/resistance
+  - Institutions use VWAP to execute large orders without moving market
 
   Features:
   - Numba-optimized for performance
-  - Configurable session period (daily, weekly, monthly)
-  - Handles missing volume gracefully
-  - Returns both VWAP and typical price
+  - Flexible anchoring (Time-based or Bar-count based)
+  - Standard 'D' (daily) anchor default
 
   Args:
-    data: OHLCV DataFrame with DatetimeIndex
-    session_freq: Session reset frequency ('D'=daily, 'W'=weekly, 'ME'=month-end)
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    volume: Volume Series.
+    anchor: Reset anchor (e.g. 'D', 'W', '1h') or int (bars). Default 'D'.
 
   Returns:
-    DataFrame with 'vwap' and 'typical_price' columns added
-
-  Raises:
-    ValueError: If required columns missing or index not DatetimeIndex
-
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01 09:30', periods=10, freq='5min')
-    >>> data = pd.DataFrame({
-    ...     'high': [102, 104, 103, 106, 108, 107, 109, 108, 110, 112],
-    ...     'low': [100, 101, 100, 103, 105, 104, 106, 105, 107, 109],
-    ...     'close': [101, 103, 102, 105, 107, 106, 108, 107, 109, 111],
-    ...     'volume': [1000]*10
-    ... }, index=dates)
-    >>> result = vwap(data)
-    >>> # Returns DataFrame with VWAP column
+    VWAPResult(index, vwap)
   """
+  # Align all inputs
+  # Note: Validator ensures equal length and index alignment
 
-  # Calculate typical price (H + L + C) / 3
-  typical_price = (data["high"] + data["low"] + data["close"]) / 3.0
-
-  # Create reset mask based on session frequency
-  # Reset at the start of each new period
-  dates = pd.Series(data.index, index=data.index)
-
-  if session_freq == "D":
-    period_start = dates.dt.normalize()
-  elif session_freq == "W":
-    period_start = dates.dt.to_period("W").dt.start_time
-  elif session_freq == "ME":
-    period_start = dates.dt.to_period("M").dt.start_time
+  # Calculate reset_mask
+  if isinstance(anchor, int):
+    # Reset every N bars
+    # Create boolean mask where index % anchor == 0
+    # Or just start with False and set True at indices
+    n = len(high)
+    reset_mask = np.zeros(n, dtype=np.bool_)
+    reset_mask[::anchor] = True
   else:
-    raise ValueError(f"Invalid session_freq: {session_freq}")
+    # Time-based anchor
+    if not isinstance(high.index, pd.DatetimeIndex):
+      raise ValueError("Index must be DatetimeIndex for time-based anchor")
 
-  # Reset mask is True where period changes (vectorized)
-  reset_mask = np.asarray(period_start != period_start.shift(1))
-  reset_mask[0] = True  # Always reset at first bar
+    grouper = high.index.to_period(anchor)  # type: ignore
+    # Reset where group changes
+    reset_mask = np.concatenate(([True], grouper[1:] != grouper[:-1]))
 
-  # Convert to numpy arrays for Numba
-  typical_prices = np.asarray(typical_price.values, dtype=np.float64)
-  volumes = np.asarray(data["volume"].values, dtype=np.float64)
+  # Convert to numpy for Numba
+  high_arr = cast(
+    "NDArray[np.float64]",
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  low_arr = cast(
+    "NDArray[np.float64]",
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  close_arr = cast(
+    "NDArray[np.float64]",
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  vol_arr = cast(
+    "NDArray[np.float64]",
+    volume.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
 
   # Calculate VWAP using Numba-optimized function
-  vwap_values = compute_vwap_numba(typical_prices, volumes, reset_mask)
+  vwap_values = compute_vwap_numba(high_arr, low_arr, close_arr, vol_arr, reset_mask)
 
-  # Return only the indicator (minimal return philosophy)
-  return pd.Series(vwap_values, index=data.index, name="vwap")
+  return VWAPResult(index=high.index, vwap=vwap_values)
 
 
 @configurable
@@ -119,7 +115,7 @@ def vwap(
 def vwap_anchored(
   data: Validated[
     pd.DataFrame,
-    HasColumns(["high", "low", "close", "volume"]),
+    Columns(["high", "low", "close", "volume"]),
     Finite,
     NotEmpty,
   ],

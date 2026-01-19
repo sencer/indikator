@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._cci_numba import compute_cci_numba
+from indikator._results import CCIResult
 
 
 @configurable
@@ -29,7 +30,8 @@ def cci(
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> pd.Series:
+  constant: float = 0.015,
+) -> CCIResult:
   """Calculate Commodity Channel Index (CCI).
 
   CCI is a momentum-based oscillator used to determine when an asset
@@ -46,53 +48,40 @@ def cci(
   Interpretation:
   - CCI > +100: Overbought (potential reversal down)
   - CCI < -100: Oversold (potential reversal up)
-  - CCI crossing 0: Momentum shift
-  - Divergence: Price making new high but CCI doesn't = bearish
-
-  Common strategies:
-  - Buy when CCI moves from below -100 to above -100
-  - Sell when CCI moves from above +100 to below +100
-  - Trend following: Trade in direction when CCI > 0 or < 0
+  - CCI > 100: Overbought / strong uptrend
+  - CCI < -100: Oversold / strong downtrend
+  - CCI ~ 0: Ranging
+  - Divergences often precede reversals
 
   Features:
   - Numba-optimized for performance
-  - Standard 20-period default (Lambert's original)
-  - Uses mean deviation (more stable than standard deviation)
+  - Standard constant 0.015 (Lambert's default)
 
   Args:
     high: High prices Series.
     low: Low prices Series.
     close: Close prices Series.
-    period: Lookback period (default: 20)
+    period: Lookback period (default: 14)
+    constant: Scaling constant (default: 0.015)
 
   Returns:
-    Series with CCI values (unbounded, typically -100 to +100)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> high = pd.Series([105, 107, 106, 108, 110])
-    >>> low = pd.Series([100, 102, 101, 103, 105])
-    >>> close = pd.Series([102, 105, 104, 106, 108])
-    >>> result = cci(high, low, close)
+    CCIResult(index, cci)
   """
   # Convert to numpy for Numba
   high_arr = cast(
     "NDArray[np.float64]",
-    high.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   low_arr = cast(
     "NDArray[np.float64]",
-    low.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   close_arr = cast(
     "NDArray[np.float64]",
-    close.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate CCI using Numba-optimized function
-  cci_values = compute_cci_numba(high_arr, low_arr, close_arr, period)
+  cci_values = compute_cci_numba(high_arr, low_arr, close_arr, period, constant)
 
-  return pd.Series(cci_values, index=close.index, name="cci")
+  return CCIResult(index=high.index, cci=cci_values)

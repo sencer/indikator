@@ -1,5 +1,6 @@
 """Tests for RSI (Relative Strength Index) indicator."""
 
+from datawarden.exceptions import ValidationError
 import numpy as np
 import pandas as pd
 import pytest
@@ -24,7 +25,7 @@ class TestRSI:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2,
     )
 
-    result = rsi(prices, window=5)
+    result = rsi(prices, window=5).to_pandas()
 
     # Check shape
     assert len(result) == len(prices)
@@ -52,7 +53,7 @@ class TestRSI:
       108.0,
       109.0,
     ])
-    result_up = rsi(prices_up, window=5)
+    result_up = rsi(prices_up, window=5).to_pandas()
 
     # RSI should be high (close to 100) for all gains
     assert (result_up.dropna() > 80).all()
@@ -70,21 +71,21 @@ class TestRSI:
       101.0,
       100.0,
     ])
-    result_down = rsi(prices_down, window=5)
+    result_down = rsi(prices_down, window=5).to_pandas()
 
     # RSI should be low (close to 0) for all losses
     assert (result_down.dropna() < 20).all()
 
-    def test_rsi_empty_data(self) -> None:  # noqa: ARG001
-      """Should raise ValueError when data is empty."""
-      empty_data = pd.Series([], dtype=float)
-      with pytest.raises(ValueError, match="not empty"):
-        rsi(empty_data)
+  def test_rsi_empty_data(self) -> None:
+    """Should raise ValueError when data is empty."""
+    empty_data = pd.Series([], dtype=float)
+    with pytest.raises((ValueError, ValidationError), match="empty"):
+      rsi(empty_data)
 
   def test_rsi_insufficient_data(self):
     """Test RSI with insufficient data."""
     prices = pd.Series([100.0, 101.0])
-    result = rsi(prices, window=5)
+    result = rsi(prices, window=5).to_pandas()
 
     # Should return all NaN
     assert result.isna().all()
@@ -95,8 +96,8 @@ class TestRSI:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
-    result_short = rsi(prices, window=3)
-    result_long = rsi(prices, window=10)
+    result_short = rsi(prices, window=3).to_pandas()
+    result_long = rsi(prices, window=10).to_pandas()
 
     # Short window should have values earlier
     assert result_short.notna().sum() > result_long.notna().sum()
@@ -105,7 +106,7 @@ class TestRSI:
     """Test RSI with Inf values."""
     prices = pd.Series([100.0, 102.0, np.inf, 103.0, 105.0] * 5)
 
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       rsi(prices)
 
   @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
@@ -114,7 +115,7 @@ class TestRSI:
     np.random.seed(42)
     prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
 
-    result = rsi(prices, window=14)
+    result = rsi(prices, window=14).to_pandas()
     expected = pd.Series(talib.RSI(prices.values, timeperiod=14))
 
     # Compare non-NaN values (TA-Lib may have different NaN handling)

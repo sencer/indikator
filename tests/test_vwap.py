@@ -1,289 +1,65 @@
-"""Tests for VWAP indicators."""
+"""Tests for VWAP indicator."""
 
+import numpy as np
 import pandas as pd
-import pytest
 
-from indikator.vwap import vwap, vwap_anchored
-
-
-class TestVWAP:
-  """Tests for VWAP indicator."""
-
-  def test_vwap_basic(self):
-    """Test VWAP basic calculation."""
-    dates = pd.date_range("2024-01-01 09:30", periods=10, freq="5min")
-    data = pd.DataFrame(
-      {
-        "high": [
-          102.0,
-          104.0,
-          103.0,
-          106.0,
-          108.0,
-          107.0,
-          109.0,
-          108.0,
-          110.0,
-          112.0,
-        ],
-        "low": [
-          100.0,
-          101.0,
-          100.0,
-          103.0,
-          105.0,
-          104.0,
-          106.0,
-          105.0,
-          107.0,
-          109.0,
-        ],
-        "close": [
-          101.0,
-          103.0,
-          102.0,
-          105.0,
-          107.0,
-          106.0,
-          108.0,
-          107.0,
-          109.0,
-          111.0,
-        ],
-        "volume": [
-          1000.0,
-          1200.0,
-          900.0,
-          1500.0,
-          1100.0,
-          1300.0,
-          1000.0,
-          1400.0,
-          1200.0,
-          1100.0,
-        ],
-      },
-      index=dates,
-    )
-
-    result = vwap(data)
-
-    # Check return type is Series
-    assert isinstance(result, pd.Series)
-    assert result.name == "vwap"
-
-    # Check shape
-    assert len(result) == len(data)
-
-    # Check VWAP is calculated
-    assert not result.isna().any()
-
-  def test_vwap_manual_calculation(self):
-    """Test VWAP with manual calculation."""
-    dates = pd.date_range("2024-01-01 09:30", periods=3, freq="5min")
-    data = pd.DataFrame(
-      {
-        "high": [102.0, 104.0, 106.0],
-        "low": [100.0, 102.0, 104.0],
-        "close": [101.0, 103.0, 105.0],
-        "volume": [100.0, 100.0, 100.0],
-      },
-      index=dates,
-    )
-
-    result = vwap(data, session_freq="D")
-
-    # Typical prices: (102+100+101)/3=101, (104+102+103)/3=103, (106+104+105)/3=105
-    # VWAP at bar 0: 101 * 100 / 100 = 101
-    assert abs(result.iloc[0] - 101.0) < 0.01
-
-    # VWAP at bar 1: (101*100 + 103*100) / 200 = 102
-    assert abs(result.iloc[1] - 102.0) < 0.01
-
-    # VWAP at bar 2: (101*100 + 103*100 + 105*100) / 300 = 103
-    assert abs(result.iloc[2] - 103.0) < 0.01
-
-  def test_vwap_session_reset(self):
-    """Test VWAP resets at session boundaries."""
-    dates = pd.date_range("2024-01-01 09:30", periods=20, freq="1h")
-    data = pd.DataFrame(
-      {
-        "high": [102.0] * 20,
-        "low": [100.0] * 20,
-        "close": [101.0] * 20,
-        "volume": [1000.0] * 20,
-      },
-      index=dates,
-    )
-
-    result = vwap(data, session_freq="D")
-
-    # VWAP should reset each day
-    # Since prices are constant, VWAP should equal typical price
-    expected_typical = (data["high"] + data["low"] + data["close"]) / 3
-    pd.testing.assert_series_equal(result, expected_typical, check_names=False)
-
-  def test_vwap_empty_data(self):
-    """Test VWAP with empty dataframe."""
-    data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)
-    data.index = pd.DatetimeIndex([])
-
-    with pytest.raises(ValueError, match="not empty"):
-      vwap(data)
-
-  def test_vwap_requires_datetime_index(self):
-    """Test VWAP requires DatetimeIndex."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0],
-      "low": [100.0, 101.0],
-      "close": [101.0, 103.0],
-      "volume": [1000.0, 1200.0],
-    })
-
-    with pytest.raises((ValueError, KeyError, TypeError)):
-      vwap(data)
+from indikator.vwap import vwap
 
 
-class TestVWAPAnchored:
-  """Tests for anchored VWAP indicator."""
+def test_vwap_basic():
+  """Test basic VWAP calculation."""
+  # Const price, volume -> VWAP should equal price
+  dates = pd.date_range("2024-01-01", periods=10, freq="1min")
+  high = pd.Series([10.0] * 10, index=dates)
+  low = pd.Series([10.0] * 10, index=dates)
+  close = pd.Series([10.0] * 10, index=dates)
+  volume = pd.Series([100.0] * 10, index=dates)
 
-  def test_vwap_anchored_by_index(self):
-    """Test anchored VWAP with index anchor."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0, 106.0, 108.0, 110.0],
-      "low": [100.0, 102.0, 104.0, 106.0, 108.0],
-      "close": [101.0, 103.0, 105.0, 107.0, 109.0],
-      "volume": [100.0, 100.0, 100.0, 100.0, 100.0],
-    })
+  result = vwap(high, low, close, volume, anchor="D")
+  assert hasattr(result, "to_pandas")
+  res = result.to_pandas()
 
-    result = vwap_anchored(data, anchor_index=2)
+  assert res.name == "vwap"
+  assert np.allclose(res, 10.0)
 
-    # Check return type is Series
-    assert isinstance(result, pd.Series)
-    assert result.name == "vwap_anchored"
 
-    # Before anchor should be NaN
-    assert result.iloc[:2].isna().all()
+def test_vwap_reset():
+  """Test VWAP reset."""
+  # Two days.
+  # Day 1: Price 10, Vol 100. VWAP=10.
+  # Day 2: Price 20, Vol 100. VWAP should be 20 (reset).
 
-    # After anchor should have values
-    assert not result.iloc[2:].isna().any()
+  dates = pd.to_datetime(["2024-01-01 10:00", "2024-01-02 10:00"])
+  high = pd.Series([10.0, 20.0], index=dates)
+  low = pd.Series([10.0, 20.0], index=dates)
+  close = pd.Series([10.0, 20.0], index=dates)
+  volume = pd.Series([100.0, 100.0], index=dates)
 
-  def test_vwap_anchored_by_datetime(self):
-    """Test anchored VWAP with datetime anchor."""
-    dates = pd.date_range("2024-01-01", periods=5, freq="D")
-    data = pd.DataFrame(
-      {
-        "high": [102.0, 104.0, 106.0, 108.0, 110.0],
-        "low": [100.0, 102.0, 104.0, 106.0, 108.0],
-        "close": [101.0, 103.0, 105.0, 107.0, 109.0],
-        "volume": [100.0, 100.0, 100.0, 100.0, 100.0],
-      },
-      index=dates,
-    )
+  result = vwap(high, low, close, volume, anchor="D")
+  res = result.to_pandas()
 
-    result = vwap_anchored(data, anchor_datetime="2024-01-03")
+  assert np.isclose(res.iloc[0], 10.0)
+  assert np.isclose(res.iloc[1], 20.0)
 
-    # Before anchor should be NaN
-    assert result.iloc[:2].isna().all()
+  # If we computed continuous VWAP (no reset or huge anchor):
+  # (10*100 + 20*100) / 200 = 15.
+  # But with Daily anchor, second day resets.
 
-    # After anchor should have values
-    assert not result.iloc[2:].isna().any()
 
-  def test_vwap_anchored_validation(self):
-    """Test anchored VWAP parameter validation."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0],
-      "low": [100.0, 102.0],
-      "close": [101.0, 103.0],
-      "volume": [100.0, 100.0],
-    })
+def test_vwap_int_anchor():
+  """Test bar-count based anchor."""
+  dates = pd.date_range("2024-01-01", periods=6, freq="1min")
+  # 3 bars per set
+  # Set 1 (0-2): P=10
+  # Set 2 (3-5): P=20
 
-    # Should raise error if neither anchor provided
-    with pytest.raises(ValueError, match="Must provide either"):
-      vwap_anchored(data)
+  high = pd.Series([10] * 3 + [20] * 3, index=dates)
+  low = pd.Series([10] * 3 + [20] * 3, index=dates)
+  close = pd.Series([10] * 3 + [20] * 3, index=dates)
+  volume = pd.Series([100] * 6, index=dates)
 
-    # Should raise error if both anchors provided
-    with pytest.raises(ValueError, match="Cannot provide both"):
-      vwap_anchored(data, anchor_index=0, anchor_datetime="2024-01-01")
+  result = vwap(high, low, close, volume, anchor=3)
+  res = result.to_pandas()
 
-    # Should raise error if anchor out of range
-    with pytest.raises(ValueError, match="out of range"):
-      vwap_anchored(data, anchor_index=10)
-
-  def test_vwap_anchored_datetime_requires_datetime_index(self):
-    """Test anchor_datetime raises error if index is not DatetimeIndex."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0, 106.0],
-      "low": [100.0, 102.0, 104.0],
-      "close": [101.0, 103.0, 105.0],
-      "volume": [100.0, 100.0, 100.0],
-    })
-
-    # Using anchor_datetime with non-DatetimeIndex should raise
-    with pytest.raises(ValueError, match="anchor_datetime requires DatetimeIndex"):
-      vwap_anchored(data, anchor_datetime="2024-01-01")
-
-  def test_vwap_anchored_datetime_as_timestamp(self):
-    """Test anchor_datetime works with pd.Timestamp object (not just string)."""
-    dates = pd.date_range("2024-01-01", periods=5, freq="D")
-    data = pd.DataFrame(
-      {
-        "high": [102.0, 104.0, 106.0, 108.0, 110.0],
-        "low": [100.0, 102.0, 104.0, 106.0, 108.0],
-        "close": [101.0, 103.0, 105.0, 107.0, 109.0],
-        "volume": [100.0, 100.0, 100.0, 100.0, 100.0],
-      },
-      index=dates,
-    )
-
-    # Use pd.Timestamp directly instead of string
-    result = vwap_anchored(data, anchor_datetime=pd.Timestamp("2024-01-03"))
-
-    # Before anchor should be NaN
-    assert result.iloc[:2].isna().all()
-
-    # After anchor should have values
-    assert not result.iloc[2:].isna().any()
-
-  def test_vwap_anchored_empty_data(self):
-    """Test anchored VWAP with empty dataframe."""
-    data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)
-
-    with pytest.raises(ValueError, match="not empty"):
-      vwap_anchored(data, anchor_index=0)
-
-  def test_vwap_weekly_session(self):
-    """Test VWAP with weekly session frequency."""
-    dates = pd.date_range("2024-01-01", periods=14, freq="D")
-    data = pd.DataFrame(
-      {
-        "high": [110.0] * 14,
-        "low": [100.0] * 14,
-        "close": [105.0] * 14,
-        "volume": [1000.0] * 14,
-      },
-      index=dates,
-    )
-
-    result = vwap(data, session_freq="W")
-
-    assert isinstance(result, pd.Series)
-    assert len(result) == len(data)
-
-  def test_vwap_monthly_session(self):
-    """Test VWAP with monthly session frequency."""
-    dates = pd.date_range("2024-01-01", periods=60, freq="D")
-    data = pd.DataFrame(
-      {
-        "high": [110.0] * 60,
-        "low": [100.0] * 60,
-        "close": [105.0] * 60,
-        "volume": [1000.0] * 60,
-      },
-      index=dates,
-    )
-
-    result = vwap(data, session_freq="ME")
-
-    assert isinstance(result, pd.Series)
-    assert len(result) == len(data)
+  assert np.allclose(res.iloc[0:3], 10.0)
+  assert np.allclose(res.iloc[3:6], 20.0)

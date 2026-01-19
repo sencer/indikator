@@ -1,16 +1,11 @@
 """Churn Factor indicator module.
 
-This module calculates Volume / (High - Low), which measures trading activity
-relative to the price range. High churn indicates lots of trading within a
-narrow price range.
+This module calculates the Churn Factor, which measures the relationship
+between volume and price range.
 """
-
-from typing import TYPE_CHECKING, Literal, cast
 
 from datawarden import (
   Finite,
-  Ge as ColsGe,
-  HasColumns,
   NotEmpty,
   Validated,
   validate,
@@ -20,73 +15,50 @@ import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator._results import ChurnFactorResult
 
 
 @configurable
 @validate
 def churn_factor(
-  data: Validated[
-    pd.DataFrame,
-    HasColumns(["high", "low", "volume"]),
-    Finite,
-    ColsGe("high", "low"),
-    NotEmpty,
-  ],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  volume: Validated[pd.Series, Finite, NotEmpty],
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-  fill_strategy: Literal["zero", "nan", "forward_fill"] = "zero",
-  fill_value: float | None = None,
-) -> pd.Series:
-  """Calculate Churn Factor (Volume / High-Low Range).
+) -> ChurnFactorResult:
+  """Calculate Churn Factor.
 
-  High churn indicates high volume with little price movement, suggesting
-  indecision or potential reversal (accumulation/distribution).
+  Churn factor measures the efficiency of volume in moving the price.
+  High churn means high volume but low price movement (indecision/turning point).
+
+  Formula:
+  Churn = Volume / (High - Low)
+
+  Interpretation:
+  - High Churn: High volume with tight range (distribution/accumulation)
+  - Low Churn: Price moving freely on low volume (or low vol/low range)
 
   Args:
-    data: OHLCV DataFrame
-    epsilon: Small value to prevent division by zero
-    fill_strategy: Strategy for handling zero range bars ('zero', 'nan', 'forward_fill')
-    fill_value: Custom value to use when fill_strategy='zero' (default: 0.0)
+    high: High prices Series.
+    low: Low prices Series.
+    volume: Volume Series.
+    epsilon: Division by zero protection.
 
   Returns:
-    DataFrame with 'churn_factor' column
-
-  Raises:
-    ValueError: If required columns missing or validation fails
+    ChurnFactorResult(index, churn)
   """
-  # Calculate range
-  price_range = data["high"] - data["low"]
-  price_range_values = cast("NDArray[np.float64]", price_range.values)
-  volume_values = cast("NDArray[np.float64]", data["volume"].values)
+  # Convert to numpy
+  high_arr = high.to_numpy(dtype=np.float64, copy=False)
+  low_arr = low.to_numpy(dtype=np.float64, copy=False)
+  vol_arr = volume.to_numpy(dtype=np.float64, copy=False)
 
-  # Use vectorization with numpy where to handle division by zero
-  # This is faster and cleaner than boolean indexing
-  result_values = np.divide(
-    volume_values,
-    price_range_values,
-    out=np.zeros_like(volume_values, dtype=np.float64),
-    where=price_range_values > epsilon,
-  )
+  price_range = high_arr - low_arr
 
-  # Convert to Series
-  churn = pd.Series(result_values, index=data.index)
+  # Calculate Churn: Vol / Range
+  # Handle zero range
+  churn = np.zeros_like(vol_arr)
 
-  # Apply strategy for invalid values (where range <= epsilon)
-  # The 'zero' strategy is already handled by the initialization of out=zeros_like above
+  valid_range = price_range > epsilon
+  churn[valid_range] = vol_arr[valid_range] / price_range[valid_range]
 
-  if fill_strategy == "nan":
-    # Mask the zero values with NaN where range was invalid
-    churn = churn.where(price_range > epsilon, np.nan)
-  elif fill_strategy == "forward_fill":
-    # First set invalid to NaN, then ffill
-    churn = churn.where(price_range > epsilon, np.nan).ffill()
-
-  # Handle custom fill value if provided and strategy is zero
-  if fill_strategy == "zero" and fill_value is not None:
-    churn = churn.where(price_range > epsilon, fill_value)
-
-  # Return only the indicator (minimal return philosophy)
-  churn.name = "churn_factor"
-  return churn
+  return ChurnFactorResult(index=high.index, churn=churn)

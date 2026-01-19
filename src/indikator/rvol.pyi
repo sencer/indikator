@@ -9,13 +9,15 @@ from datawarden import Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import RVOLResult
+
 class _rvol_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def window(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> RVOLResult: ...
 
 class _rvol_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rvol.
@@ -31,42 +33,25 @@ class _rvol_ConfigDict(TypedDict, total=False):
 class _rvol_Config(_NCMakeableModel[_rvol_Bound]):
   """Configuration class for rvol.
 
-  Calculate Relative Volume (RVOL).
+  Calculate Relative Volume (RVOL) using simple moving average.
 
-  Measures current volume relative to average volume over a lookback window.
-  RVOL is a key indicator for identifying unusual trading activity:
-  - RVOL > 1.0: Above-average volume (more activity than usual)
-  - RVOL = 1.0: Average volume (normal activity)
-  - RVOL < 1.0: Below-average volume (less activity than usual)
+  Measures current volume relative to average volume over a rolling window.
 
-  Values significantly above 1.0 (e.g., > 2.0 or > 3.0) indicate
-  exceptional volume that may signal:
-  - Breakouts or breakdowns
-  - News events or earnings
-  - Institutional accumulation/distribution
-  - Potential trend changes
+  Formula:
+  RVOL = Volume / SMA(Volume, window)
 
-  Features:
-  - Division by zero protection with epsilon
-  - Handles insufficient data gracefully (returns 1.0 as neutral)
-  - Simple moving average for stable baseline
+  Interpretation:
+  - RVOL > 1.0: Above-average volume
+  - RVOL > 2.0: High volume spike
+  - RVOL < 1.0: Below-average volume
 
   Args:
     data: Volume Series
-    window: Rolling window size for average volume calculation
+    window: Rolling window size (default: 14)
     epsilon: Small value to prevent division by zero
 
   Returns:
-    Series with RVOL values
-
-  Raises:
-    ValueError: If validation fails
-
-  Example:
-    >>> import pandas as pd
-    >>> data = pd.Series([1000, 1000, 1000, 2000, 3000])
-    >>> result = rvol(data, window=3)
-    >>> # RVOL will be ~1.0 for first bars, then spike to 2.0, 3.0
+    RVOLResult(index, rvol)
 
   Configuration:
       window (int)
@@ -97,7 +82,7 @@ class rvol:
     data: Validated[pd.Series, Finite, NotEmpty],
     window: int = ...,
     epsilon: float = ...,
-  ) -> pd.Series: ...
+  ) -> RVOLResult: ...
 
 class _rvol_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -109,7 +94,7 @@ class _rvol_intraday_Bound(Protocol):
     self,
     data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
     lookback_days: int | None = ...,
-  ) -> pd.Series: ...
+  ) -> RVOLResult: ...
 
 class _rvol_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rvol_intraday.
@@ -130,31 +115,21 @@ class _rvol_intraday_Config(_NCMakeableModel[_rvol_intraday_Bound]):
   Compares current volume to the historical average volume for that specific
   time of day (e.g., 10:30 AM today vs. all previous 10:30 AM bars).
 
-  This captures intraday seasonality patterns:
-  - Market open (9:30-10:00) typically has high volume
-  - Lunch (12:00-13:00) typically has low volume
-  - Market close (15:30-16:00) typically has high volume
-
-  Regular RVOL might show "high" during market open even when it's normal
-  for that time. Intraday RVOL correctly identifies "high for this time of day".
+  Formula:
+  RVOL = Volume / AvgVolume(TimeOfDay)
 
   Features:
   - Accounts for natural intraday volume patterns
-  - Configurable lookback period (None = use all history)
-  - Requires minimum samples per time slot for reliability
-  - Division by zero protection
+  - Configurable lookback period
 
   Args:
     data: Series (e.g., volume) with DatetimeIndex
-    lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum observations required before calculating aggregate (NaN until met)
-    epsilon: Small value to prevent division by zero
+    lookback_days: Number of days to look back
+    min_samples: Minimum observations required
+    epsilon: Small value to prevent division by zero asd
 
   Returns:
-    Series with intraday RVOL values
-
-  Raises:
-    ValueError: If index is not DatetimeIndex
+    RVOLResult(index, rvol)
 
   Configuration:
       min_samples (int)
@@ -186,4 +161,4 @@ class rvol_intraday:
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,
-  ) -> pd.Series: ...
+  ) -> RVOLResult: ...

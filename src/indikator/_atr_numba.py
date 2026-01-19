@@ -15,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
 def compute_true_range_numba(
   highs: NDArray[np.float64],
   lows: NDArray[np.float64],
@@ -57,9 +57,11 @@ def compute_true_range_numba(
   return tr
 
 
-@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
 def compute_atr_numba(
-  true_ranges: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
   window: int,
 ) -> NDArray[np.float64]:
   """Numba JIT-compiled ATR calculation using Wilder's smoothing.
@@ -68,28 +70,51 @@ def compute_atr_numba(
   ATR = (ATR_previous * (window - 1) + TR_current) / window
 
   For the initial ATR, uses simple moving average of first 'window' true ranges.
+  First valid output is at index `window` (matching TA-lib behavior).
 
   Args:
-    true_ranges: Array of true range values
+    high: Array of high prices
+    low: Array of low prices
+    close: Array of close prices
     window: Smoothing period (typically 14)
 
   Returns:
     Array of ATR values (NaN for initial bars where window not satisfied)
   """
-  n = len(true_ranges)
-  atr = np.full(n, np.nan)
+  n = len(high)
 
-  if n < window:
-    return atr
+  # Need at least window+1 bars for first valid ATR at index window
+  if n <= window:
+    return np.full(n, np.nan)
 
-  # Calculate initial ATR as simple average of first 'window' true ranges
-  sum_tr = 0.0
-  for i in range(window):
-    sum_tr += true_ranges[i]
-  atr[window - 1] = sum_tr / window
+  atr = np.empty(n)
+  atr[:window] = np.nan
+
+  # Calculate initial SMA of first window TRs (indices 1 to window)
+  # TR[0] is H-L, TR[1..window] use previous close
+  sum_tr = high[0] - low[0]  # TR at index 0
+
+  for i in range(1, window + 1):
+    hl = high[i] - low[i]
+    hc = abs(high[i] - close[i - 1])
+    lc = abs(low[i] - close[i - 1])
+    tr = max(hl, hc, lc)
+    sum_tr += tr
+
+  # First ATR at index window is SMA of TRs 0..window (window+1 values)
+  atr[window] = sum_tr / (window + 1)
 
   # Use Wilder's smoothing for subsequent values
-  for i in range(window, n):
-    atr[i] = (atr[i - 1] * (window - 1) + true_ranges[i]) / window
+  inv_period = 1.0 / window
+  period_m1 = window - 1
+
+  for i in range(window + 1, n):
+    # Calculate TR for current bar
+    hl = high[i] - low[i]
+    hc = abs(high[i] - close[i - 1])
+    lc = abs(low[i] - close[i - 1])
+    current_tr = max(hl, hc, lc)
+
+    atr[i] = (atr[i - 1] * period_m1 + current_tr) * inv_period
 
   return atr

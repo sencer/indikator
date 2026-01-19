@@ -1,5 +1,6 @@
 """Tests for intraday Z-Score functionality."""
 
+from datawarden.exceptions import ValidationError
 import numpy as np
 import pandas as pd
 import pytest
@@ -107,13 +108,13 @@ class TestZScoreIntraday:
     """Test error with non-DatetimeIndex."""
     data = pd.DataFrame({"close": [100, 200, 300]})
 
-    with pytest.raises(ValueError, match="datetime-like"):
+    with pytest.raises((ValueError, ValidationError), match="Index validation failed"):
       zscore_intraday(data["close"])
 
   def test_empty_dataframe(self) -> None:
     """Empty input should raise ValueError."""
     empty_data = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
-    with pytest.raises(ValueError, match="not empty"):
+    with pytest.raises((ValueError, ValidationError), match="empty"):
       zscore_intraday(empty_data)
 
   def test_zero_std_protection(self):

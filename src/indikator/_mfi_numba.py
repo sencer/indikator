@@ -15,82 +15,112 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
 def compute_mfi_numba(
-  typical_prices: NDArray[np.float64],
-  volumes: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+  volume: NDArray[np.float64],
   window: int,
   epsilon: float = 1e-9,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled MFI calculation with O(n) complexity.
+  """Numba JIT-compiled MFI with inline Typical Price calculation.
 
-  MFI is a volume-weighted version of RSI that measures buying/selling pressure.
-
-  Formula:
-  1. Money Flow = Typical Price * Volume
-  2. Positive Money Flow = sum of money flow when typical price increases
-  3. Negative Money Flow = sum of money flow when typical price decreases
-  4. Money Ratio = Positive MF / Negative MF
-  5. MFI = 100 - (100 / (1 + Money Ratio))
-
-  This implementation uses a sliding window approach for O(n) complexity
-  instead of the naive O(n*window) approach.
+  Optimized for memory bandwidth by calculating Typical Price inline (loop fusion).
+  Uses a circular buffer for tracking positive/negative money flow changes,
+  avoiding redundant logic re-evaluation for elements leaving the window.
 
   Args:
-    typical_prices: Array of typical prices ((H+L+C)/3)
-    volumes: Array of volumes
+    high: Array of high prices
+    low: Array of low prices
+    close: Array of closing prices
+    volume: Array of volumes
     window: Lookback period (typically 14)
     epsilon: Small value to prevent division by zero
 
   Returns:
     Array of MFI values (0-100 range, NaN for initial bars)
   """
-  n = len(typical_prices)
-  mfi = np.full(n, np.nan)
+  n = len(close)
 
-  if n < window + 1:  # Need window+1 bars for first calculation
-    return mfi
+  if n < window + 1:
+    return np.full(n, np.nan)
 
-  # Initialize window sums for the first valid position
-  pos_mf_sum = 0.0
-  neg_mf_sum = 0.0
+  mfi = np.empty(n)
+  mfi[:window] = np.nan
 
-  # Initialize: sum the first window of contributions (indices 1 to window)
+  # Circular buffers for Money Flow (stored as contributions)
+  buf_pos = np.zeros(window, dtype=np.float64)
+  buf_neg = np.zeros(window, dtype=np.float64)
+  buf_idx = 0
+
+  pos_sum = 0.0
+  neg_sum = 0.0
+
+  # First typical price at index 0 (used for diff at index 1)
+  prev_tp = (high[0] + low[0] + close[0]) / 3.0
+
+  # Initialization: fill buffer with first 'window' flows (indices 1 to window)
   for i in range(1, window + 1):
-    mf = typical_prices[i] * volumes[i]
-    if typical_prices[i] > typical_prices[i - 1]:
-      pos_mf_sum += mf
-    elif typical_prices[i] < typical_prices[i - 1]:
-      neg_mf_sum += mf
+    curr_tp = (high[i] + low[i] + close[i]) / 3.0
+    mf = curr_tp * volume[i]
 
-  # Calculate MFI for position 'window' (first valid)
-  mfi[window] = (
-    100.0 if neg_mf_sum < epsilon else 100.0 - (100.0 / (1.0 + pos_mf_sum / neg_mf_sum))
-  )
+    if curr_tp > prev_tp:
+      buf_pos[buf_idx] = mf
+      pos_sum += mf
+      buf_neg[buf_idx] = 0.0
+    elif curr_tp < prev_tp:
+      buf_neg[buf_idx] = mf
+      neg_sum += mf
+      buf_pos[buf_idx] = 0.0
+    else:
+      buf_pos[buf_idx] = 0.0
+      buf_neg[buf_idx] = 0.0
 
-  # Slide the window: O(n) instead of O(n*window)
+    prev_tp = curr_tp
+    buf_idx += 1
+    if buf_idx >= window:
+      buf_idx = 0
+
+  # Calculate MFI at index `window`
+  total_flow = pos_sum + neg_sum
+  if total_flow < epsilon:
+    mfi[window] = 0.0
+  else:
+    mfi[window] = 100.0 * pos_sum / total_flow
+
+  # Main Loop (window + 1 to n)
   for i in range(window + 1, n):
-    # Add new element entering the window at index i
-    mf_in = typical_prices[i] * volumes[i]
-    if typical_prices[i] > typical_prices[i - 1]:
-      pos_mf_sum += mf_in
-    elif typical_prices[i] < typical_prices[i - 1]:
-      neg_mf_sum += mf_in
+    # Remove oldest value (at current buf_idx)
+    pos_sum -= buf_pos[buf_idx]
+    neg_sum -= buf_neg[buf_idx]
 
-    # Remove old element leaving the window at index (i - window)
-    # The contribution at index j depends on j and j-1
-    j = i - window
-    mf_out = typical_prices[j] * volumes[j]
-    if typical_prices[j] > typical_prices[j - 1]:
-      pos_mf_sum -= mf_out
-    elif typical_prices[j] < typical_prices[j - 1]:
-      neg_mf_sum -= mf_out
+    # Calculate new
+    curr_tp = (high[i] + low[i] + close[i]) / 3.0
+    mf = curr_tp * volume[i]
 
-    # Calculate MFI
-    mfi[i] = (
-      100.0
-      if neg_mf_sum < epsilon
-      else 100.0 - (100.0 / (1.0 + pos_mf_sum / neg_mf_sum))
-    )
+    if curr_tp > prev_tp:
+      buf_pos[buf_idx] = mf
+      pos_sum += mf
+      buf_neg[buf_idx] = 0.0
+    elif curr_tp < prev_tp:
+      buf_neg[buf_idx] = mf
+      neg_sum += mf
+      buf_pos[buf_idx] = 0.0
+    else:
+      buf_pos[buf_idx] = 0.0
+      buf_neg[buf_idx] = 0.0
+
+    prev_tp = curr_tp
+    buf_idx += 1
+    if buf_idx >= window:
+      buf_idx = 0
+
+    # MFI
+    total_flow = pos_sum + neg_sum
+    if total_flow < epsilon:
+      mfi[i] = 0.0
+    else:
+      mfi[i] = 100.0 * pos_sum / total_flow
 
   return mfi

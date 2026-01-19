@@ -1,3 +1,4 @@
+from datawarden.exceptions import ValidationError
 import numpy as np
 import pandas as pd
 import pytest
@@ -14,7 +15,7 @@ def test_atr_config_validation():
 
   made_atr = atr.Config(window=14).make()
 
-  with pytest.raises((ValueError, KeyError)):
+  with pytest.raises((ValueError, KeyError, ValidationError)):
     made_atr(invalid_data)
 
 
@@ -25,7 +26,7 @@ def test_rsi_config_validation():
 
   made_rsi = rsi.Config(window=14).make()
 
-  with pytest.raises(ValueError, match="must be finite"):
+  with pytest.raises((ValueError, ValidationError), match="Finite"):
     made_rsi(invalid_data)
 
 
@@ -39,5 +40,5 @@ def test_vwap_config_validation():
 
   made_vwap = vwap.Config().make()
 
-  with pytest.raises((ValueError, KeyError)):
+  with pytest.raises((ValueError, KeyError, ValidationError)):
     made_vwap(invalid_data)

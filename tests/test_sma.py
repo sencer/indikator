@@ -1,5 +1,6 @@
 """Tests for SMA (Simple Moving Average) indicator."""
 
+from datawarden.exceptions import ValidationError
 import numpy as np
 import pandas as pd
 import pytest
@@ -22,7 +23,7 @@ class TestSMA:
     """Test SMA basic calculation."""
     prices = pd.Series([100.0, 102.0, 104.0, 106.0, 108.0])
 
-    result = sma(prices, period=3)
+    result = sma(prices, period=3).to_pandas()
 
     # Check shape
     assert len(result) == len(prices)
@@ -39,7 +40,7 @@ class TestSMA:
     """Test that SMA uses equal weights."""
     prices = pd.Series([100.0, 100.0, 100.0, 100.0, 200.0])
 
-    result = sma(prices, period=5)
+    result = sma(prices, period=5).to_pandas()
 
     # SMA should be exact average
     assert result.iloc[-1] == pytest.approx((100 + 100 + 100 + 100 + 200) / 5)
@@ -47,13 +48,13 @@ class TestSMA:
   def test_sma_empty_data(self):
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="not empty"):
+    with pytest.raises((ValueError, ValidationError), match="empty"):
       sma(empty_data)
 
   def test_sma_insufficient_data(self):
     """Test SMA with insufficient data."""
     prices = pd.Series([100.0, 101.0])
-    result = sma(prices, period=5)
+    result = sma(prices, period=5).to_pandas()
 
     # Should return all NaN
     assert result.isna().all()
@@ -64,8 +65,8 @@ class TestSMA:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
-    result_short = sma(prices, period=3)
-    result_long = sma(prices, period=10)
+    result_short = sma(prices, period=3).to_pandas()
+    result_long = sma(prices, period=10).to_pandas()
 
     # Short period should have values earlier
     assert result_short.notna().sum() > result_long.notna().sum()
@@ -85,7 +86,7 @@ class TestSMA:
       109.0,
     ])
 
-    result = sma(prices, period=5)
+    result = sma(prices, period=5).to_pandas()
     expected = prices.rolling(window=5).mean()
 
     pd.testing.assert_series_equal(
@@ -99,7 +100,7 @@ class TestSMA:
     """Test SMA with Inf values."""
     prices = pd.Series([100.0, 102.0, np.inf, 103.0, 105.0] * 5)
 
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       sma(prices)
 
   @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
@@ -108,7 +109,7 @@ class TestSMA:
     np.random.seed(42)
     prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
 
-    result = sma(prices, period=14)
+    result = sma(prices, period=14).to_pandas()
     expected = pd.Series(talib.SMA(prices.values, timeperiod=14))
 
     # Compare non-NaN values

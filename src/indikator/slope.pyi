@@ -9,11 +9,13 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import SlopeResult
+
 class _slope_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def window(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> SlopeResult: ...
 
 class _slope_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for slope.
@@ -39,7 +41,7 @@ class _slope_Config(_NCMakeableModel[_slope_Bound]):
     window: Rolling window size for regression
 
   Returns:
-    Series with slope values
+    SlopeResult(index, slope)
 
   Raises:
     ValueError: If validation fails
@@ -66,4 +68,4 @@ class slope:
   window: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series, Finite, NotEmpty], window: int = ...
-  ) -> pd.Series: ...
+  ) -> SlopeResult: ...

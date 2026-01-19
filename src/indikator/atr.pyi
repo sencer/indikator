@@ -5,29 +5,31 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Datetime, Finite, HasColumns, Index, NotEmpty, Validated
+from datawarden import Columns, Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
+from indikator._results import ATRResult
 
 class _atr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
-  def window(self) -> int: ...
+  def period(self) -> int: ...
   def __call__(
     self,
-    data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NotEmpty
-    ],
-  ) -> pd.Series: ...
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+  ) -> ATRResult: ...
 
 class _atr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr.
 
   Configuration:
-      window (int)
+      period (int)
   """
 
-  window: int
+  period: int
 
 class _atr_Config(_NCMakeableModel[_atr_Bound]):
   """Configuration class for atr.
@@ -49,44 +51,42 @@ class _atr_Config(_NCMakeableModel[_atr_Bound]):
   - Trend strength assessment (higher ATR = stronger trend)
 
   Uses Wilder's smoothing (similar to EMA):
-  ATR[i] = (ATR[i-1] * (window-1) + TR[i]) / window
+  ATR measures market volatility. It decomposes the entire range of an asset
+  for that period.
+
+  Formula:
+  TR = Max(High-Low, |High-PrevClose|, |Low-PrevClose|)
+  ATR = EMA(TR, period)  (Wilder's Smoothing)
+
+  Interpretation:
+  - High ATR: High volatility (big moves)
+  - Low ATR: Low volatility (consolidation)
+  - Rising ATR: Volatility increasing (possible trend reversal/breakout)
+  - ATR is NOT directional
 
   Features:
   - Numba-optimized for performance
-  - Handles edge cases (first bar, insufficient data)
-  - Returns both ATR and True Range values
   - Standard 14-period default (Wilder's original)
 
   Args:
-    data: OHLCV DataFrame with 'high', 'low', 'close' columns
-    window: Smoothing period (default: 14, Wilder's original)
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    period: Lookback period (default: 14)
 
   Returns:
-    Series with ATR values (NaN for initial bars where window not satisfied)
-
-  Raises:
-    ValueError: If required columns are missing or data is empty
-
-  Example:
-    >>> import pandas as pd
-    >>> data = pd.DataFrame({
-    ...     'high': [102, 104, 103, 106, 108],
-    ...     'low': [100, 101, 100, 103, 105],
-    ...     'close': [101, 103, 102, 105, 107]
-    ... })
-    >>> result = atr(data, window=3)
-    >>> # Returns DataFrame with 'atr' and 'true_range' columns
+    ATRResult(index, atr)
 
   Configuration:
-      window (int)
+      period (int)
   """
 
-  window: int
-  def __init__(self, *, window: int = ...) -> None: ...
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
   """Initialize configuration for atr.
 
     Configuration:
-        window (int)
+        period (int)
     """
 
   @override
@@ -96,14 +96,14 @@ class atr:
   Type = _atr_Bound
   Config = _atr_Config
   ConfigDict = _atr_ConfigDict
-  window: ClassVar[int]
+  period: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close"]), Finite, NotEmpty
-    ],
-    window: int = ...,
-  ) -> pd.Series: ...
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    period: int = ...,
+  ) -> ATRResult: ...
 
 class _atr_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -112,11 +112,7 @@ class _atr_intraday_Bound(Protocol):
   def __call__(
     self,
     data: Validated[
-      pd.DataFrame,
-      HasColumns(["high", "low", "close"]),
-      Finite,
-      Index(Datetime),
-      NotEmpty,
+      pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty
     ],
     lookback_days: int | None = ...,
   ) -> pd.Series: ...
@@ -196,11 +192,7 @@ class atr_intraday:
   def __new__(
     cls,
     data: Validated[
-      pd.DataFrame,
-      HasColumns(["high", "low", "close"]),
-      Finite,
-      Index(Datetime),
-      NotEmpty,
+      pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty
     ],
     lookback_days: int | None = ...,
     min_samples: int = ...,

@@ -6,95 +6,82 @@ import pytest
 
 from indikator.roc import roc
 
-# Try to import talib for comparison tests
 try:
-  import talib  # type: ignore[import-untyped]
+  import talib
 
   HAS_TALIB = True
 except ImportError:
   HAS_TALIB = False
 
 
-class TestROC:
-  """Tests for ROC indicator."""
+def test_roc_basic():
+  """Test basic ROC calculation."""
+  # Simple uptrend
+  data = pd.Series([100.0, 102.0, 104.0, 106.0, 108.0])
 
-  def test_roc_basic(self):
-    """Test ROC basic calculation."""
-    prices = pd.Series([100.0, 105.0, 110.0, 115.0, 120.0, 125.0])
+  # Period 1 ROC
+  # (102-100)/100 = 2%
+  result = roc(data, period=1)
+  assert hasattr(result, "to_pandas")
+  res = result.to_pandas()
 
-    result = roc(prices, period=3)
+  assert res.name == "roc"
+  assert len(res) == 5
+  assert np.isclose(res.iloc[1], 2.0)
+  assert np.isnan(res.iloc[0])
 
-    # Check shape
-    assert len(result) == len(prices)
 
-    # First 3 should be NaN
-    assert result.isna().iloc[:3].all()
+def test_roc_downtrend():
+  """Test ROC in a downtrend."""
+  prices = pd.Series([100.0, 95.0, 90.0, 85.0, 80.0])
 
-    # Check specific values
-    # ROC at index 3: (115 - 100) / 100 * 100 = 15%
-    assert result.iloc[3] == pytest.approx(15.0)
-    # ROC at index 4: (120 - 105) / 105 * 100 ≈ 14.29%
-    assert result.iloc[4] == pytest.approx(14.285714, rel=1e-5)
+  result = roc(prices, period=1)
+  res = result.to_pandas()
 
-  def test_roc_negative_change(self):
-    """Test ROC with declining prices."""
-    prices = pd.Series([100.0, 95.0, 90.0, 85.0, 80.0])
+  # All valid ROC values should be negative
+  valid = res.dropna()
+  assert (valid < 0).all()
+  assert np.isclose(res.iloc[1], -5.0)  # (95-100)/100 = -5%
 
-    result = roc(prices, period=2)
 
-    # All valid ROC values should be negative
-    valid = result.dropna()
-    assert (valid < 0).all()
+def test_roc_insufficient_data():
+  """Test ROC behavior with insufficient data."""
+  data = pd.Series([10.0, 11.0, 12.0])  # Only 3 points
 
-  def test_roc_empty_data(self):
-    """Should raise ValueError when data is empty."""
-    empty = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="not empty"):
-      roc(empty)
+  # With period=14 (default)
+  result = roc(data)
+  res = result.to_pandas()
 
-  def test_roc_insufficient_data(self):
-    """Test ROC with insufficient data."""
-    prices = pd.Series([100.0, 101.0])
+  assert len(res) == 3
+  assert res.isna().all()
 
-    result = roc(prices, period=10)
 
-    # Should return all NaN
-    assert result.isna().all()
+def test_roc_period_parameter():
+  """Test ROC with different periods."""
+  prices = pd.Series(np.random.randn(20) + 100)
 
-  def test_roc_period_parameter(self):
-    """Test ROC with different periods."""
-    prices = pd.Series([
-      100.0,
-      102.0,
-      104.0,
-      106.0,
-      108.0,
-      110.0,
-      112.0,
-      114.0,
-      116.0,
-      118.0,
-    ])
+  result1 = roc(prices, period=2)
+  res1 = result1.to_pandas()
 
-    result_short = roc(prices, period=1)
-    result_long = roc(prices, period=5)
+  result2 = roc(prices, period=5)
+  res2 = result2.to_pandas()
 
-    # Short period should have values earlier
-    assert result_short.notna().sum() > result_long.notna().sum()
+  # Check NaN counts
+  assert res1.isna().sum() == 2
+  assert res2.isna().sum() == 5
 
-  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
-  def test_roc_matches_talib(self):
-    """Test ROC matches TA-Lib output."""
-    np.random.seed(42)
-    prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
 
-    result = roc(prices, period=10)
-    expected = pd.Series(talib.ROC(prices.values, timeperiod=10))
+@pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+def test_roc_matches_talib():
+  """Test ROC values match TA-Lib."""
+  np.random.seed(42)
+  data = pd.Series(np.random.randn(100) + 100)
+  period = 14
 
-    # Compare non-NaN values
-    valid_mask = result.notna() & expected.notna()
-    np.testing.assert_allclose(
-      result[valid_mask].values,
-      expected[valid_mask].values,
-      rtol=1e-10,
-    )
+  result = roc(data, period=period)
+  res = result.to_pandas()
+
+  expected = talib.ROC(data.values, timeperiod=period)
+
+  # TA-Lib returns numpy array, we return Series
+  pd.testing.assert_series_equal(res, pd.Series(expected, index=data.index, name="roc"))

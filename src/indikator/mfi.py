@@ -4,10 +4,10 @@ This module provides MFI calculation, a momentum indicator that uses both
 price and volume to measure buying and selling pressure.
 """
 
+from typing import TYPE_CHECKING, cast
+
 from datawarden import (
   Finite,
-  Ge as GeValidator,
-  HasColumns,
   NotEmpty,
   Validated,
   validate,
@@ -19,20 +19,22 @@ import pandas as pd
 from indikator._constants import DEFAULT_EPSILON
 from indikator._mfi_numba import compute_mfi_numba
 
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
+
+from indikator._results import MFIResult
+
 
 @configurable
 @validate
 def mfi(
-  data: Validated[
-    pd.DataFrame,
-    HasColumns(["high", "low", "close", "volume"]),
-    Finite,
-    GeValidator("high", "low"),
-    NotEmpty,
-  ],
-  window: Hyper[int, Ge[2]] = 14,
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+  volume: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.Series:
+) -> MFIResult:
   """Calculate Money Flow Index (MFI).
 
   MFI is a momentum indicator that uses both price and volume to measure
@@ -44,54 +46,51 @@ def mfi(
   3. Positive Money Flow = sum of MF when typical price increases
   4. Negative Money Flow = sum of MF when typical price decreases
   5. Money Flow Ratio = Positive Money Flow / Negative Money Flow
-  6. MFI = 100 - (100 / (1 + Money Flow Ratio))
+  Typical Price = (High + Low + Close) / 3
+  Raw Money Flow = Typical Price * Volume
+  Money Ratio = Positive Money Flow / Negative Money Flow
+  MFI = 100 - (100 / (1 + Money Ratio))
 
   Interpretation:
-  - MFI > 80: Overbought (potential reversal down)
-  - MFI < 20: Oversold (potential reversal up)
-  - Divergence: MFI moves opposite to price (strong reversal signal)
-  - Failure Swings: MFI crosses above 80 then below (sell) or below 20 then above (buy)
+  - MFI > 80: Overbought
+  - MFI < 20: Oversold
+  - Divergence: Price makes new high but MFI doesn't = reversal signal
 
   Features:
   - Numba-optimized for performance
-  - Uses typical price (H+L+C)/3
-  - Handles division by zero with epsilon
-  - 0-100 bounded range
+  - Handles edge cases (division by zero)
+  - Uses standard 14 period default
 
   Args:
-    data: OHLCV DataFrame
-    window: Rolling window size (default: 14)
-    epsilon: Small value to prevent division by zero
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    volume: Volume Series.
+    period: Lookback period (default: 14)
 
   Returns:
-    Series with MFI values (0-100 range, NaN for initial bars)
-
-  Raises:
-    ValueError: If required columns missing or data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> data = pd.DataFrame({
-    ...     'high': [10, 12, 11, 13, 15],
-    ...     'low': [9, 10, 9, 11, 12],
-    ...     'close': [9.5, 11, 10, 12, 14],
-    ...     'volume': [100, 150, 120, 200, 180]
-    ... })
-    >>> result = mfi(data, window=3)
-    >>> # Returns DataFrame with 'mfi' column
+    MFIResult(index, mfi)
   """
-
-  # Convert to numpy arrays for Numba
-  highs = np.asarray(data["high"].values, dtype=np.float64)
-  lows = np.asarray(data["low"].values, dtype=np.float64)
-  closes = np.asarray(data["close"].values, dtype=np.float64)
-  volumes = np.asarray(data["volume"].values, dtype=np.float64)
-
-  # Calculate typical price
-  typical_prices = (highs + lows + closes) / 3.0
+  # Convert to numpy for Numba
+  high_arr = cast(
+    "NDArray[np.float64]",
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  low_arr = cast(
+    "NDArray[np.float64]",
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  close_arr = cast(
+    "NDArray[np.float64]",
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  vol_arr = cast(
+    "NDArray[np.float64]",
+    volume.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
 
   # Calculate MFI using Numba-optimized function
-  mfi_values = compute_mfi_numba(typical_prices, volumes, window, epsilon)
+  # Note: compute_mfi_numba calculates Typical Price internally
+  mfi_values = compute_mfi_numba(high_arr, low_arr, close_arr, vol_arr, period)
 
-  # Return only the indicator (minimal return philosophy)
-  return pd.Series(mfi_values, index=data.index, name="mfi")
+  return MFIResult(index=high.index, mfi=mfi_values)

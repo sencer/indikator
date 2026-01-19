@@ -6,7 +6,6 @@ that relates volume to price change.
 
 from datawarden import (
   Finite,
-  HasColumns,
   NotEmpty,
   Validated,
   validate,
@@ -16,40 +15,26 @@ import numpy as np
 import pandas as pd
 
 from indikator._obv_numba import compute_obv_numba
+from indikator._results import OBVResult
 
 
 @configurable
 @validate
 def obv(
-  data: Validated[pd.DataFrame, HasColumns(["close", "volume"]), Finite, NotEmpty],
-) -> pd.Series:
-  """Calculate On-Balance Volume (OBV).
+  close: Validated[pd.Series, Finite, NotEmpty],
+  volume: Validated[pd.Series, Finite, NotEmpty],
+) -> OBVResult:
+  """Calculate On Balance Volume (OBV).
 
-  OBV is a cumulative indicator that adds volume on up days and subtracts
-  volume on down days. It measures buying and selling pressure.
+  OBV measures buying and selling pressure as a cumulative indicator that
+  adds volume on up days and subtracts volume on down days.
 
   Formula:
-  - If close > previous close: OBV = OBV_previous + volume
-  - If close < previous close: OBV = OBV_previous - volume
-  - If close == previous close: OBV = OBV_previous
-
-  Theory:
-  - Volume precedes price (smart money accumulates before price rises)
-  - Rising OBV with rising price = confirmed uptrend
-  - Falling OBV with falling price = confirmed downtrend
-  - OBV rising while price flat = accumulation (bullish)
-  - OBV falling while price flat = distribution (bearish)
+  If Close > Close_prev: OBV = OBV_prev + Volume
+  If Close < Close_prev: OBV = OBV_prev - Volume
+  If Close = Close_prev: OBV = OBV_prev
 
   Interpretation:
-  - OBV trending up: Buying pressure increasing
-  - OBV trending down: Selling pressure increasing
-  - OBV divergence from price: Warning of potential reversal
-  - OBV breakout before price: Early signal of price breakout
-
-  Common strategies:
-  - Trend confirmation: OBV should move with price trend
-  - Divergence: OBV makes higher low while price makes lower low = bullish
-  - Breakout confirmation: OBV breaks out with price = strong signal
   - Volume accumulation: Rising OBV during consolidation = breakout coming
 
   Features:
@@ -78,11 +63,11 @@ def obv(
   """
 
   # Convert to numpy arrays for Numba
-  closes = np.asarray(data["close"].values, dtype=np.float64)
-  volumes = np.asarray(data["volume"].values, dtype=np.float64)
+  closes = np.asarray(close.values, dtype=np.float64)
+  volumes = np.asarray(volume.values, dtype=np.float64)
 
   # Calculate OBV using Numba-optimized function
   obv_values = compute_obv_numba(closes, volumes)
 
   # Return only the indicator (minimal return philosophy)
-  return pd.Series(obv_values, index=data.index, name="obv")
+  return OBVResult(index=close.index, obv=obv_values)

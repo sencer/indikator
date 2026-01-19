@@ -17,7 +17,9 @@ if TYPE_CHECKING:
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
 def compute_vwap_numba(
-  typical_prices: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
   volumes: NDArray[np.float64],
   reset_mask: NDArray[np.bool_],
 ) -> NDArray[np.float64]:
@@ -30,14 +32,16 @@ def compute_vwap_numba(
   starts fresh from that bar.
 
   Args:
-    typical_prices: Array of typical prices (usually (H+L+C)/3)
+    high: Array of high prices
+    low: Array of low prices
+    close: Array of close prices
     volumes: Array of volumes
     reset_mask: Boolean array indicating where to reset VWAP calculation
 
   Returns:
     Array of VWAP values
   """
-  n = len(typical_prices)
+  n = len(high)
   vwap = np.zeros(n, dtype=np.float64)
 
   cum_pv = 0.0  # Cumulative price * volume
@@ -49,15 +53,18 @@ def compute_vwap_numba(
       cum_pv = 0.0
       cum_v = 0.0
 
+    # Calculate typical price inline
+    tp = (high[i] + low[i] + close[i]) / 3.0
+
     # Update cumulative sums
-    cum_pv += typical_prices[i] * volumes[i]
+    cum_pv += tp * volumes[i]
     cum_v += volumes[i]
 
     # Calculate VWAP (avoid division by zero)
     if cum_v > 0:
       vwap[i] = cum_pv / cum_v
     else:
-      vwap[i] = typical_prices[i]  # Fallback to typical price
+      vwap[i] = tp  # Fallback to typical price
 
   return vwap
 

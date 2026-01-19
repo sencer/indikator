@@ -19,6 +19,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._results import ROCResult
 from indikator._roc_numba import compute_roc_numba
 
 
@@ -27,7 +28,7 @@ from indikator._roc_numba import compute_roc_numba
 def roc(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 10,
-) -> pd.Series:
+) -> ROCResult:
   """Calculate Rate of Change (ROC).
 
   ROC is a momentum oscillator that measures the percentage change between
@@ -57,7 +58,7 @@ def roc(
     period: Lookback period (default: 10)
 
   Returns:
-    Series with ROC values (percentage)
+    ROCResult(index, roc)
 
   Raises:
     ValueError: If data contains NaN/Inf
@@ -65,15 +66,15 @@ def roc(
   Example:
     >>> import pandas as pd
     >>> prices = pd.Series([100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120])
-    >>> result = roc(prices, period=5)
+    >>> result = roc(prices, period=5).to_pandas()
   """
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate ROC using Numba-optimized function
   roc_values = compute_roc_numba(values, period)
 
-  return pd.Series(roc_values, index=data.index, name="roc")
+  return ROCResult(index=data.index, roc=roc_values)

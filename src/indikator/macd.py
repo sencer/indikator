@@ -29,38 +29,25 @@ def macd(
   data: Validated[pd.Series, Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
-  signal_period: Hyper[int, Ge[1]] = 9,
+  signal_period: Hyper[int, Ge[2]] = 9,
 ) -> MACDResult:
-  """Calculate MACD (Moving Average Convergence Divergence).
+  """Calculate Moving Average Convergence Divergence (MACD).
 
   MACD is a trend-following momentum indicator that shows the relationship
-  between two exponential moving averages (EMAs) of a price series.
+  between two moving averages of a security's price.
 
-  Components:
-  1. MACD Line = EMA(fast_period) - EMA(slow_period)
-  2. Signal Line = EMA(MACD Line, signal_period)
-  3. Histogram = MACD Line - Signal Line
+  Formula:
+  MACD Line = EMA(fast_period) - EMA(slow_period)
+  Signal Line = EMA(MACD Line, signal_period)
+  Histogram = MACD Line - Signal Line
 
   Interpretation:
-  - MACD > 0: Price is above the slow EMA (bullish)
-  - MACD < 0: Price is below the slow EMA (bearish)
-  - MACD crossing above signal: Bullish signal (buy)
-  - MACD crossing below signal: Bearish signal (sell)
-  - Histogram growing: Trend strengthening
-  - Histogram shrinking: Trend weakening
-  - Divergence: Price makes new high but MACD doesn't = bearish
-
-  Common strategies:
-  - Signal crossovers: Buy on MACD cross above signal, sell on cross below
-  - Zero crossovers: Buy on MACD cross above 0, sell on cross below 0
-  - Divergence: Look for price/MACD divergences for reversal signals
-  - Histogram: Use histogram for early trend change detection
-
-  Features:
-  - Numba-optimized for performance
-  - Standard parameters (12, 26, 9) by default
-  - Returns all three components
-  - Works with any numeric column
+  - MACD crossing above Signal: Bullish
+  - MACD crossing below Signal: Bearish
+  - MACD > 0: Fast MA > Slow MA (Uptrend)
+  - MACD < 0: Fast MA < Slow MA (Downtrend)
+  - Histogram widening: Trend strengthening
+  - Histogram narrowing: Trend weakening
 
   Args:
     data: Input Series.
@@ -89,7 +76,7 @@ def macd(
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate MACD using Numba-optimized function
@@ -97,4 +84,6 @@ def macd(
     values, fast_period, slow_period, signal_period
   )
 
-  return MACDResult(macd_line, signal_line, histogram, data.index)
+  return MACDResult(
+    index=data.index, macd=macd_line, signal=signal_line, histogram=histogram
+  )

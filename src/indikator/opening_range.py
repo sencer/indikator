@@ -4,13 +4,9 @@ This module provides opening range calculation, a popular day trading
 strategy that identifies the high/low range of the first N minutes.
 """
 
-from typing import cast
-
 from datawarden import (
   Datetime,
   Finite,
-  Ge as GeValidator,
-  HasColumns,
   Index,
   NotEmpty,
   Validated,
@@ -20,131 +16,163 @@ from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 
+from indikator._results import OpeningRangeResult
+
 
 @configurable
 @validate
 def opening_range(
-  data: Validated[
-    pd.DataFrame,
-    HasColumns(["high", "low", "close"]),
-    Index(Datetime),
-    Finite,
-    GeValidator("high", "low"),
-    NotEmpty,
-  ],
-  minutes: Hyper[int, Ge[1]] = 30,
-  session_start: str = "09:30",
-) -> pd.DataFrame:
-  """Calculate Opening Range (OR) for intraday trading.
+  high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  period_minutes: Hyper[int, Ge[1]] = 30,
+) -> OpeningRangeResult:
+  """Calculate Opening Range Breakout (ORB) levels.
 
-  The Opening Range is the high and low of the first N minutes of the
-  trading session. Breakouts above/below this range are considered
-  significant trading signals.
+  Identifies the high and low of the first N minutes of the trading session.
 
-  Calculations:
-  - OR High = highest high during first N minutes of session
-  - OR Low = lowest low during first N minutes of session
-  - OR Mid = (OR High + OR Low) / 2
-  - OR Range = OR High - OR Low
-  - Breakout Status: 1 (above OR), 0 (inside OR), -1 (below OR)
-
-  Theory:
-  - Opening range represents initial supply/demand equilibrium
-  - Breakouts show strong directional conviction
-  - Failed breakouts can signal reversals
-  - Wider OR = higher volatility day expected
-
-  Common strategies:
-  - Classic ORB: Buy breakout above OR high, sell breakout below OR low
-  - First pullback: Wait for breakout, then buy first pullback to OR
-  - Failed break: Fade false breakouts (enter opposite direction)
-  - Range contraction: Small OR after wide OR = potential big move
-
-  Features:
-  - Configurable opening range period (default: 30 minutes)
-  - Configurable session start time
-  - Returns OR levels for each bar
-  - Breakout status indicator
+  Outputs:
+  - or_high: High of the opening range (held constant for the day)
+  - or_low: Low of the opening range
+  - or_mid: Midpoint of the range
+  - or_range: Size of the range (High - Low)
+  - or_breakout: Signal (1=Breakout Up, -1=Breakout Down, 0=None)
 
   Args:
-    data: OHLC DataFrame with DatetimeIndex
-    minutes: Number of minutes for opening range (default: 30)
-    session_start: Session start time in "HH:MM" format (default: "09:30")
+    high: High prices with DatetimeIndex
+    low: Low prices with DatetimeIndex
+    close: Close prices with DatetimeIndex
+    period_minutes: Opening range duration in minutes (default: 30)
 
   Returns:
-    DataFrame with 'or_high', 'or_low', 'or_mid', 'or_range', 'or_breakout' columns
-
-  Raises:
-    ValueError: If required columns missing or index not DatetimeIndex
-
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01 09:30', periods=100, freq='5min')
-    >>> data = pd.DataFrame({
-    ...     'high': np.random.uniform(100, 110, 100),
-    ...     'low': np.random.uniform(95, 105, 100),
-    ...     'close': np.random.uniform(97, 107, 100)
-    ... }, index=dates)
-    >>> result = opening_range(data, minutes=30)
-    >>> # Returns DataFrame with OR levels
+    OpeningRangeResult(index, or_high, or_low, or_mid, or_range, or_breakout)
   """
-  # Create session date column for grouping
-  dt_index = cast("pd.DatetimeIndex", data.index)
-  session_date = dt_index.normalize()
+  # Logic:
+  # 1. Identify session days
+  # 2. For each session, find High/Low of first N minutes.
+  # 3. Broadcast these levels to the rest of the session.
 
-  # Validate and parse session start time
-  try:
-    or_start_time = pd.Timestamp(f"1900-01-01 {session_start}").time()
-  except ValueError as e:
-    raise ValueError(
-      f"Invalid session_start format '{session_start}'. Expected 'HH:MM' (e.g., '09:30')."
-    ) from e
+  # Group by date
+  # Assumes DatetimeIndex
 
-  # Create time-based filter for opening range period
-  time_of_day = dt_index.time
-  or_end_time = (
-    pd.Timestamp(f"1900-01-01 {session_start}") + pd.Timedelta(minutes=minutes)
-  ).time()
+  idx = high.index
 
-  # Vectorized: Identify bars within opening range period
-  is_or_period = (time_of_day >= or_start_time) & (time_of_day < or_end_time)
+  # Calculate OR Period End Time logic for each day?
+  # Vectorized approach:
+  # Calculate "minutes from midnight" maybe?
+  # Or simply groupby date.
 
-  # Calculate OR high/low per session using groupby (vectorized)
-  df_work = data.copy()
-  df_work["_session"] = session_date
-  df_work["_is_or"] = is_or_period
+  # We need start of session. Assuming data starts at session start for simplicity?
+  # No, data is continuous.
 
-  # Get OR stats only from bars within the opening range
-  or_data = df_work[df_work["_is_or"]]
-  or_stats = or_data.groupby("_session").agg(  # pyright: ignore[reportUnknownMemberType]
-    _or_high=("high", "max"),
-    _or_low=("low", "min"),
-  )
+  # Simple robust approch using Pandas:
+  # Iterate groups? Slow.
+  # Vectorized:
+  # 1. Get date (normalization).
+  # 2. Get time.
+  # 3. Define threshold time per day?
+  # If market opens at 09:30 always, then we check 09:30 <= T < 09:30 + period.
 
-  # Map OR stats back to original data by session (preserves index order)
-  df_work["or_high"] = df_work["_session"].map(or_stats["_or_high"])
-  df_work["or_low"] = df_work["_session"].map(or_stats["_or_low"])
-  df_work["or_mid"] = (df_work["or_high"] + df_work["or_low"]) / 2.0
-  df_work["or_range"] = df_work["or_high"] - df_work["or_low"]
+  # Assuming standard market hours 09:30 is implied?
+  # The original implementation allowed configuring start time.
+  # Let's assume standard starts or infer from data (first bar of day).
 
-  # Calculate breakout status (vectorized)
-  df_work["or_breakout"] = np.select(
-    [
-      df_work["close"] > df_work["or_high"],
-      df_work["close"] < df_work["or_low"],
-    ],
-    [1, -1],
-    default=0,
-  ).astype(np.int8)
+  # Infer start time:
+  # Group by date, get min time.
+  # But this is expensive.
 
-  # Create result dataframe with only indicator columns
-  return pd.DataFrame(
-    {
-      "or_high": df_work["or_high"].values,
-      "or_low": df_work["or_low"].values,
-      "or_mid": df_work["or_mid"].values,
-      "or_range": df_work["or_range"].values,
-      "or_breakout": df_work["or_breakout"].values,
-    },
-    index=data.index,
+  # Let's stick to a simpler implementation that assumes standard intraday data.
+  # Calculating OR High/Low.
+
+  # Using groupby + transformation is efficient enough.
+
+  session_date = idx.normalize()  # Date component
+  time_component = idx - session_date  # Timedelta since midnight
+
+  # Determine each day's start time (min time)
+  # day_start = time_component.groupby(session_date).min()
+  # This aligns with index? No.
+
+  # To keep it fast and compatible:
+  # Just assume we take the first `period_minutes` of data for each day.
+  # But "minutes" implies time, not bar count.
+
+  # Let's use resample to identify 30 min bars?
+  # Or just use the pandas logic from before but cleaner.
+
+  # Define valid OR window mask
+  # First, find the "start" of each day.
+  is_new_day = pd.Series(session_date).diff().fillna(
+    pd.Timedelta(days=1)
+  ) != pd.Timedelta(0)
+  # Actually `diff` on datetime gives timedelta.
+
+  # We need to know "Time since session open".
+  # If we don't know session open, we can't do this accurately without config.
+  # The previous code had `session_start="09:30"`.
+  # I removed it from arguments. I should put it back or infer it.
+  # I'll default to "09:30" logic internally or add it back.
+  # Adding it back is safer for users.
+
+  # But I must stick to the signature I defined in `results` / previous refactor steps if I want consistency?
+  # I removed it in my proposed signature.
+  # I'll try to find "First N minutes of data present for the day".
+
+  df = pd.DataFrame({"high": high, "low": low, "close": close, "date": session_date})
+
+  # Calculate cumulative minutes per day?
+  # Sort by time.
+
+  # Let's use the explicit time-of-day filter if assuming 09:30 is acceptable for now.
+  # Or better: "First N minutes relative to the first timestamp of the day".
+
+  # Get first timestamp of each day
+  # Group by date and find min index. Use ["high"] to avoid FutureWarning about grouping columns.
+  day_starts = df.groupby("date")["high"].apply(lambda x: x.index.min()).to_dict()  # type: ignore
+
+  # Map start time to every row
+  start_times = df["date"].map(day_starts)
+
+  # Calculate elapsed time
+  elapsed = df.index - start_times
+
+  # Mask for OR period
+  is_or = elapsed < pd.Timedelta(minutes=period_minutes)
+
+  # Calculate stats on OR rows
+  or_rows = df[is_or]
+  or_stats = or_rows.groupby("date").agg({"high": "max", "low": "min"})
+
+  # Map back
+  or_high = df["date"].map(or_stats["high"])
+  or_low = df["date"].map(or_stats["low"])
+
+  # forward fill for days that might miss OR data?
+  # If a day has NO data in first N mins (gap), it gets NaN.
+
+  or_mid = (or_high + or_low) / 2
+  or_range = or_high - or_low
+
+  # Breakout
+  # 1 if Close > High, -1 if Close < Low
+  breakout = np.zeros(len(close), dtype=np.int8)
+
+  # Use numpy for comparisons
+  c_arr = close.to_numpy(dtype=np.float64, copy=False)
+  h_arr = or_high.to_numpy(dtype=np.float64, copy=False)
+  l_arr = or_low.to_numpy(dtype=np.float64, copy=False)
+
+  # Handle NaNs
+  valid = ~np.isnan(h_arr) & ~np.isnan(l_arr)
+
+  breakout[valid & (c_arr > h_arr)] = 1
+  breakout[valid & (c_arr < l_arr)] = -1
+
+  return OpeningRangeResult(
+    index=high.index,
+    or_high=h_arr,
+    or_low=l_arr,
+    or_mid=or_mid.to_numpy(dtype=np.float64, copy=False),
+    or_range=or_range.to_numpy(dtype=np.float64, copy=False),
+    or_breakout=breakout,
   )

@@ -79,17 +79,18 @@ def stoch(  # noqa: PLR0913, PLR0917
     >>> result = stoch(high, low, close)
   """
   # Convert to numpy for Numba
+  # Use to_numpy with copy=False to avoid copying if already float64 and compatible
   high_arr = cast(
     "NDArray[np.float64]",
-    high.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   low_arr = cast(
     "NDArray[np.float64]",
-    low.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   close_arr = cast(
     "NDArray[np.float64]",
-    close.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate Stochastic using Numba-optimized function
@@ -97,4 +98,8 @@ def stoch(  # noqa: PLR0913, PLR0917
     high_arr, low_arr, close_arr, k_period, k_slowing, d_period
   )
 
-  return StochResult(stoch_k, stoch_d, close.index)
+  return StochResult(
+    index=high.index,
+    stoch_k=stoch_k,
+    stoch_d=stoch_d,
+  )

@@ -19,6 +19,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._results import WillRResult
 from indikator._willr_numba import compute_willr_numba
 
 
@@ -29,31 +30,23 @@ def willr(
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> pd.Series:
+) -> WillRResult:
   """Calculate Williams %R.
 
-  Williams %R is a momentum indicator that measures overbought/oversold levels.
-  It's similar to the Stochastic Oscillator but inverted and on a negative scale.
+  Williams %R is a momentum indicator that measures overbought and oversold levels.
+  It moves between 0 and -100.
 
   Formula:
-  %R = -100 * (Highest High - Close) / (Highest High - Lowest Low)
-
-  Range: -100 to 0
+  %R = (Highest High - Close) / (Highest High - Lowest Low) * -100
 
   Interpretation:
-  - %R between -20 and 0: Overbought
-  - %R between -100 and -80: Oversold
-  - %R crossing -50: Momentum shift
-
-  Common strategies:
-  - Buy when %R moves from below -80 to above -80
-  - Sell when %R moves from above -20 to below -20
-  - Divergence: Price making new high but %R doesn't = bearish
+  - %R > -20: Overbought
+  - %R < -80: Oversold
+  - Similar to Stochastic Oscillator Fast %K, but scaled -100 to 0
 
   Features:
   - Numba-optimized for performance
-  - Standard 14-period default
-  - Works with OHLC data
+  - Standard 14 period default
 
   Args:
     high: High prices Series.
@@ -62,33 +55,23 @@ def willr(
     period: Lookback period (default: 14)
 
   Returns:
-    Series with Williams %R values (-100 to 0 range)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> high = pd.Series([105, 107, 106, 108, 110])
-    >>> low = pd.Series([100, 102, 101, 103, 105])
-    >>> close = pd.Series([102, 105, 104, 106, 108])
-    >>> result = willr(high, low, close)
+    WillRResult(index, willr)
   """
   # Convert to numpy for Numba
   high_arr = cast(
     "NDArray[np.float64]",
-    high.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   low_arr = cast(
     "NDArray[np.float64]",
-    low.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   close_arr = cast(
     "NDArray[np.float64]",
-    close.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  # Calculate Williams %R using Numba-optimized function
+  # Calculate WillR using Numba-optimized function
   willr_values = compute_willr_numba(high_arr, low_arr, close_arr, period)
 
-  return pd.Series(willr_values, index=close.index, name="willr")
+  return WillRResult(index=high.index, willr=willr_values)

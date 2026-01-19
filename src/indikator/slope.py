@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
+from indikator._results import SlopeResult
 from indikator._slope_numba import compute_slope_numba
 
 
@@ -28,7 +29,7 @@ from indikator._slope_numba import compute_slope_numba
 def slope(
   data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
-) -> pd.Series:
+) -> SlopeResult:
   """Calculate the slope of linear regression over a rolling window.
 
   The slope indicates the direction and steepness of the trend:
@@ -41,7 +42,7 @@ def slope(
     window: Rolling window size for regression
 
   Returns:
-    Series with slope values
+    SlopeResult(index, slope)
 
   Raises:
     ValueError: If validation fails
@@ -50,10 +51,10 @@ def slope(
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate slopes using Numba-optimized function
   slopes = compute_slope_numba(values, window)
 
-  return pd.Series(slopes, index=data.index, name=data.name)
+  return SlopeResult(index=data.index, slope=slopes)

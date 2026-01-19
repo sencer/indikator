@@ -3,110 +3,110 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import Literal, Protocol, TypedDict
+from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import (
-  Datetime,
-  Finite,
-  Ge as GeValidator,
-  HasColumns,
-  Index,
-  NotEmpty,
-  Validated,
-)
+from datawarden import Columns, Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import VWAPResult
+
 class _vwap_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def anchor(self) -> str | pd.Timedelta | int: ...
   def __call__(
     self,
-    data: Validated[
-      pd.DataFrame,
-      HasColumns(["high", "low", "close", "volume"]),
-      Index(Datetime),
-      Finite,
-      GeValidator("high", "low"),
-      NotEmpty,
-    ],
-    session_freq: Literal["D", "W", "ME"] = ...,
-  ) -> pd.Series: ...
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    volume: Validated[pd.Series, Finite, NotEmpty],
+  ) -> VWAPResult: ...
 
 class _vwap_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for vwap.
+
+  Configuration:
+      anchor (str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict)
+  """
+
+  anchor: str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict
 
 class _vwap_Config(_NCMakeableModel[_vwap_Bound]):
   """Configuration class for vwap.
 
-  Calculate Volume-Weighted Average Price (VWAP).
+  Calculate Volume Weighted Average Price (VWAP).
 
-  VWAP is the ratio of cumulative (price * volume) to cumulative volume,
-  typically reset at the beginning of each trading session. It represents
-  the average price weighted by volume.
+  VWAP is a trading benchmark that gives the average price a security has
+  traded at throughout the day, based on both volume and price.
 
-  VWAP = Sum(Typical Price * Volume) / Sum(Volume)
-  where Typical Price = (High + Low + Close) / 3
+  Formula:
+  Typical Price = (High + Low + Close) / 3
+  VWAP = Cumulative(Typical Price * Volume) / Cumulative(Volume)
 
-  Institutional traders use VWAP as:
-  - Execution benchmark (am I getting better/worse than VWAP?)
-  - Support/resistance level (price tends to revert to VWAP)
-  - Trend indicator (price above VWAP = bullish, below = bearish)
-  - Entry/exit signal (crossing VWAP can indicate trend changes)
+  Reset:
+  The cumulative sums reset based on the anchor period (e.g., daily 'D').
+
+  Interpretation:
+  - Price > VWAP: Bullish sentiment (buyers are in control)
+  - Price < VWAP: Bearish sentiment (sellers are in control)
+  - VWAP acts as dynamic support/resistance
+  - Institutions use VWAP to execute large orders without moving market
 
   Features:
   - Numba-optimized for performance
-  - Configurable session period (daily, weekly, monthly)
-  - Handles missing volume gracefully
-  - Returns both VWAP and typical price
+  - Flexible anchoring (Time-based or Bar-count based)
+  - Standard 'D' (daily) anchor default
 
   Args:
-    data: OHLCV DataFrame with DatetimeIndex
-    session_freq: Session reset frequency ('D'=daily, 'W'=weekly, 'ME'=month-end)
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    volume: Volume Series.
+    anchor: Reset anchor (e.g. 'D', 'W', '1h') or int (bars). Default 'D'.
 
   Returns:
-    DataFrame with 'vwap' and 'typical_price' columns added
+    VWAPResult(index, vwap)
 
-  Raises:
-    ValueError: If required columns missing or index not DatetimeIndex
-
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01 09:30', periods=10, freq='5min')
-    >>> data = pd.DataFrame({
-    ...     'high': [102, 104, 103, 106, 108, 107, 109, 108, 110, 112],
-    ...     'low': [100, 101, 100, 103, 105, 104, 106, 105, 107, 109],
-    ...     'close': [101, 103, 102, 105, 107, 106, 108, 107, 109, 111],
-    ...     'volume': [1000]*10
-    ... }, index=dates)
-    >>> result = vwap(data)
-    >>> # Returns DataFrame with VWAP column
+  Configuration:
+      anchor (str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict)
   """
 
-  pass
+  anchor: str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict
+  def __init__(
+    self,
+    *,
+    anchor: str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict = ...,
+  ) -> None: ...
+  """Initialize configuration for vwap.
+
+    Configuration:
+        anchor (str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict)
+    """
+
+  @override
+  def make(self) -> _vwap_Bound: ...
 
 class vwap:
   Type = _vwap_Bound
   Config = _vwap_Config
   ConfigDict = _vwap_ConfigDict
+  anchor: ClassVar[str | pd.Timedelta | int]
   def __new__(
     cls,
-    data: Validated[
-      pd.DataFrame,
-      HasColumns(["high", "low", "close", "volume"]),
-      Index(Datetime),
-      Finite,
-      GeValidator("high", "low"),
-      NotEmpty,
-    ],
-    session_freq: Literal["D", "W", "ME"] = ...,
-  ) -> pd.Series: ...
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    volume: Validated[pd.Series, Finite, NotEmpty],
+    anchor: str | pd.Timedelta | int = ...,
+  ) -> VWAPResult: ...
 
 class _vwap_anchored_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NotEmpty
+      pd.DataFrame, Columns(["high", "low", "close", "volume"]), Finite, NotEmpty
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
@@ -175,7 +175,7 @@ class vwap_anchored:
   def __new__(
     cls,
     data: Validated[
-      pd.DataFrame, HasColumns(["high", "low", "close", "volume"]), Finite, NotEmpty
+      pd.DataFrame, Columns(["high", "low", "close", "volume"]), Finite, NotEmpty
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,

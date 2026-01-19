@@ -5,57 +5,49 @@ structure tracking. It distinguishes between corrections (temporary moves
 against the trend) and trend changes (structure breaks).
 """
 
+from typing import Literal
+
 from datawarden import (
   Finite,
   NotEmpty,
-  NotIsNaN,
   Validated,
   validate,
 )
-from nonfig import Ge, Gt, Hyper, Le, configurable
+from nonfig import Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-from indikator._legs_numba import compute_zigzag_legs_numba
+from indikator._legs_numba import compute_zigzag_numba
+from indikator._results import ZigzagLegsResult
 
 
 @configurable
 @validate
-def zigzag_legs(
-  data: Validated[pd.Series, Finite, NotEmpty, NotIsNaN],
-  threshold: Hyper[float, Ge[0.0], Le[1.0]] = 0.01,
-  min_distance_pct: Hyper[float, Ge[0.0], Le[1.0]] = 0.005,
-  confirmation_bars: Hyper[int, Ge[0]] = 2,
-  epsilon: Hyper[float, Gt[0.0]] = 1e-9,
-) -> pd.Series:
-  """Calculate zigzag leg count with market structure tracking.
+def legs(
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+  deviation: Hyper[float, Gt[0.0]] = 0.05,
+  method: Literal["percentage", "absolute"] = "percentage",
+) -> ZigzagLegsResult:
+  """Calculate ZigZag legs.
 
-  Implements Elliott Wave-style leg counting that distinguishes between:
-  - **Corrections**: Temporary moves against the trend (sign stays same)
-  - **Trend Changes**: Structure breaks that reverse the sign
-
-  The algorithm tracks STRUCTURE, not just price direction. A down move in a
-  bullish structure remains positive until it breaks below the previous low.
-
-  **Important**: The output tracks market STRUCTURE (bullish/bearish), not just
-  current leg direction (up/down). Use this for Elliott Wave analysis or structure-based
-  strategies. For simpler zigzag tracking, consider using trend direction instead.
+  Identifies swing highs and lows that exceed a minimum deviation threshold.
+  Used to filter out noise and identify significant market moves.
 
   Features:
-  - Signed output: positive for bullish structure, negative for bearish structure
-  - Confirmation period to filter false reversals
-  - Minimum distance filter to avoid counting tiny wicks
-  - Numba-optimized for performance
+  - Numba-optimized
+  - "Percentage" or "Absolute" deviation modes
+  - Returns structured legs data (start/end price, direction)
 
   Args:
-    data: Input Series (e.g., close prices)
-    threshold: Minimum percentage change (0.01 = 1%) to trigger a reversal
-    min_distance_pct: Minimum percentage move (0.005 = 0.5%) to update pivot
-    confirmation_bars: Number of bars to confirm reversal (default 2)
-    epsilon: Small value to prevent division by zero
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    deviation: Minimum change to qualify as a new leg (0.05 = 5%).
+    method: 'percentage' or 'absolute'.
 
   Returns:
-    Series with zigzag leg counts
 
   Raises:
     ValueError: If data contains NaN or infinite values
@@ -73,14 +65,46 @@ def zigzag_legs(
     >>> # After price breaks previous low at 105, structure changes to bearish
   """
   # We use valid data but need to ensure types for Numba
-  closes = np.asarray(data.values, dtype=np.float64)
+  # Convert to numpy arrays for Numba
+  # Use high/low for standard Zigzag
+  high_arr = high.to_numpy(dtype=np.float64, copy=False)
+  low_arr = low.to_numpy(dtype=np.float64, copy=False)
+  close_arr = close.to_numpy(dtype=np.float64, copy=False)
 
-  legs = compute_zigzag_legs_numba(
-    closes,
-    threshold,
-    min_distance_pct,
-    confirmation_bars,
-    epsilon,
+  percentage_mode = method == "percentage"
+
+  directions, start_indices, end_indices, start_prices, end_prices = (
+    compute_zigzag_numba(
+      high_arr,
+      low_arr,
+      close_arr,
+      deviation,
+      percentage_mode,
+    )
   )
 
-  return pd.Series(legs, index=data.index, name="zigzag_legs")
+  # Convert integer indices to the original index values if possible?
+  # The Result should probably store integer indices and the pandas Index separately.
+  # ZigzagLegsResult definition in _results.py:
+  # index: pd.Index
+  # direction: NDArray[np.int8]
+  # start_index: NDArray[np.int64]
+  # end_index: NDArray[np.int64]
+  # start_price: NDArray[np.float64]
+  # end_price: NDArray[np.float64]
+
+  # Calculate pct_change for result
+  # Avoid division by zero
+  pct_change = np.zeros_like(start_prices)
+  valid = start_prices != 0
+  pct_change[valid] = (end_prices[valid] - start_prices[valid]) / start_prices[valid]
+
+  return ZigzagLegsResult(
+    index=pd.RangeIndex(len(directions)),  # Use RangeIndex for legs list
+    direction=directions,
+    start_price=start_prices,
+    end_price=end_prices,
+    start_idx=start_indices,
+    end_idx=end_indices,
+    pct_change=pct_change,
+  )

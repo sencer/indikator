@@ -9,6 +9,8 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import CCIResult
+
 class _cci_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
@@ -18,7 +20,8 @@ class _cci_Bound(Protocol):
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.Series: ...
+    constant: float = ...,
+  ) -> CCIResult: ...
 
 class _cci_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for cci.
@@ -48,37 +51,24 @@ class _cci_Config(_NCMakeableModel[_cci_Bound]):
   Interpretation:
   - CCI > +100: Overbought (potential reversal down)
   - CCI < -100: Oversold (potential reversal up)
-  - CCI crossing 0: Momentum shift
-  - Divergence: Price making new high but CCI doesn't = bearish
-
-  Common strategies:
-  - Buy when CCI moves from below -100 to above -100
-  - Sell when CCI moves from above +100 to below +100
-  - Trend following: Trade in direction when CCI > 0 or < 0
+  - CCI > 100: Overbought / strong uptrend
+  - CCI < -100: Oversold / strong downtrend
+  - CCI ~ 0: Ranging
+  - Divergences often precede reversals
 
   Features:
   - Numba-optimized for performance
-  - Standard 20-period default (Lambert's original)
-  - Uses mean deviation (more stable than standard deviation)
+  - Standard constant 0.015 (Lambert's default)
 
   Args:
     high: High prices Series.
     low: Low prices Series.
     close: Close prices Series.
-    period: Lookback period (default: 20)
+    period: Lookback period (default: 14)
+    constant: Scaling constant (default: 0.015)
 
   Returns:
-    Series with CCI values (unbounded, typically -100 to +100)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> high = pd.Series([105, 107, 106, 108, 110])
-    >>> low = pd.Series([100, 102, 101, 103, 105])
-    >>> close = pd.Series([102, 105, 104, 106, 108])
-    >>> result = cci(high, low, close)
+    CCIResult(index, cci)
 
   Configuration:
       period (int)
@@ -105,5 +95,6 @@ class cci:
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
+    constant: float = ...,
     period: int = ...,
-  ) -> pd.Series: ...
+  ) -> CCIResult: ...

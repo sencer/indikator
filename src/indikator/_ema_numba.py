@@ -14,7 +14,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
 def compute_ema_numba(
   prices: NDArray[np.float64],
   period: int,
@@ -37,22 +37,29 @@ def compute_ema_numba(
     Array of EMA values (NaN for initial bars where period not satisfied)
   """
   n = len(prices)
-  ema = np.full(n, np.nan)
 
   if n < period:
-    return ema
+    return np.full(n, np.nan)
+
+  ema = np.empty(n)
 
   # Multiplier for weighting
   k = 2.0 / (period + 1)
+  k1 = 1.0 - k
 
   # First EMA is SMA of first 'period' values
   sma_sum = 0.0
   for i in range(period):
     sma_sum += prices[i]
-  ema[period - 1] = sma_sum / period
+    ema[i] = np.nan
 
-  # Calculate subsequent EMA values
+  # Initialize with SMA
+  prev_ema = sma_sum / period
+  ema[period - 1] = prev_ema
+
+  # Calculate subsequent EMA values using local variable (register optimized)
   for i in range(period, n):
-    ema[i] = prices[i] * k + ema[i - 1] * (1.0 - k)
+    prev_ema = prices[i] * k + prev_ema * k1
+    ema[i] = prev_ema
 
   return ema

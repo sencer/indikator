@@ -9,59 +9,62 @@ from datawarden import Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import ZScoreResult
+
 class _zscore_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
-  def window(self) -> int: ...
-  @property
-  def epsilon(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ZScoreResult: ...
 
 class _zscore_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for zscore.
 
   Configuration:
-      window (int)
-      epsilon (float)
+      period (int)
   """
 
-  window: int
-  epsilon: float
+  period: int
 
 class _zscore_Config(_NCMakeableModel[_zscore_Bound]):
   """Configuration class for zscore.
 
-  Calculate Z-Score (Standard Score) over a rolling window.
+  Calculate Z-Score (Standard Score).
 
-  Z-Score measures how many standard deviations a data point is from the mean.
-  - Z > 2.0: Significantly above average (potential overbought/outlier)
-  - Z < -2.0: Significantly below average (potential oversold/outlier)
-  - Z ~ 0: Near average
+  Z-Score measures how many standard deviations a price is from the mean.
+  It is a mean-reversion indicator.
+
+  Formula:
+  Z = (Price - One_Year_Mean) / Standard_Deviation
+
+  Interpretation:
+  - Z > 2: Price is 2 standard deviations above mean (statistically rare/expensive)
+  - Z < -2: Price is 2 standard deviations below mean (cheap)
+  - Extreme values indicate potential reversal (mean reversion)
+  - Z = 0: Price is exactly at the mean
+
+  Features:
+  - Numba-optimized for performance
+  - Rolling window calculation
+  - Standard 20-period default (similar to Bollinger Bands)
 
   Args:
-    data: Series of values (e.g., close prices, volume, etc.)
-    window: Rolling window size for mean and std dev calculation
-    epsilon: Small value to prevent division by zero.
+    data: Input Series.
+    period: Lookback period (default: 20)
 
   Returns:
-    Series with Z-Score values
-
-  Raises:
-    ValueError: If validation fails
+    ZScoreResult(index, zscore)
 
   Configuration:
-      window (int)
-      epsilon (float)
+      period (int)
   """
 
-  window: int
-  epsilon: float
-  def __init__(self, *, window: int = ..., epsilon: float = ...) -> None: ...
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
   """Initialize configuration for zscore.
 
     Configuration:
-        window (int)
-        epsilon (float)
+        period (int)
     """
 
   @override
@@ -71,14 +74,10 @@ class zscore:
   Type = _zscore_Bound
   Config = _zscore_Config
   ConfigDict = _zscore_ConfigDict
-  window: ClassVar[int]
-  epsilon: ClassVar[float]
+  period: ClassVar[int]
   def __new__(
-    cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
-    window: int = ...,
-    epsilon: float = ...,
-  ) -> pd.Series: ...
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ZScoreResult: ...
 
 class _zscore_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

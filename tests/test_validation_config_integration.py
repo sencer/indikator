@@ -1,4 +1,5 @@
 from datawarden import Finite, Validated, validate
+from datawarden.exceptions import ValidationError
 from nonfig import Ge, Hyper, Lt, configurable
 import numpy as np
 import pandas as pd
@@ -35,7 +36,7 @@ class TestValidationConfigIntegration:
     pd.testing.assert_series_equal(result, self.valid_data)
 
     # Invalid data should raise ValueError
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       made_fn(self.invalid_data)
 
   def test_incorrect_order_still_validates(self):
@@ -58,5 +59,5 @@ class TestValidationConfigIntegration:
     pd.testing.assert_series_equal(result, self.valid_data)
 
     # Invalid data should still raise ValueError (validation still works)
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       fn_incorrect_order(self.invalid_data)

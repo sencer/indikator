@@ -1,11 +1,12 @@
 """Tests for Bollinger Bands indicator."""
 
+from datawarden.exceptions import ValidationError
 import numpy as np
 import pandas as pd
 import pytest
 
-from indikator._results import BollingerResult  # noqa: PLC2701
-from indikator.bollinger import bollinger_bands
+from indikator._results import BollingerResult
+from indikator.bollinger import bollinger_bands, bollinger_with_bandwidth
 
 
 class TestBollingerBands:
@@ -31,7 +32,10 @@ class TestBollingerBands:
       * 2,
     )
 
-    result = bollinger_bands(prices, window=5, num_std=2.0)
+    res_obj = bollinger_with_bandwidth(prices, window=5, num_std=2.0)
+    assert isinstance(res_obj, BollingerResult)
+
+    result = res_obj.to_pandas()
 
     # Check columns
     assert "bb_middle" in result.columns
@@ -65,9 +69,11 @@ class TestBollingerBands:
       "volume": [100, 200, 150, 180, 220],
     })
     # Pass Series directly
-    result = bollinger_bands(data["close"], window=5, num_std=2.0)
+    res_obj = bollinger_with_bandwidth(data["close"], window=5, num_std=2.0)
+    assert isinstance(res_obj, BollingerResult)
 
-    assert isinstance(result, BollingerResult)
+    result = res_obj.to_pandas()
+    assert isinstance(result, pd.DataFrame)
     assert "bb_middle" in result.columns
 
   def test_bollinger_percent_b(self):
@@ -76,17 +82,18 @@ class TestBollingerBands:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 2,
     )
 
-    result = bollinger_bands(prices, window=5, num_std=2.0)
+    result_obj = bollinger_with_bandwidth(prices, window=5, num_std=2.0)
+    # Check directly on object if convenient, or convert
+    # NamedTuple access
+    assert result_obj.bb_percent is not None
 
-    # %B should be in range [0, 1] most of the time (can go outside for extreme values)
-    # At middle band, %B should be 0.5
-    # We can't test exact values without knowing std dev, but we can check it's calculated
+    result = result_obj.to_pandas()
     assert result["bb_percent"].notna().any()
 
   def test_bollinger_empty_data(self) -> None:
     """Should raise ValueError when data is empty."""
     empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="not empty"):
+    with pytest.raises((ValueError, ValidationError), match="empty"):
       bollinger_bands(empty_data)
 
   def test_bollinger_window_parameter(self):
@@ -95,8 +102,8 @@ class TestBollingerBands:
       [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
     )
 
-    result_short = bollinger_bands(prices, window=3, num_std=2.0)
-    result_long = bollinger_bands(prices, window=15, num_std=2.0)
+    result_short = bollinger_with_bandwidth(prices, window=3, num_std=2.0).to_pandas()
+    result_long = bollinger_with_bandwidth(prices, window=15, num_std=2.0).to_pandas()
 
     # Different windows should produce different results
     assert not result_short["bb_middle"].equals(result_long["bb_middle"])
@@ -105,12 +112,12 @@ class TestBollingerBands:
     """Test Bollinger Bands with invalid input."""
     # Infinite values
     data = pd.Series([100.0, np.inf, 102.0])
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       bollinger_bands(data)
 
   def test_bollinger_with_inf(self):
     """Test Bollinger Bands with Inf values."""
     prices = pd.Series([100.0, 102.0, np.inf, 103.0, 105.0])
 
-    with pytest.raises(ValueError, match="must be finite"):
+    with pytest.raises((ValueError, ValidationError), match="Finite"):
       bollinger_bands(prices)

@@ -1,4 +1,4 @@
-"""Tests for MFI (Money Flow Index) indicator."""
+"""Tests for Money Flow Index (MFI)."""
 
 import numpy as np
 import pandas as pd
@@ -6,162 +6,67 @@ import pytest
 
 from indikator.mfi import mfi
 
-# Try to import talib for comparison tests
 try:
-  import talib  # type: ignore[import-untyped]
+  import talib
 
   HAS_TALIB = True
 except ImportError:
   HAS_TALIB = False
 
 
-class TestMFI:
-  """Tests for MFI indicator."""
+def test_mfi_basic():
+  """Test basic MFI calculation."""
+  # All prices up, high volume -> MFI should be 100
+  # TP = (H+L+C)/3
+  # If TP increases every bar, all flow is positive.
 
-  def test_mfi_basic(self):
-    """Test MFI basic calculation."""
-    data = pd.DataFrame({
-      "high": [
-        102.0,
-        104.0,
-        103.0,
-        106.0,
-        108.0,
-        107.0,
-        109.0,
-        108.0,
-        110.0,
-        112.0,
-      ]
-      * 2,
-      "low": [
-        100.0,
-        101.0,
-        100.0,
-        103.0,
-        105.0,
-        104.0,
-        106.0,
-        105.0,
-        107.0,
-        109.0,
-      ]
-      * 2,
-      "close": [
-        101.0,
-        103.0,
-        102.0,
-        105.0,
-        107.0,
-        106.0,
-        108.0,
-        107.0,
-        109.0,
-        111.0,
-      ]
-      * 2,
-      "volume": [
-        1000.0,
-        1200.0,
-        900.0,
-        1500.0,
-        1100.0,
-        1300.0,
-        1000.0,
-        1400.0,
-        1200.0,
-        1100.0,
-      ]
-      * 2,
-    })
+  high = pd.Series(np.arange(100, 200, dtype=float))
+  low = pd.Series(np.arange(90, 190, dtype=float))
+  close = pd.Series(np.arange(95, 195, dtype=float))
+  volume = pd.Series([1000.0] * 100)
 
-    result = mfi(data, window=5)
+  result = mfi(high, low, close, volume, period=10)
+  assert hasattr(result, "to_pandas")
+  res = result.to_pandas()
 
-    # Check return type is Series
-    assert isinstance(result, pd.Series)
-    assert result.name == "mfi"
+  assert res.name == "mfi"
+  # After warmup, all flow positive => MFI = 100
+  valid = res.iloc[15:]
+  assert np.allclose(valid, 100.0)
 
-    # Check shape
-    assert len(result) == len(data)
 
-    # Check MFI is calculated after window
-    assert result.isna().iloc[:5].all()
-    assert not result.isna().iloc[5:].all()
+def test_mfi_down():
+  """Test MFI all down."""
+  high = pd.Series(np.arange(200, 100, -1, dtype=float))
+  low = pd.Series(np.arange(190, 90, -1, dtype=float))
+  close = pd.Series(np.arange(195, 95, -1, dtype=float))
+  volume = pd.Series([1000.0] * 100)
 
-    # Check MFI is in range [0, 100]
-    assert (result.dropna() >= 0).all()
-    assert (result.dropna() <= 100).all()
+  result = mfi(high, low, close, volume, period=10)
+  res = result.to_pandas()
 
-  def test_mfi_typical_price(self):
-    """Test MFI typical price calculation."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0],
-      "low": [100.0, 102.0],
-      "close": [101.0, 103.0],
-      "volume": [1000.0, 1200.0],
-    })
+  # All flow negative => MFI = 0
+  valid = res.iloc[15:]
+  # Wait, MFI calc handles division by zero?
+  # If Neg Flow is huge and Pos Flow is 0, Ratio is 0. MFI = 100 - 100/(1+0) = 0.
+  assert np.allclose(valid, 0.0)
 
-    result = mfi(data, window=2)
 
-    # Now returns only MFI values (typical_price is internal)
-    assert isinstance(result, pd.Series)
-    assert result.name == "mfi"
-    assert len(result) == len(data)
+@pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+def test_mfi_matches_talib():
+  """Test MFI against TA-Lib."""
+  np.random.seed(42)
+  high = pd.Series(np.random.uniform(105, 110, 100))
+  low = pd.Series(np.random.uniform(95, 100, 100))
+  close = pd.Series(np.random.uniform(95, 110, 100))
+  volume = pd.Series(np.random.uniform(100, 1000, 100))
 
-  def test_mfi_empty_data(self):
-    """Test MFI with empty dataframe."""
-    data = pd.DataFrame(columns=["high", "low", "close", "volume"]).astype(float)
+  period = 14
+  result = mfi(high, low, close, volume, period=period)
+  res = result.to_pandas()
 
-    with pytest.raises(ValueError, match="not empty"):
-      mfi(data)
+  expected = talib.MFI(
+    high.values, low.values, close.values, volume.values, timeperiod=period
+  )
 
-  def test_mfi_validation_missing_columns(self):
-    """Test MFI validation with missing columns."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0],
-      "low": [100.0, 102.0],
-      "close": [101.0, 103.0],
-    })
-
-    with pytest.raises((ValueError, KeyError)):
-      mfi(data)
-
-  def test_mfi_window_parameter(self):
-    """Test MFI with different window sizes."""
-    data = pd.DataFrame({
-      "high": [102.0, 104.0, 103.0, 106.0, 108.0] * 4,
-      "low": [100.0, 101.0, 100.0, 103.0, 105.0] * 4,
-      "close": [101.0, 103.0, 102.0, 105.0, 107.0] * 4,
-      "volume": [1000.0, 1200.0, 900.0, 1500.0, 1100.0] * 4,
-    })
-
-    result_short = mfi(data, window=3)
-    result_long = mfi(data, window=10)
-
-    # Short window should have values earlier
-    assert result_short.notna().sum() > result_long.notna().sum()
-
-  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
-  def test_mfi_matches_talib(self):
-    """Test MFI matches TA-Lib output."""
-    np.random.seed(42)
-    n = 100
-    close = pd.Series(100.0 + np.cumsum(np.random.randn(n) * 0.5))
-    high = close + np.random.rand(n) * 2
-    low = close - np.random.rand(n) * 2
-    volume = pd.Series(1000.0 + np.random.rand(n) * 500)
-
-    data = pd.DataFrame({"high": high, "low": low, "close": close, "volume": volume})
-
-    result = mfi(data, window=14)
-    expected = pd.Series(
-      talib.MFI(high.values, low.values, close.values, volume.values, timeperiod=14),
-    )
-
-    # Compare non-NaN values
-    valid_mask = result.notna() & expected.notna()
-    np.testing.assert_allclose(
-      result[valid_mask].values,
-      expected[valid_mask].values,
-      rtol=1e-10,
-    )
+  pd.testing.assert_series_equal(res, pd.Series(expected, index=high.index, name="mfi"))

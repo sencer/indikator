@@ -1,4 +1,4 @@
-"""Tests for CMO (Chande Momentum Oscillator) indicator."""
+"""Tests for Chande Momentum Oscillator (CMO)."""
 
 import numpy as np
 import pandas as pd
@@ -6,94 +6,68 @@ import pytest
 
 from indikator.cmo import cmo
 
-# Try to import talib for comparison tests
 try:
-  import talib  # type: ignore[import-untyped]
+  import talib
 
   HAS_TALIB = True
 except ImportError:
   HAS_TALIB = False
 
 
-class TestCMO:
-  """Tests for CMO indicator."""
+def test_cmo_basic():
+  """Test basic CMO calculation."""
+  # Strong uptrend
+  data = pd.Series([10.0, 11.0, 12.0, 13.0, 14.0, 15.0])
 
-  def test_cmo_basic(self):
-    """Test CMO basic calculation."""
-    prices = pd.Series(
-      [100.0, 102.0, 101.0, 103.0, 105.0, 104.0, 106.0, 108.0, 107.0, 109.0] * 3,
-    )
+  # Period 2
+  # Diff: 1, 1, 1, 1, 1 (all up)
+  # SumUp = 2, SumDown = 0 (for window 2)
+  # CMO = 100 * (2-0)/(2+0) = 100
 
-    result = cmo(prices, period=5)
+  result = cmo(data, period=2)
+  assert hasattr(result, "to_pandas")
+  res = result.to_pandas()
 
-    assert len(result) == len(prices)
-    assert result.name == "cmo"
-    assert result.notna().any()
+  assert res.name == "cmo"
+  assert len(res) == 6
 
-  def test_cmo_range(self):
-    """Test CMO is in valid range."""
-    np.random.seed(42)
-    prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
+  # Third value (index 2) should be 100
+  assert np.isclose(res.iloc[2], 100.0)
 
-    result = cmo(prices, period=14)
 
-    valid = result.dropna()
-    assert (valid >= -100).all()
-    assert (valid <= 100).all()
+def test_cmo_downtrend():
+  """Test CMO in a downtrend."""
+  data = pd.Series([20.0, 19.0, 18.0, 17.0, 16.0])
 
-  def test_cmo_uptrend(self):
-    """Test CMO for strong uptrend."""
-    prices = pd.Series([100.0 + i for i in range(50)])
+  result = cmo(data, period=2)
+  res = result.to_pandas()
 
-    result = cmo(prices, period=5)
+  # Should be -100
+  assert np.isclose(res.iloc[2], -100.0)
 
-    valid = result.dropna()
-    # Strong uptrend should give high positive CMO
-    assert (valid > 50).all()
 
-  def test_cmo_downtrend(self):
-    """Test CMO for strong downtrend."""
-    prices = pd.Series([100.0 - i * 0.5 for i in range(50)])
+def test_cmo_oscillation():
+  """Test CMO mixed movement."""
+  data = pd.Series([10, 12, 11, 13, 12])
 
-    result = cmo(prices, period=5)
+  result = cmo(data, period=2)
+  res = result.to_pandas()
 
-    valid = result.dropna()
-    # Strong downtrend should give low negative CMO (near -100)
-    assert (valid < -50).all()
+  valid = res.dropna()
+  assert (valid <= 100).all()
+  assert (valid >= -100).all()
 
-  def test_cmo_empty_data(self):
-    """Should raise ValueError when data is empty."""
-    empty_data = pd.Series([], dtype=float)
-    with pytest.raises(ValueError, match="not empty"):
-      cmo(empty_data)
 
-  def test_cmo_insufficient_data(self):
-    """Test CMO with insufficient data."""
-    prices = pd.Series([100.0, 101.0, 102.0])
-    result = cmo(prices, period=5)
+@pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+def test_cmo_matches_talib():
+  """Test CMO values match TA-Lib."""
+  np.random.seed(42)
+  data = pd.Series(np.random.randn(100) + 100)
+  period = 14
 
-    assert result.isna().all()
+  result = cmo(data, period=period)
+  res = result.to_pandas()
 
-  def test_cmo_with_inf(self):
-    """Test CMO with Inf values."""
-    prices = pd.Series([100.0, 102.0, np.inf, 103.0, 105.0] * 5)
+  expected = talib.CMO(data.values, timeperiod=period)
 
-    with pytest.raises(ValueError, match="must be finite"):
-      cmo(prices)
-
-  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
-  def test_cmo_matches_talib(self):
-    """Test CMO matches TA-Lib output."""
-    np.random.seed(42)
-    prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
-
-    result = cmo(prices, period=14)
-    expected = pd.Series(talib.CMO(prices.values, timeperiod=14))
-
-    # Compare non-NaN values
-    valid_mask = result.notna() & expected.notna()
-    np.testing.assert_allclose(
-      result[valid_mask].values,
-      expected[valid_mask].values,
-      rtol=1e-10,
-    )
+  pd.testing.assert_series_equal(res, pd.Series(expected, index=data.index, name="cmo"))

@@ -20,6 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._cmo_numba import compute_cmo_numba
+from indikator._results import CMOResult
 
 
 @configurable
@@ -27,7 +28,7 @@ from indikator._cmo_numba import compute_cmo_numba
 def cmo(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> pd.Series:
+) -> CMOResult:
   """Calculate Chande Momentum Oscillator (CMO).
 
   CMO measures the momentum of price changes. It oscillates between -100
@@ -55,7 +56,7 @@ def cmo(
     period: Lookback period (default: 14)
 
   Returns:
-    Series with CMO values (-100 to +100 range)
+    CMOResult(index, cmo)
 
   Raises:
     ValueError: If data contains NaN/Inf
@@ -63,16 +64,16 @@ def cmo(
   Example:
     >>> import pandas as pd
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109] * 3)
-    >>> result = cmo(prices, period=5)
+    >>> result = cmo(prices, period=5).to_pandas()
     >>> # Returns CMO values
   """
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate CMO using Numba-optimized function
   cmo_values = compute_cmo_numba(values, period)
 
-  return pd.Series(cmo_values, index=data.index, name="cmo")
+  return CMOResult(index=data.index, cmo=cmo_values)

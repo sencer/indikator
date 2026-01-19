@@ -1,7 +1,6 @@
-"""Numba-optimized zigzag legs calculation.
+"""Numba-optimized ZigZag calculation.
 
-This module contains JIT-compiled functions for zigzag leg counting.
-Separated for better code organization and testability.
+This module contains JIT-compiled functions for identifying ZigZag legs.
 """
 
 from __future__ import annotations
@@ -16,219 +15,227 @@ if TYPE_CHECKING:
 
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
-def compute_zigzag_legs_numba(
-  closes: NDArray[np.float64],
-  threshold: float,
-  min_distance_pct: float,
-  confirmation_bars: int,
-  epsilon: float = 1e-9,
-) -> NDArray[np.float64]:
-  # Complexity suppressions: This function is performance-critical and optimized
-  # for Numba JIT compilation. Refactoring for lower complexity would hurt performance.
-  # ruff: noqa: C901, PLR0912, PLR0915, PLR0914, PLR1702
-  """Numba JIT-compiled zigzag leg counter with confirmation and noise filtering.
-
-  Tracks market structure (Higher Highs/Lower Lows) to count legs within
-  the current trend. Uses signed counts to indicate trend direction:
-  - Positive counts (+1, +2, +3...) for bullish trends (Higher Highs)
-  - Negative counts (-1, -2, -3...) for bearish trends (Lower Lows)
-  - Zero (0) for no established trend
+def compute_zigzag_numba(
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+  deviation: float,
+  percentage_mode: bool,
+) -> tuple[
+  NDArray[np.int8],
+  NDArray[np.int64],
+  NDArray[np.int64],
+  NDArray[np.float64],
+  NDArray[np.float64],
+]:
+  """Identify ZigZag legs.
 
   Args:
-    closes: Array of closing prices
-    threshold: Minimum percentage change to trigger a reversal
-    min_distance_pct: Minimum percentage move to update pivot
-    confirmation_bars: Number of bars to confirm a reversal (0 = immediate)
-    epsilon: Small value to prevent division by zero
+    high: High prices
+    low: Low prices
+    close: Close prices (used for calculation depending on preference, usually High/Low used)
+    deviation: Minimum deviation to form a leg
+    percentage_mode: True for % deviation, False for absolute
 
   Returns:
-    Array of signed leg counts for each bar
+    Tuple of arrays: (directions, start_indices, end_indices, start_prices, end_prices)
   """
-  n = len(closes)
-  legs = np.zeros(n, dtype=np.float64)
-
+  n = len(high)
   if n == 0:
-    return legs
+    empty_i8 = np.array([0], dtype=np.int8)[:-1]
+    empty_i64 = np.array([0], dtype=np.int64)[:-1]
+    empty_f64 = np.array([0.0], dtype=np.float64)[:-1]
+    return empty_i8, empty_i64, empty_i64, empty_f64, empty_f64
 
-  pivot = closes[0]
-  trend = 0  # Current leg direction: 1 (Up), -1 (Down), 0 (None)
-  count = 0
-  confirmation_counter = 0
-  pending_reversal = False
-  pending_pivot = 0.0
+  # We can't know the number of legs in advance, so we allocate max possible
+  max_legs = n
+  directions = np.zeros(max_legs, dtype=np.int8)
+  start_indices = np.zeros(max_legs, dtype=np.int64)
+  end_indices = np.zeros(max_legs, dtype=np.int64)
+  start_prices = np.zeros(max_legs, dtype=np.float64)
+  end_prices = np.zeros(max_legs, dtype=np.float64)
 
-  # Market Structure Tracking
-  structure_trend = 0  # 1 (Bullish), -1 (Bearish), 0 (None)
-  last_high = float("-inf")
-  last_low = float("inf")
-  current_leg_is_impulse = False
+  leg_count = 0
 
-  for i in range(n):
-    price = closes[i]
+  # Initialize
+  # Find first trend
+  # We need to find the first swing that exceeds deviation
 
-    # Division by zero protection
-    change = 0.0 if abs(pivot) < epsilon else (price - pivot) / pivot
+  start_idx = 0
+  last_pivot_price = 0.0
+  last_pivot_idx = 0
+  trend = 0  # 1=Up, -1=Down, 0=Unknown
 
-    if trend == 0:
-      # Establish initial trend
-      if abs(change) > threshold:
-        trend = 1 if change > 0 else -1
-        pivot = price
+  # Find initial trend
+  # We look ahead until a move > deviation occurs
+  first_high = high[0]
+  first_low = low[0]
 
-        # Initialize structure
-        if trend == 1:
-          structure_trend = 1
-          last_high = price
-          last_low = -np.inf
-          count = 1
-          current_leg_is_impulse = True
-        else:
-          structure_trend = -1
-          last_low = price
-          last_high = np.inf
-          count = 1
-          current_leg_is_impulse = True
+  # Simple initialization: Assume trend matches first move > deviation
+  for i in range(1, n):
+    h = high[i]
+    l = low[i]
 
-    elif trend == 1:  # Up Leg
-      if price > pivot:
-        # Only update pivot if move is significant enough
-        distance = (price - pivot) / (pivot + epsilon)
-        if distance > min_distance_pct:
-          pivot = price
-          # Check for structure break (Live Counting)
-          if structure_trend == 1:
-            if pivot > last_high and not current_leg_is_impulse:
-              count += 1
-              current_leg_is_impulse = True
-          elif structure_trend == -1 and pivot > last_high:
-            # We are in a Bearish trend, but this Up leg just broke the last high!
-            # Trend Change: Bearish -> Bullish
-            structure_trend = 1
-            count = 1
-            last_high = pivot
-            last_low = -np.inf
-            current_leg_is_impulse = True
+    # Check move from start (using close[0] or high/low[0]?)
+    # Convention: Pivot at 0 is usually set to High[0] or Low[0] retrospectively.
+    # Let's look for High - Low range traversal.
 
-          # Cancel any pending reversal if we make new highs
-          pending_reversal = False
-          confirmation_counter = 0
+    diff_up = h - first_low
+    diff_down = first_high - l
 
-      elif change < -threshold:  # Potential reversal down
-        if not pending_reversal:
-          # Start confirmation period
-          pending_reversal = True
-          pending_pivot = price
-          confirmation_counter = 1
-        else:
-          # Continue confirmation
-          confirmation_counter += 1
-          # Update pending pivot to lowest price during confirmation
-          pending_pivot = min(pending_pivot, price)
+    dev_val_up = diff_up / first_low if percentage_mode else diff_up
+    dev_val_down = diff_down / first_high if percentage_mode else diff_down
 
-        # Confirm reversal if we've waited long enough
-        if confirmation_counter >= confirmation_bars:
+    if dev_val_up > deviation and dev_val_down > deviation:
+      # Outside bar, huge volatility?
+      # Whichever is larger?
+      if dev_val_up > dev_val_down:
+        trend = 1
+        last_pivot_price = first_low
+        last_pivot_idx = 0
+      else:
+        trend = -1
+        last_pivot_price = first_high
+        last_pivot_idx = 0
+      break
+    if dev_val_up > deviation:
+      trend = 1
+      last_pivot_price = first_low
+      last_pivot_idx = 0
+      break
+    if dev_val_down > deviation:
+      trend = -1
+      last_pivot_price = first_high
+      last_pivot_idx = 0
+      break
+
+  if trend == 0:
+    # No moves > deviation found in entire history
+    return (
+      directions[:0],
+      start_indices[:0],
+      end_indices[:0],
+      start_prices[:0],
+      end_prices[:0],
+    )
+
+  # Current pivot (extreme point of current leg)
+  curr_pivot_price = last_pivot_price
+  curr_pivot_idx = last_pivot_idx
+
+  # If trend=1 (Up), we just came from a Low (last_pivot). We are looking for a High.
+  # If trend=-1 (Down), we just came from a High (last_pivot). We are looking for a Low.
+
+  # Actually, if Trend=1, we are IN an Up leg.
+  # So last_pivot was the Low.
+  # We search for the Highest High.
+  # Until we drop by deviation from that Highest High.
+
+  # If we initialized trend=1, it means we found a move UP.
+  # So the START of this leg was the Low at index 0.
+  # We are currently establishing the High of this Up leg.
+
+  # Initialize curr_pivot (the extreme of the current leg so far)
+  # If Up leg, curr pivot is High[i]
+  # If Down leg, curr pivot is Low[i]
+
+  # Restart loop from i where we broke
+  # But actually, we process sequentially.
+
+  # Need to handle the first bar correctly.
+  if trend == 1:
+    curr_pivot_price = high[last_pivot_idx]  # Tentative high
+    curr_pivot_idx = last_pivot_idx
+  else:
+    curr_pivot_price = low[last_pivot_idx]  # Tentative low
+    curr_pivot_idx = last_pivot_idx
+
+  # Iterate
+  for i in range(last_pivot_idx + 1, n):
+    h = high[i]
+    l = low[i]
+
+    if trend == 1:  # Up leg
+      if h > curr_pivot_price:
+        # New high in current up leg, extend leg
+        curr_pivot_price = h
+        curr_pivot_idx = i
+      else:
+        # Check for reversal
+        # Reversal distance from Highest High
+        dist = curr_pivot_price - l
+        change = dist / curr_pivot_price if percentage_mode else dist
+
+        if change >= deviation:
+          # Confirmed reversal
+          # The Up leg ended at curr_pivot_idx
+
+          # Record Up Leg
+          directions[leg_count] = 1
+          start_indices[leg_count] = last_pivot_idx
+          end_indices[leg_count] = curr_pivot_idx
+          start_prices[leg_count] = last_pivot_price
+          end_prices[leg_count] = curr_pivot_price
+          leg_count += 1
+
+          # Switch trend to Down
           trend = -1
-          high_of_leg = pivot
+          last_pivot_price = curr_pivot_price
+          last_pivot_idx = curr_pivot_idx
 
-          # Update structure based on the High we just finished
-          if structure_trend == 1:  # Bullish
-            last_high = high_of_leg
-            current_leg_is_impulse = False  # Next leg (Down) starts as correction
+          # Current bar becomes the new tentative low
+          curr_pivot_price = l
+          curr_pivot_idx = i
 
-          elif structure_trend == -1:  # Bearish
-            if high_of_leg > last_high:
-              # Higher High - Trend Change to Bullish
-              structure_trend = 1
-              count = 1
-              last_high = high_of_leg
-              last_low = -np.inf  # Reset low for new bullish trend
-              current_leg_is_impulse = True  # First leg of new trend is impulse
-            else:
-              # Lower High - Correction in Bearish trend
-              last_high = high_of_leg
-              current_leg_is_impulse = False
+    elif l < curr_pivot_price:
+      # New low in current down leg
+      curr_pivot_price = l
+      curr_pivot_idx = i
+    else:
+      # Check for reversal (Up)
+      dist = h - curr_pivot_price
+      change = (
+        dist / curr_pivot_price if percentage_mode else dist
+      )  # Usually % from Low
 
-          # Now we are in Down Leg.
-          pivot = pending_pivot  # This is the current Low
+      if change >= deviation:
+        # Confirmed reversal
+        # Down leg ended
 
-          pending_reversal = False
-          confirmation_counter = 0
+        # Record Down Leg
+        directions[leg_count] = -1
+        start_indices[leg_count] = last_pivot_idx
+        end_indices[leg_count] = curr_pivot_idx
+        start_prices[leg_count] = last_pivot_price
+        end_prices[leg_count] = curr_pivot_price
+        leg_count += 1
 
-      # Price moved back - cancel pending reversal
-      elif pending_reversal:
-        pending_reversal = False
-        confirmation_counter = 0
+        # Switch trend to Up
+        trend = 1
+        last_pivot_price = curr_pivot_price
+        last_pivot_idx = curr_pivot_idx
 
-    elif trend == -1:  # Down Leg
-      if price < pivot:
-        # Only update pivot if move is significant enough
-        distance = abs((price - pivot) / (pivot + epsilon))
-        if distance > min_distance_pct:
-          pivot = price
-          # Check for structure break (Live Counting)
-          if structure_trend == -1:
-            if pivot < last_low and not current_leg_is_impulse:
-              count += 1
-              current_leg_is_impulse = True
-          elif structure_trend == 1 and pivot < last_low:
-            # We are in a Bullish trend, but this Down leg just broke the last low!
-            # Trend Change: Bullish -> Bearish
-            structure_trend = -1
-            count = 1
-            last_low = pivot
-            last_high = np.inf
-            current_leg_is_impulse = True
+        # Current bar new high
+        curr_pivot_price = h
+        curr_pivot_idx = i
 
-          # Cancel any pending reversal if we make new lows
-          pending_reversal = False
-          confirmation_counter = 0
+  # Final leg (in progress)
+  # Usually ZigZag ends with a line to the latest extreme?
+  # Or last confirmed leg?
+  # Standard usually draws to last extreme.
 
-      elif change > threshold:  # Potential reversal up
-        if not pending_reversal:
-          # Start confirmation period
-          pending_reversal = True
-          pending_pivot = price
-          confirmation_counter = 1
-        else:
-          # Continue confirmation
-          confirmation_counter += 1
-          # Update pending pivot to highest price during confirmation
-          pending_pivot = max(pending_pivot, price)
+  # Add the last leg
+  directions[leg_count] = trend
+  start_indices[leg_count] = last_pivot_idx
+  end_indices[leg_count] = curr_pivot_idx
+  start_prices[leg_count] = last_pivot_price
+  end_prices[leg_count] = curr_pivot_price
+  leg_count += 1
 
-        # Confirm reversal if we've waited long enough
-        if confirmation_counter >= confirmation_bars:
-          trend = 1
-          low_of_leg = pivot
-
-          # Update structure based on the Low we just finished
-          if structure_trend == 1:  # Bullish
-            if low_of_leg < last_low:
-              # Lower Low - Trend Change to Bearish
-              structure_trend = -1
-              count = 1
-              last_low = low_of_leg
-              last_high = np.inf  # Reset high for new bearish trend
-              current_leg_is_impulse = True
-            else:
-              # Higher Low - Correction in Bullish trend
-              last_low = low_of_leg
-              current_leg_is_impulse = False
-
-          elif structure_trend == -1:  # Bearish
-            last_low = low_of_leg
-            current_leg_is_impulse = False
-
-          # Now we are in Up Leg
-          pivot = pending_pivot  # This is the current High
-
-          pending_reversal = False
-          confirmation_counter = 0
-      # Price moved back - cancel pending reversal
-      elif pending_reversal:
-        pending_reversal = False
-        confirmation_counter = 0
-
-    # Store signed count: positive for bullish, negative for bearish
-    legs[i] = count * structure_trend
-
-  return legs
+  return (
+    directions[:leg_count],
+    start_indices[:leg_count],
+    end_indices[:leg_count],
+    start_prices[:leg_count],
+    end_prices[:leg_count],
+  )

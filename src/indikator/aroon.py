@@ -74,14 +74,19 @@ def aroon(
   # Convert to numpy for Numba
   high_vals = cast(
     "NDArray[np.float64]",
-    high.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   low_vals = cast(
     "NDArray[np.float64]",
-    low.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate AROON using Numba-optimized function
-  aroon_up, aroon_down, aroon_osc = compute_aroon_numba(high_vals, low_vals, period)
+  up, down, osc = compute_aroon_numba(high_vals, low_vals, period)
 
-  return AROONResult(aroon_up, aroon_down, aroon_osc, high.index)
+  return AROONResult(
+    index=high.index,
+    aroon_up=up,
+    aroon_down=down,
+    aroon_osc=osc,
+  )

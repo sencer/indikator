@@ -3,72 +3,56 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import ClassVar, Protocol, TypedDict, override
+from typing import ClassVar, Literal, Protocol, TypedDict, override
 
-from datawarden import Finite, NotEmpty, NotIsNaN, Validated
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-class _zigzag_legs_Bound(Protocol):
+from indikator._results import ZigzagLegsResult
+
+class _legs_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
-  def threshold(self) -> float: ...
-  @property
-  def min_distance_pct(self) -> float: ...
-  @property
-  def confirmation_bars(self) -> int: ...
-  @property
-  def epsilon(self) -> float: ...
+  def deviation(self) -> float: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty, NotIsNaN]
-  ) -> pd.Series: ...
+    self,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    method: Literal["percentage", "absolute"] = ...,
+  ) -> ZigzagLegsResult: ...
 
-class _zigzag_legs_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for zigzag_legs.
+class _legs_ConfigDict(TypedDict, total=False):
+  """Configuration dictionary for legs.
 
   Configuration:
-      threshold (float)
-      min_distance_pct (float)
-      confirmation_bars (int)
-      epsilon (float)
+      deviation (float)
   """
 
-  threshold: float
-  min_distance_pct: float
-  confirmation_bars: int
-  epsilon: float
+  deviation: float
 
-class _zigzag_legs_Config(_NCMakeableModel[_zigzag_legs_Bound]):
-  """Configuration class for zigzag_legs.
+class _legs_Config(_NCMakeableModel[_legs_Bound]):
+  """Configuration class for legs.
 
-  Calculate zigzag leg count with market structure tracking.
+  Calculate ZigZag legs.
 
-  Implements Elliott Wave-style leg counting that distinguishes between:
-  - **Corrections**: Temporary moves against the trend (sign stays same)
-  - **Trend Changes**: Structure breaks that reverse the sign
-
-  The algorithm tracks STRUCTURE, not just price direction. A down move in a
-  bullish structure remains positive until it breaks below the previous low.
-
-  **Important**: The output tracks market STRUCTURE (bullish/bearish), not just
-  current leg direction (up/down). Use this for Elliott Wave analysis or structure-based
-  strategies. For simpler zigzag tracking, consider using trend direction instead.
+  Identifies swing highs and lows that exceed a minimum deviation threshold.
+  Used to filter out noise and identify significant market moves.
 
   Features:
-  - Signed output: positive for bullish structure, negative for bearish structure
-  - Confirmation period to filter false reversals
-  - Minimum distance filter to avoid counting tiny wicks
-  - Numba-optimized for performance
+  - Numba-optimized
+  - "Percentage" or "Absolute" deviation modes
+  - Returns structured legs data (start/end price, direction)
 
   Args:
-    data: Input Series (e.g., close prices)
-    threshold: Minimum percentage change (0.01 = 1%) to trigger a reversal
-    min_distance_pct: Minimum percentage move (0.005 = 0.5%) to update pivot
-    confirmation_bars: Number of bars to confirm reversal (default 2)
-    epsilon: Small value to prevent division by zero
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    deviation: Minimum change to qualify as a new leg (0.05 = 5%).
+    method: 'percentage' or 'absolute'.
 
   Returns:
-    Series with zigzag leg counts
 
   Raises:
     ValueError: If data contains NaN or infinite values
@@ -86,49 +70,30 @@ class _zigzag_legs_Config(_NCMakeableModel[_zigzag_legs_Bound]):
     >>> # After price breaks previous low at 105, structure changes to bearish
 
   Configuration:
-      threshold (float)
-      min_distance_pct (float)
-      confirmation_bars (int)
-      epsilon (float)
+      deviation (float)
   """
 
-  threshold: float
-  min_distance_pct: float
-  confirmation_bars: int
-  epsilon: float
-  def __init__(
-    self,
-    *,
-    threshold: float = ...,
-    min_distance_pct: float = ...,
-    confirmation_bars: int = ...,
-    epsilon: float = ...,
-  ) -> None: ...
-  """Initialize configuration for zigzag_legs.
+  deviation: float
+  def __init__(self, *, deviation: float = ...) -> None: ...
+  """Initialize configuration for legs.
 
     Configuration:
-        threshold (float)
-        min_distance_pct (float)
-        confirmation_bars (int)
-        epsilon (float)
+        deviation (float)
     """
 
   @override
-  def make(self) -> _zigzag_legs_Bound: ...
+  def make(self) -> _legs_Bound: ...
 
-class zigzag_legs:
-  Type = _zigzag_legs_Bound
-  Config = _zigzag_legs_Config
-  ConfigDict = _zigzag_legs_ConfigDict
-  threshold: ClassVar[float]
-  min_distance_pct: ClassVar[float]
-  confirmation_bars: ClassVar[int]
-  epsilon: ClassVar[float]
+class legs:
+  Type = _legs_Bound
+  Config = _legs_Config
+  ConfigDict = _legs_ConfigDict
+  deviation: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty, NotIsNaN],
-    threshold: float = ...,
-    min_distance_pct: float = ...,
-    confirmation_bars: int = ...,
-    epsilon: float = ...,
-  ) -> pd.Series: ...
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    method: Literal["percentage", "absolute"] = ...,
+    deviation: float = ...,
+  ) -> ZigzagLegsResult: ...

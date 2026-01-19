@@ -9,11 +9,13 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import CMOResult
+
 class _cmo_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> CMOResult: ...
 
 class _cmo_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for cmo.
@@ -54,7 +56,7 @@ class _cmo_Config(_NCMakeableModel[_cmo_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    Series with CMO values (-100 to +100 range)
+    CMOResult(index, cmo)
 
   Raises:
     ValueError: If data contains NaN/Inf
@@ -62,7 +64,7 @@ class _cmo_Config(_NCMakeableModel[_cmo_Bound]):
   Example:
     >>> import pandas as pd
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109] * 3)
-    >>> result = cmo(prices, period=5)
+    >>> result = cmo(prices, period=5).to_pandas()
     >>> # Returns CMO values
 
   Configuration:
@@ -87,4 +89,4 @@ class cmo:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+  ) -> CMOResult: ...

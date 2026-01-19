@@ -9,11 +9,13 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import ROCResult
+
 class _roc_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCResult: ...
 
 class _roc_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for roc.
@@ -56,7 +58,7 @@ class _roc_Config(_NCMakeableModel[_roc_Bound]):
     period: Lookback period (default: 10)
 
   Returns:
-    Series with ROC values (percentage)
+    ROCResult(index, roc)
 
   Raises:
     ValueError: If data contains NaN/Inf
@@ -64,7 +66,7 @@ class _roc_Config(_NCMakeableModel[_roc_Bound]):
   Example:
     >>> import pandas as pd
     >>> prices = pd.Series([100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120])
-    >>> result = roc(prices, period=5)
+    >>> result = roc(prices, period=5).to_pandas()
 
   Configuration:
       period (int)
@@ -88,4 +90,4 @@ class roc:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+  ) -> ROCResult: ...

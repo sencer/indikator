@@ -1,7 +1,6 @@
-"""Sector correlation indicator module.
+"""Sector Correlation indicator module.
 
-This module calculates rolling correlation between a stock and its sector ETF
-to measure how closely the stock moves with the broader sector.
+This module calculates the rolling correlation between a stock and a sector/index.
 """
 
 from datawarden import (
@@ -10,66 +9,49 @@ from datawarden import (
   Validated,
   validate,
 )
-from nonfig import Ge, Hyper, Le, configurable
+from nonfig import Ge, Hyper, configurable
+import numpy as np
 import pandas as pd
 
-from indikator._constants import MAX_NAN_RATIO
+from indikator._results import SectorCorrelationResult
 
 
 @configurable
 @validate
 def sector_correlation(
   stock_data: Validated[pd.Series, Finite, NotEmpty],
-  sector_data: Validated[pd.Series, Finite, NotEmpty] | None = None,
-  *,
-  window: Hyper[int, Ge[2]] = 20,
-  default_value: Hyper[float, Ge[-1.0], Le[1.0]] = 0.0,
-) -> pd.Series:
+  sector_data: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[2]] = 20,
+) -> SectorCorrelationResult:
   """Calculate rolling correlation between a stock and its sector/index.
 
-  Measures how closely a stock moves with its sector or the broader market.
-  - High correlation (> 0.8): Stock moves with the market
-  - Low correlation (~ 0): Stock is moving independently
-  - Negative correlation: Stock moves opposite to the market
+  Formula:
+  Corr = RollingCorr(Stock, Sector, period)
+
+  Interpretation:
+  - High Corr (> 0.8): Moving with sector (Systematic risk dominates)
+  - Low Corr (< 0.5): Independent movement (Idiosyncratic risk)
+  - Negative Corr: Inverse movement (Hedge/Contra)
 
   Args:
-    stock_data: Stock price series (e.g., close prices)
-    sector_data: Sector/Index price series. If None, returns default_value.
-    window: Rolling window size for correlation calculation
-    default_value: Value to return if sector_data is None or insufficient data
+    stock_data: Stock price Series.
+    sector_data: Sector/Index price Series.
+    period: Rolling correlation window (default: 20)
 
   Returns:
-    Series with rolling correlation values named "sector_correlation"
-
-  Raises:
-    ValueError: If validation fails
+    SectorCorrelationResult(index, correlation)
   """
-  if sector_data is None:
-    return pd.Series(default_value, index=stock_data.index, name="sector_correlation")
-
-  # Check if there's enough overlap between the two series
-  # Use index intersection (O(n log n)) instead of creating aligned copies
-  overlap_count = len(stock_data.index.intersection(sector_data.index))
-  if overlap_count < window:
-    return pd.Series(default_value, index=stock_data.index, name="sector_correlation")
-
-  # Align sector data to stock data index using forward fill
-  # This handles cases where timestamps don't exactly match
-  aligned_sector = sector_data.reindex(stock_data.index).ffill()
-
-  # Check if alignment resulted in too many NaN values
-  nan_ratio = aligned_sector.isna().sum() / len(aligned_sector)
-  if nan_ratio > MAX_NAN_RATIO:
-    # Poor alignment quality - return default value
-    return pd.Series(default_value, index=stock_data.index, name="sector_correlation")
+  # Ensure alignment
+  # Using pandas operations handles alignment automatically on index
+  # This is efficient enough for correlation usually
 
   # Calculate rolling correlation
-  correlation = stock_data.rolling(window=window).corr(aligned_sector)
+  # Note: Pandas aligns indices automatically before correlation
+  corr_series = stock_data.rolling(window=period).corr(sector_data)
 
-  # Fill NaN values (start of window) with default value
-  correlation = correlation.fillna(  # pyright: ignore[reportUnknownMemberType]
-    default_value
-  )
-  correlation.name = "sector_correlation"
+  # Extract array
+  corr_arr = corr_series.to_numpy(dtype=np.float64, copy=False)
 
-  return correlation
+  # Handle potential NaNs not from window (e.g. misalignment) - kept as NaN
+
+  return SectorCorrelationResult(index=corr_series.index, correlation=corr_arr)

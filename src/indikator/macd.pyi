@@ -37,36 +37,23 @@ class _macd_ConfigDict(TypedDict, total=False):
 class _macd_Config(_NCMakeableModel[_macd_Bound]):
   """Configuration class for macd.
 
-  Calculate MACD (Moving Average Convergence Divergence).
+  Calculate Moving Average Convergence Divergence (MACD).
 
   MACD is a trend-following momentum indicator that shows the relationship
-  between two exponential moving averages (EMAs) of a price series.
+  between two moving averages of a security's price.
 
-  Components:
-  1. MACD Line = EMA(fast_period) - EMA(slow_period)
-  2. Signal Line = EMA(MACD Line, signal_period)
-  3. Histogram = MACD Line - Signal Line
+  Formula:
+  MACD Line = EMA(fast_period) - EMA(slow_period)
+  Signal Line = EMA(MACD Line, signal_period)
+  Histogram = MACD Line - Signal Line
 
   Interpretation:
-  - MACD > 0: Price is above the slow EMA (bullish)
-  - MACD < 0: Price is below the slow EMA (bearish)
-  - MACD crossing above signal: Bullish signal (buy)
-  - MACD crossing below signal: Bearish signal (sell)
-  - Histogram growing: Trend strengthening
-  - Histogram shrinking: Trend weakening
-  - Divergence: Price makes new high but MACD doesn't = bearish
-
-  Common strategies:
-  - Signal crossovers: Buy on MACD cross above signal, sell on cross below
-  - Zero crossovers: Buy on MACD cross above 0, sell on cross below 0
-  - Divergence: Look for price/MACD divergences for reversal signals
-  - Histogram: Use histogram for early trend change detection
-
-  Features:
-  - Numba-optimized for performance
-  - Standard parameters (12, 26, 9) by default
-  - Returns all three components
-  - Works with any numeric column
+  - MACD crossing above Signal: Bullish
+  - MACD crossing below Signal: Bearish
+  - MACD > 0: Fast MA > Slow MA (Uptrend)
+  - MACD < 0: Fast MA < Slow MA (Downtrend)
+  - Histogram widening: Trend strengthening
+  - Histogram narrowing: Trend weakening
 
   Args:
     data: Input Series.

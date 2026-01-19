@@ -9,6 +9,8 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import WillRResult
+
 class _willr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
@@ -18,7 +20,7 @@ class _willr_Bound(Protocol):
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.Series: ...
+  ) -> WillRResult: ...
 
 class _willr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for willr.
@@ -34,28 +36,20 @@ class _willr_Config(_NCMakeableModel[_willr_Bound]):
 
   Calculate Williams %R.
 
-  Williams %R is a momentum indicator that measures overbought/oversold levels.
-  It's similar to the Stochastic Oscillator but inverted and on a negative scale.
+  Williams %R is a momentum indicator that measures overbought and oversold levels.
+  It moves between 0 and -100.
 
   Formula:
-  %R = -100 * (Highest High - Close) / (Highest High - Lowest Low)
-
-  Range: -100 to 0
+  %R = (Highest High - Close) / (Highest High - Lowest Low) * -100
 
   Interpretation:
-  - %R between -20 and 0: Overbought
-  - %R between -100 and -80: Oversold
-  - %R crossing -50: Momentum shift
-
-  Common strategies:
-  - Buy when %R moves from below -80 to above -80
-  - Sell when %R moves from above -20 to below -20
-  - Divergence: Price making new high but %R doesn't = bearish
+  - %R > -20: Overbought
+  - %R < -80: Oversold
+  - Similar to Stochastic Oscillator Fast %K, but scaled -100 to 0
 
   Features:
   - Numba-optimized for performance
-  - Standard 14-period default
-  - Works with OHLC data
+  - Standard 14 period default
 
   Args:
     high: High prices Series.
@@ -64,17 +58,7 @@ class _willr_Config(_NCMakeableModel[_willr_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    Series with Williams %R values (-100 to 0 range)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> high = pd.Series([105, 107, 106, 108, 110])
-    >>> low = pd.Series([100, 102, 101, 103, 105])
-    >>> close = pd.Series([102, 105, 104, 106, 108])
-    >>> result = willr(high, low, close)
+    WillRResult(index, willr)
 
   Configuration:
       period (int)
@@ -102,4 +86,4 @@ class willr:
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
     period: int = ...,
-  ) -> pd.Series: ...
+  ) -> WillRResult: ...

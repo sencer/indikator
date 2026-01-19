@@ -42,36 +42,22 @@ class _trix_Config(_NCMakeableModel[_trix_Bound]):
 
   Interpretation:
   - TRIX > 0: Bullish momentum (triple EMA rising)
-  - TRIX < 0: Bearish momentum (triple EMA falling)
-  - Zero line crossovers: Trend change signals
-  - Divergence: TRIX direction differs from price (reversal signal)
-
-  Common strategies:
-  - Signal line: Use 9-period EMA of TRIX as signal line
-  - Zero line crossovers: Buy when TRIX crosses above 0
-  - Divergence trading: Look for price/TRIX divergences
+  - TRIX > 0: Momentum is positive (uptrend)
+  - TRIX < 0: Momentum is negative (downtrend)
+  - Signal line crossover can be used for entries/exits
+  - Divergences indicate potential reversals
 
   Features:
   - Numba-optimized for performance
-  - Triple smoothing eliminates short-term noise
-  - Shows rate of change, not absolute values
-  - Good for identifying trend changes
+  - Filters out insignificant price movements (due to triple smoothing)
+  - Standard 30 period default (often 15 or 30)
 
   Args:
-    data: Input Series (typically closing prices)
-    period: EMA period (default: 14)
+    data: Input Series.
+    period: Lookback period (default: 30)
 
   Returns:
-    Series with TRIX values (percentage)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109] * 5)
-    >>> result = trix(prices, period=5)
-    >>> # Returns TRIX values (typically small percentages near 0)
+    TRIXResult(index, trix)
 
   Configuration:
       period (int)

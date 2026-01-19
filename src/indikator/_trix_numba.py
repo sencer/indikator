@@ -14,30 +14,12 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
 def compute_trix_numba(
   prices: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled TRIX calculation.
-
-  TRIX is the percentage rate of change of a triple exponentially smoothed
-  moving average. It filters out short-term noise to identify longer-term
-  trend direction and reversals.
-
-  Steps:
-  1. EMA1 = EMA(prices, period)
-  2. EMA2 = EMA(EMA1, period)
-  3. EMA3 = EMA(EMA2, period)
-  4. TRIX = (EMA3[today] - EMA3[yesterday]) / EMA3[yesterday] * 100
-
-  Args:
-    prices: Array of prices (typically closing prices)
-    period: EMA period (typically 14)
-
-  Returns:
-    Array of TRIX values (percentage)
-  """
+  """Numba JIT-compiled TRIX calculation with Loop Fusion."""
   n = len(prices)
   trix = np.full(n, np.nan)
 
@@ -46,48 +28,88 @@ def compute_trix_numba(
   if n < min_bars + 1:
     return trix
 
-  # EMA smoothing factor
   k = 2.0 / (period + 1)
 
-  # First EMA: seeded with SMA
-  ema1 = np.full(n, np.nan)
-  sma1 = 0.0
+  # State variables
+  ema1 = 0.0
+  ema2 = 0.0
+  ema3 = 0.0
+
+  # Accumulators for SMA seeding
+  sma1_sum = 0.0
+  sma2_sum = 0.0
+  sma3_sum = 0.0
+
+  # Initialization handling
+  # We need to compute EMA1 first, then we can feed EMA2 accumulator, etc.
+  # But we can do it in one pass if we are careful with phases.
+
+  # Phase 1: SMA1 Setup (0 to period-1)
   for i in range(period):
-    sma1 += prices[i]
-  ema1[period - 1] = sma1 / period
+    sma1_sum += prices[i]
+
+  ema1 = sma1_sum / period
+
+  # Setup dependent accumulators?
+  # The first EMA1 value is at index 'period-1'.
+  # This feeds into SMA2 accumulation.
+  sma2_sum += ema1
+
+  # Phase 2: Iterate and propogate
+  # We iterate from period to n
+
+  # Track count of valid values for seeding
+  # ema1 count (valid values produced including initial)
+  valid_ema1_count = 1
+  valid_ema2_count = 0
+
+  epsilon = 1e-10
 
   for i in range(period, n):
-    ema1[i] = prices[i] * k + ema1[i - 1] * (1 - k)
+    # Update EMA1
+    ema1 = prices[i] * k + ema1 * (1.0 - k)
+    valid_ema1_count += 1
 
-  # Second EMA: seeded with SMA of EMA1
-  ema2 = np.full(n, np.nan)
-  ema2_start = 2 * period - 2
-  sma2 = 0.0
-  for i in range(period - 1, 2 * period - 1):
-    sma2 += ema1[i]
-  ema2[ema2_start] = sma2 / period
-
-  for i in range(ema2_start + 1, n):
-    ema2[i] = ema1[i] * k + ema2[i - 1] * (1 - k)
-
-  # Third EMA: seeded with SMA of EMA2
-  ema3 = np.full(n, np.nan)
-  ema3_start = 3 * period - 3
-  sma3 = 0.0
-  for i in range(ema2_start, 3 * period - 2):
-    sma3 += ema2[i]
-  ema3[ema3_start] = sma3 / period
-
-  for i in range(ema3_start + 1, n):
-    ema3[i] = ema2[i] * k + ema3[i - 1] * (1 - k)
-
-  # TRIX: percentage rate of change of EMA3
-  epsilon = 1e-10  # Minimum denominator value
-  for i in range(ema3_start + 1, n):
-    prev_ema3 = ema3[i - 1]
-    if abs(prev_ema3) > epsilon:
-      trix[i] = ((ema3[i] - prev_ema3) / prev_ema3) * 100.0
+    # Handle EMA2
+    # We need 'period' values of ema1 to seed ema2
+    if valid_ema1_count <= period:
+      sma2_sum += ema1
+      if valid_ema1_count == period:
+        # Seed EMA2
+        ema2 = sma2_sum / period
+        valid_ema2_count = 1
+        # Feed to SMA3
+        sma3_sum += ema2
     else:
-      trix[i] = 0.0
+      # EMA2 running
+      ema2 = ema1 * k + ema2 * (1.0 - k)
+      valid_ema2_count += 1
+
+      # Handle EMA3
+      if valid_ema2_count <= period:
+        if (
+          valid_ema2_count > 1
+        ):  # Already added the first one at seeding time? No, wait logic flow.
+          # When valid_ema2_count became 1 (prev step), we added to sma3_sum.
+          # Now we add current.
+          sma3_sum += ema2
+
+        if valid_ema2_count == period:
+          # Seed EMA3
+          ema3 = sma3_sum / period
+          # Ready for TRIX?
+          # First TRIX needs 2 values of EMA3 (curr and prev).
+          # This is the first value.
+          # Next step we can calc TRIX.
+      else:
+        # EMA3 running
+        prev_ema3 = ema3
+        ema3 = ema2 * k + ema3 * (1.0 - k)
+
+        # Calculate TRIX
+        if abs(prev_ema3) > epsilon:
+          trix[i] = ((ema3 - prev_ema3) / prev_ema3) * 100.0
+        else:
+          trix[i] = 0.0
 
   return trix

@@ -4,6 +4,8 @@ This module provides a generic Z-Score calculator that measures how many
 standard deviations a value is away from its rolling mean.
 """
 
+from typing import cast
+
 from datawarden import (
   Datetime,
   Finite,
@@ -14,51 +16,57 @@ from datawarden import (
 )
 from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_stats
+from indikator._results import ZScoreResult
+from indikator._zscore_numba import compute_zscore_numba
 
 
 @configurable
 @validate
 def zscore(
   data: Validated[pd.Series, Finite, NotEmpty],
-  window: Hyper[int, Ge[2]] = 20,
-  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.Series:
-  """Calculate Z-Score (Standard Score) over a rolling window.
+  period: Hyper[int, Ge[2]] = 20,
+) -> ZScoreResult:
+  """Calculate Z-Score (Standard Score).
 
-  Z-Score measures how many standard deviations a data point is from the mean.
-  - Z > 2.0: Significantly above average (potential overbought/outlier)
-  - Z < -2.0: Significantly below average (potential oversold/outlier)
-  - Z ~ 0: Near average
+  Z-Score measures how many standard deviations a price is from the mean.
+  It is a mean-reversion indicator.
+
+  Formula:
+  Z = (Price - One_Year_Mean) / Standard_Deviation
+
+  Interpretation:
+  - Z > 2: Price is 2 standard deviations above mean (statistically rare/expensive)
+  - Z < -2: Price is 2 standard deviations below mean (cheap)
+  - Extreme values indicate potential reversal (mean reversion)
+  - Z = 0: Price is exactly at the mean
+
+  Features:
+  - Numba-optimized for performance
+  - Rolling window calculation
+  - Standard 20-period default (similar to Bollinger Bands)
 
   Args:
-    data: Series of values (e.g., close prices, volume, etc.)
-    window: Rolling window size for mean and std dev calculation
-    epsilon: Small value to prevent division by zero.
+    data: Input Series.
+    period: Lookback period (default: 20)
 
   Returns:
-    Series with Z-Score values
-
-  Raises:
-    ValueError: If validation fails
+    ZScoreResult(index, zscore)
   """
+  # Convert to numpy for Numba
+  values = cast(
+    "NDArray[np.float64]",
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
 
-  # Calculate rolling mean and std
-  rolling = data.rolling(window=window)
-  mean = rolling.mean()
-  std = rolling.std()
+  # Calculate Z-Score using Numba-optimized function
+  zscore_values = compute_zscore_numba(values, period)
 
-  # Calculate Z-Score with division by zero protection
-  # Use where clause to handle zero/NaN denominator
-  zscore_values = pd.Series(0.0, index=data.index, name=data.name)
-  valid_std = std > epsilon
-
-  zscore_values[valid_std] = (data[valid_std] - mean[valid_std]) / std[valid_std]
-
-  return zscore_values
+  return ZScoreResult(index=data.index, zscore=zscore_values)
 
 
 @configurable

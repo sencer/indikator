@@ -19,6 +19,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._results import SMAResult
 from indikator._sma_numba import compute_sma_numba
 
 
@@ -27,7 +28,7 @@ from indikator._sma_numba import compute_sma_numba
 def sma(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> pd.Series:
+) -> SMAResult:
   """Calculate Simple Moving Average (SMA).
 
   SMA is a trend-following indicator that averages prices over a specified
@@ -57,7 +58,7 @@ def sma(
     period: Lookback period (default: 20)
 
   Returns:
-    Series with SMA values
+    SMAResult(index, sma)
 
   Raises:
     ValueError: If data contains NaN/Inf
@@ -65,15 +66,15 @@ def sma(
   Example:
     >>> import pandas as pd
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109])
-    >>> result = sma(prices, period=5)
+    >>> result = sma(prices, period=5).to_pandas()
   """
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate SMA using Numba-optimized function
   sma_values = compute_sma_numba(values, period)
 
-  return pd.Series(sma_values, index=data.index, name="sma")
+  return SMAResult(index=data.index, sma=sma_values)

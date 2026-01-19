@@ -9,11 +9,13 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import EMAResult
+
 class _ema_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> EMAResult: ...
 
 class _ema_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for ema.
@@ -51,21 +53,14 @@ class _ema_Config(_NCMakeableModel[_ema_Bound]):
   - Numba-optimized for performance
   - First EMA value is SMA of first 'period' values (standard initialization)
   - Works with any numeric column
+  - Returns named tuple with .to_pandas() conversion
 
   Args:
     data: Input Series.
     period: Lookback period (default: 20)
 
   Returns:
-    Series with EMA values
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109])
-    >>> result = ema(prices, period=5)
+    EMAResult(index, ema_array)
 
   Configuration:
       period (int)
@@ -89,4 +84,4 @@ class ema:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+  ) -> EMAResult: ...

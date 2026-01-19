@@ -5,36 +5,35 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, Ge as GeValidator, HasColumns, NotEmpty, Validated
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
+from indikator._results import MFIResult
 
 class _mfi_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
-  def window(self) -> int: ...
+  def period(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    data: Validated[
-      pd.DataFrame,
-      HasColumns(["high", "low", "close", "volume"]),
-      Finite,
-      GeValidator("high", "low"),
-      NotEmpty,
-    ],
-  ) -> pd.Series: ...
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    volume: Validated[pd.Series, Finite, NotEmpty],
+  ) -> MFIResult: ...
 
 class _mfi_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for mfi.
 
   Configuration:
-      window (int)
+      period (int)
       epsilon (float)
   """
 
-  window: int
+  period: int
   epsilon: float
 
 class _mfi_Config(_NCMakeableModel[_mfi_Bound]):
@@ -51,54 +50,43 @@ class _mfi_Config(_NCMakeableModel[_mfi_Bound]):
   3. Positive Money Flow = sum of MF when typical price increases
   4. Negative Money Flow = sum of MF when typical price decreases
   5. Money Flow Ratio = Positive Money Flow / Negative Money Flow
-  6. MFI = 100 - (100 / (1 + Money Flow Ratio))
+  Typical Price = (High + Low + Close) / 3
+  Raw Money Flow = Typical Price * Volume
+  Money Ratio = Positive Money Flow / Negative Money Flow
+  MFI = 100 - (100 / (1 + Money Ratio))
 
   Interpretation:
-  - MFI > 80: Overbought (potential reversal down)
-  - MFI < 20: Oversold (potential reversal up)
-  - Divergence: MFI moves opposite to price (strong reversal signal)
-  - Failure Swings: MFI crosses above 80 then below (sell) or below 20 then above (buy)
+  - MFI > 80: Overbought
+  - MFI < 20: Oversold
+  - Divergence: Price makes new high but MFI doesn't = reversal signal
 
   Features:
   - Numba-optimized for performance
-  - Uses typical price (H+L+C)/3
-  - Handles division by zero with epsilon
-  - 0-100 bounded range
+  - Handles edge cases (division by zero)
+  - Uses standard 14 period default
 
   Args:
-    data: OHLCV DataFrame
-    window: Rolling window size (default: 14)
-    epsilon: Small value to prevent division by zero
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    volume: Volume Series.
+    period: Lookback period (default: 14)
 
   Returns:
-    Series with MFI values (0-100 range, NaN for initial bars)
-
-  Raises:
-    ValueError: If required columns missing or data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> data = pd.DataFrame({
-    ...     'high': [10, 12, 11, 13, 15],
-    ...     'low': [9, 10, 9, 11, 12],
-    ...     'close': [9.5, 11, 10, 12, 14],
-    ...     'volume': [100, 150, 120, 200, 180]
-    ... })
-    >>> result = mfi(data, window=3)
-    >>> # Returns DataFrame with 'mfi' column
+    MFIResult(index, mfi)
 
   Configuration:
-      window (int)
+      period (int)
       epsilon (float)
   """
 
-  window: int
+  period: int
   epsilon: float
-  def __init__(self, *, window: int = ..., epsilon: float = ...) -> None: ...
+  def __init__(self, *, period: int = ..., epsilon: float = ...) -> None: ...
   """Initialize configuration for mfi.
 
     Configuration:
-        window (int)
+        period (int)
         epsilon (float)
     """
 
@@ -109,17 +97,14 @@ class mfi:
   Type = _mfi_Bound
   Config = _mfi_Config
   ConfigDict = _mfi_ConfigDict
-  window: ClassVar[int]
+  period: ClassVar[int]
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[
-      pd.DataFrame,
-      HasColumns(["high", "low", "close", "volume"]),
-      Finite,
-      GeValidator("high", "low"),
-      NotEmpty,
-    ],
-    window: int = ...,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    volume: Validated[pd.Series, Finite, NotEmpty],
+    period: int = ...,
     epsilon: float = ...,
-  ) -> pd.Series: ...
+  ) -> MFIResult: ...

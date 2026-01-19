@@ -21,6 +21,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._constants import DEFAULT_EPSILON
+from indikator._results import RSIResult
 from indikator._rsi_numba import compute_rsi_numba
 
 
@@ -83,10 +84,10 @@ def rsi(
   # Convert to numpy for Numba
   values = cast(
     "NDArray[np.float64]",
-    data.values.astype(np.float64),  # pyright: ignore[reportUnknownMemberType]
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   # Calculate RSI using Numba-optimized function
   rsi_values = compute_rsi_numba(values, window, epsilon)
 
-  return pd.Series(rsi_values, index=data.index, name="rsi")
+  return RSIResult(index=data.index, rsi=rsi_values)
