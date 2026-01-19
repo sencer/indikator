@@ -39,7 +39,7 @@ def compute_true_range_numba(
     Array of true range values
   """
   n = len(highs)
-  tr = np.zeros(n, dtype=np.float64)
+  tr = np.empty(n, dtype=np.float64)
 
   if n == 0:
     return tr
@@ -48,11 +48,19 @@ def compute_true_range_numba(
   tr[0] = highs[0] - lows[0]
 
   # Subsequent bars: TR = max(high-low, |high-prev_close|, |low-prev_close|)
+  # Manual 'if' checks are faster than max() in Numba here (avoid function call overhead)
   for i in range(1, n):
     hl = highs[i] - lows[i]
     hc = abs(highs[i] - closes[i - 1])
     lc = abs(lows[i] - closes[i - 1])
-    tr[i] = max(hl, hc, lc)
+
+    curr_max = hl
+    if hc > curr_max:
+      curr_max = hc
+    if lc > curr_max:
+      curr_max = lc
+
+    tr[i] = curr_max
 
   return tr
 
@@ -91,8 +99,8 @@ def compute_atr_numba(
   atr[:window] = np.nan
 
   # Calculate initial SMA of first window TRs (indices 1 to window)
-  # TR[0] is H-L, TR[1..window] use previous close
-  sum_tr = high[0] - low[0]  # TR at index 0
+  # TR[0] is H-L (ignored by TA-Lib algorithm?), TR[1..window] use previous close
+  sum_tr = 0.0
 
   for i in range(1, window + 1):
     hl = high[i] - low[i]
@@ -101,8 +109,8 @@ def compute_atr_numba(
     tr = max(hl, hc, lc)
     sum_tr += tr
 
-  # First ATR at index window is SMA of TRs 0..window (window+1 values)
-  atr[window] = sum_tr / (window + 1)
+  # First ATR at index window is SMA of TRs 1..window (window values)
+  atr[window] = sum_tr / window
 
   # Use Wilder's smoothing for subsequent values
   inv_period = 1.0 / window

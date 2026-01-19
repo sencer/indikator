@@ -126,3 +126,82 @@ class stoch:
     k_slowing: int = ...,
     d_period: int = ...,
   ) -> StochResult: ...
+
+class _stochf_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def fastk_period(self) -> int: ...
+  @property
+  def fastd_period(self) -> int: ...
+  def __call__(
+    self,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+  ) -> StochResult: ...
+
+class _stochf_ConfigDict(TypedDict, total=False):
+  """Configuration dictionary for stochf.
+
+  Configuration:
+      fastk_period (int)
+      fastd_period (int)
+  """
+
+  fastk_period: int
+  fastd_period: int
+
+class _stochf_Config(_NCMakeableModel[_stochf_Bound]):
+  """Configuration class for stochf.
+
+  Calculate Fast Stochastic Oscillator (STOCHF).
+
+  The Fast Stochastic Oscillator corresponds to the %K and %D lines where:
+  %K is the raw stochastic (unsmoothed).
+  %D is the SMA of %K.
+
+  This is equivalent to calling `stoch` with `k_slowing=1`.
+
+  Args:
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    fastk_period: Period for raw %K calculation (default: 5)
+    fastd_period: Period for %D smoothing (default: 3)
+
+  Returns:
+    StochResult(index, stoch_k, stoch_d)
+    where stoch_k is Fast %K and stoch_d is Fast %D.
+
+  Configuration:
+      fastk_period (int)
+      fastd_period (int)
+  """
+
+  fastk_period: int
+  fastd_period: int
+  def __init__(self, *, fastk_period: int = ..., fastd_period: int = ...) -> None: ...
+  """Initialize configuration for stochf.
+
+    Configuration:
+        fastk_period (int)
+        fastd_period (int)
+    """
+
+  @override
+  def make(self) -> _stochf_Bound: ...
+
+class stochf:
+  Type = _stochf_Bound
+  Config = _stochf_Config
+  ConfigDict = _stochf_ConfigDict
+  fastk_period: ClassVar[int]
+  fastd_period: ClassVar[int]
+  def __new__(
+    cls,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+    fastk_period: int = ...,
+    fastd_period: int = ...,
+  ) -> StochResult: ...

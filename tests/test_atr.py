@@ -49,5 +49,37 @@ def test_atr_matches_talib():
   expected = talib.ATR(high.values, low.values, close.values, timeperiod=period)
 
   pd.testing.assert_series_equal(
-    res, pd.Series(expected, index=high.index, name="atr"), check_exact=False, rtol=0.05
+    res,
+    pd.Series(expected, index=high.index, name="atr"),
+    check_exact=False,
+    rtol=1e-10,
+  )
+
+
+@pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+def test_trange_matches_talib():
+  """Test TRANGE against TA-Lib."""
+  np.random.seed(42)
+  high = pd.Series(np.random.uniform(105, 110, 100))
+  low = pd.Series(np.random.uniform(95, 100, 100))
+  close = pd.Series(np.random.uniform(95, 110, 100))
+
+  from indikator.atr import trange
+
+  result = trange(high, low, close)
+
+  # TA-Lib TRANGE
+  expected = talib.TRANGE(high.values, low.values, close.values)
+
+  # Compare (ignoring first NaN which TA-Lib produces for TRANGE usually?
+  # Actually TRANGE is valid from index 1.
+  valid_mask = result.notna() & np.isfinite(expected)
+
+  # Check if TA-Lib returns NaN at index 0.
+  # TA-Lib TRANGE[0] is usually NaN because it needs prev_close.
+
+  np.testing.assert_allclose(
+    result[valid_mask].values,
+    expected[valid_mask],
+    rtol=1e-10,
   )

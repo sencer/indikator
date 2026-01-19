@@ -321,3 +321,99 @@ class ZigzagLegsResult(NamedTuple):
       index=self.index,
       copy=False,
     )
+
+
+# --- Tier 1 Indicators ---
+
+
+class DEMAResult(NamedTuple):
+  index: pd.Index
+  dema: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.dema, index=self.index, name="dema", copy=False)
+
+
+class TEMAResult(NamedTuple):
+  index: pd.Index
+  tema: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.tema, index=self.index, name="tema", copy=False)
+
+
+class WMAResult(NamedTuple):
+  index: pd.Index
+  wma: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.wma, index=self.index, name="wma", copy=False)
+
+
+class KAMAResult(NamedTuple):
+  index: pd.Index
+  kama: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.kama, index=self.index, name="kama", copy=False)
+
+
+class SARResult(NamedTuple):
+  index: pd.Index
+  sar: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.sar, index=self.index, name="sar", copy=False)
+
+
+class StochRSIResult(NamedTuple):
+  index: pd.Index
+  stochrsi_k: NDArray[np.float64]
+  stochrsi_d: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.DataFrame:
+    return pd.DataFrame(
+      {"stochrsi_k": self.stochrsi_k, "stochrsi_d": self.stochrsi_d},
+      index=self.index,
+      copy=False,
+    )
+
+
+class MOMResult(NamedTuple):
+  index: pd.Index
+  mom: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.mom, index=self.index, name="mom", copy=False)
+
+
+class NATRResult(NamedTuple):
+  index: pd.Index
+  natr: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.natr, index=self.index, name="natr", copy=False)
+
+
+class ULTOSCResult(NamedTuple):
+  index: pd.Index
+  ultosc: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.ultosc, index=self.index, name="ultosc", copy=False)
+
+
+class ADResult(NamedTuple):
+  index: pd.Index
+  ad: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.ad, index=self.index, name="ad", copy=False)
+
+
+class ADOSCResult(NamedTuple):
+  index: pd.Index
+  adosc: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.adosc, index=self.index, name="adosc", copy=False)

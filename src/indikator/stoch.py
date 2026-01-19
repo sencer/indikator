@@ -103,3 +103,41 @@ def stoch(  # noqa: PLR0913, PLR0917
     stoch_k=stoch_k,
     stoch_d=stoch_d,
   )
+
+
+@configurable
+@validate
+def stochf(
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+  fastk_period: Hyper[int, Ge[2]] = 5,
+  fastd_period: Hyper[int, Ge[1]] = 3,
+) -> StochResult:
+  """Calculate Fast Stochastic Oscillator (STOCHF).
+
+  The Fast Stochastic Oscillator corresponds to the %K and %D lines where:
+  %K is the raw stochastic (unsmoothed).
+  %D is the SMA of %K.
+
+  This is equivalent to calling `stoch` with `k_slowing=1`.
+
+  Args:
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    fastk_period: Period for raw %K calculation (default: 5)
+    fastd_period: Period for %D smoothing (default: 3)
+
+  Returns:
+    StochResult(index, stoch_k, stoch_d)
+    where stoch_k is Fast %K and stoch_d is Fast %D.
+  """
+  return stoch(
+    high=high,
+    low=low,
+    close=close,
+    k_period=fastk_period,
+    k_slowing=1,  # Fast Stochastic has no slowing on %K
+    d_period=fastd_period,
+  )

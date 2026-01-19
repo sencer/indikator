@@ -175,3 +175,45 @@ def atr_intraday(
   # Return only the indicator (minimal return philosophy)
   avg_tr_by_time.name = "atr_intraday"
   return avg_tr_by_time
+
+
+@configurable
+@validate
+def trange(
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Calculate True Range (TRANGE).
+
+  The True Range is the greatest of:
+  - Current high - current low
+  - |Current high - previous close|
+  - |Current low - previous close|
+
+  Args:
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+
+  Returns:
+    Series with True Range values.
+  """
+  # Convert to numpy for Numba
+  high_arr = cast(
+    "NDArray[np.float64]",
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  low_arr = cast(
+    "NDArray[np.float64]",
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+  close_arr = cast(
+    "NDArray[np.float64]",
+    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+
+  # Calculate TR using Numba-optimized function
+  tr_values = compute_true_range_numba(high_arr, low_arr, close_arr)
+
+  return pd.Series(tr_values, index=high.index, name="trange")

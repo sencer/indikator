@@ -197,3 +197,47 @@ class atr_intraday:
     lookback_days: int | None = ...,
     min_samples: int = ...,
   ) -> pd.Series: ...
+
+class _trange_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _trange_ConfigDict(TypedDict, total=False):
+  pass
+
+class _trange_Config(_NCMakeableModel[_trange_Bound]):
+  """Configuration class for trange.
+
+  Calculate True Range (TRANGE).
+
+  The True Range is the greatest of:
+  - Current high - current low
+  - |Current high - previous close|
+  - |Current low - previous close|
+
+  Args:
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+
+  Returns:
+    Series with True Range values.
+  """
+
+  pass
+
+class trange:
+  Type = _trange_Bound
+  Config = _trange_Config
+  ConfigDict = _trange_ConfigDict
+  def __new__(
+    cls,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+  ) -> pd.Series: ...
