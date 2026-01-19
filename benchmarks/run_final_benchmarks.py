@@ -91,6 +91,15 @@ with config.Overrides(skip_validation=True):
     rocr100,
     t3,
     trima,
+    typprice,
+    medprice,
+    wclprice,
+    avgprice,
+    midprice,
+    midpoint,
+    stddev,
+    var,
+    aroonosc,
   )
 
 
@@ -476,6 +485,72 @@ def run_benchmarks() -> None:
       lambda d: (d["close"], 12, 26, 0),
       talib.PPO,
       lambda d: (d["np_close"], 12, 26, 0),
+    ),
+    # --- Price transforms ---
+    (
+      "TYPPRICE",
+      typprice,
+      lambda d: (d["high"], d["low"], d["close"]),
+      talib.TYPPRICE,
+      lambda d: (d["np_high"], d["np_low"], d["np_close"]),
+    ),
+    (
+      "MEDPRICE",
+      medprice,
+      lambda d: (d["high"], d["low"]),
+      talib.MEDPRICE,
+      lambda d: (d["np_high"], d["np_low"]),
+    ),
+    (
+      "WCLPRICE",
+      wclprice,
+      lambda d: (d["high"], d["low"], d["close"]),
+      talib.WCLPRICE,
+      lambda d: (d["np_high"], d["np_low"], d["np_close"]),
+    ),
+    (
+      "AVGPRICE",
+      avgprice,
+      lambda d: (d["open"], d["high"], d["low"], d["close"]),
+      talib.AVGPRICE,
+      lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
+    ),
+    (
+      "MIDPRICE",
+      midprice,
+      lambda d: (d["high"], d["low"], 14),
+      talib.MIDPRICE,
+      lambda d: (d["np_high"], d["np_low"], 14),
+    ),
+    (
+      "MIDPOINT",
+      midpoint,
+      lambda d: (d["close"], 14),
+      talib.MIDPOINT,
+      lambda d: (d["np_close"], 14),
+    ),
+    # --- Statistical ---
+    (
+      "STDDEV",
+      stddev,
+      lambda d: (d["close"], 5, 1.0),
+      talib.STDDEV,
+      lambda d: (d["np_close"], 5, 1.0),
+    ),
+    (
+      "VAR",
+      var,
+      lambda d: (d["close"], 5, 1.0),
+      talib.VAR,
+      lambda d: (d["np_close"], 5, 1.0),
+    ),
+    # --- Oscillators ---
+    (
+      "AROONOSC",
+      aroonosc,
+      lambda d: (d["high"], d["low"], 25),
+      talib.AROONOSC,
+      lambda d: (d["np_high"], d["np_low"], 25),
     ),
     # fmt: on
   ]
