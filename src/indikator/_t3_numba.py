@@ -26,15 +26,15 @@ def compute_t3_numba(
   Assumes clean data (no NaNs) - validated by caller.
   """
   n = len(prices)
-  out = np.empty(n, dtype=np.float64)
 
   # Each EMA needs 'period' values to produce first output (SMA init)
   # Total warmup: 6 * (period - 1) indices before first valid T3
   warmup = 6 * (period - 1)
 
   if n <= warmup:
-    out[:] = np.nan
-    return out
+    return np.full(n, np.nan, dtype=np.float64)
+
+  out = np.empty(n, dtype=np.float64)
 
   alpha = 2.0 / (period + 1.0)
   one_minus_alpha = 1.0 - alpha

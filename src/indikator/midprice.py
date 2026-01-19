@@ -16,6 +16,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._results import MIDPRICEResult
+from indikator._rolling_numba import compute_midprice_numba
 
 
 @configurable
@@ -39,18 +40,7 @@ def midprice(
   """
   h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
   l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  n = len(h)
 
-  result = np.empty(n, dtype=np.float64)
-  result[: period - 1] = np.nan
-
-  # Use pandas rolling for simplicity and decent performance
-  h_series = pd.Series(h)
-  l_series = pd.Series(l)
-
-  highest = h_series.rolling(window=period).max().to_numpy()
-  lowest = l_series.rolling(window=period).min().to_numpy()
-
-  result = (highest + lowest) / 2.0
+  result = compute_midprice_numba(h, l, period)
 
   return MIDPRICEResult(index=high.index, midprice=result)

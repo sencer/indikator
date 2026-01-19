@@ -16,6 +16,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._results import MIDPOINTResult
+from indikator._rolling_numba import compute_midpoint_numba
 
 
 @configurable
@@ -37,12 +38,6 @@ def midpoint(
   """
   values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
 
-  # Use pandas rolling for simplicity
-  s = pd.Series(values)
-
-  highest = s.rolling(window=period).max().to_numpy()
-  lowest = s.rolling(window=period).min().to_numpy()
-
-  result = (highest + lowest) / 2.0
+  result = compute_midpoint_numba(values, period)
 
   return MIDPOINTResult(index=data.index, midpoint=result)

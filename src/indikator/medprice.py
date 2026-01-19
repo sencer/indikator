@@ -15,6 +15,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._price_transform_numba import compute_medprice_numba
 from indikator._results import MEDPRICEResult
 
 
@@ -38,6 +39,6 @@ def medprice(
   h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
   l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
 
-  result = (h + l) / 2.0
+  result = compute_medprice_numba(h, l)
 
   return MEDPRICEResult(index=high.index, medprice=result)

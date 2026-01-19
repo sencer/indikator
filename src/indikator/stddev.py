@@ -13,6 +13,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._results import STDDEVResult
+from indikator._stats_numba import compute_stddev_numba
 
 
 @configurable
@@ -33,9 +34,5 @@ def stddev(
     STDDEVResult
   """
   values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
-
-  # Use pandas rolling with ddof=0 to match TA-Lib (population std)
-  s = pd.Series(values)
-  result = s.rolling(window=period).std(ddof=0).to_numpy() * nbdev
-
+  result = compute_stddev_numba(values, period, nbdev)
   return STDDEVResult(index=data.index, stddev=result)

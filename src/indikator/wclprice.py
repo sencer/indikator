@@ -15,6 +15,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._price_transform_numba import compute_wclprice_numba
 from indikator._results import WCLPRICEResult
 
 
@@ -41,6 +42,6 @@ def wclprice(
   l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  result = (h + l + 2.0 * c) / 4.0
+  result = compute_wclprice_numba(h, l, c)
 
   return WCLPRICEResult(index=high.index, wclprice=result)

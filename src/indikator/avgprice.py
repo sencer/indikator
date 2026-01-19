@@ -15,6 +15,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._price_transform_numba import compute_avgprice_numba
 from indikator._results import AVGPRICEResult
 
 
@@ -44,6 +45,6 @@ def avgprice(
   l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  result = (o + h + l + c) / 4.0
+  result = compute_avgprice_numba(o, h, l, c)
 
   return AVGPRICEResult(index=high.index, avgprice=result)

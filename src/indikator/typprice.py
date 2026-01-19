@@ -15,6 +15,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+from indikator._price_transform_numba import compute_typprice_numba
 from indikator._results import TYPPRICEResult
 
 
@@ -41,6 +42,6 @@ def typprice(
   l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  result = (h + l + c) / 3.0
+  result = compute_typprice_numba(h, l, c)
 
   return TYPPRICEResult(index=high.index, typprice=result)

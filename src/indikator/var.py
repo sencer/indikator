@@ -13,6 +13,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._results import VARResult
+from indikator._stats_numba import compute_var_numba
 
 
 @configurable
@@ -33,9 +34,5 @@ def var(
     VARResult
   """
   values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
-
-  # Use pandas rolling with ddof=0 to match TA-Lib (population variance)
-  s = pd.Series(values)
-  result = s.rolling(window=period).var(ddof=0).to_numpy() * nbdev
-
+  result = compute_var_numba(values, period, nbdev)
   return VARResult(index=data.index, var=result)
