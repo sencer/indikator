@@ -20,7 +20,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
-from indikator._results import VWAPResult
+from indikator._results import VWAPAnchoredResult, VWAPResult
 from indikator._vwap_numba import compute_anchored_vwap_numba, compute_vwap_numba
 
 
@@ -121,7 +121,7 @@ def vwap_anchored(
   ],
   anchor_index: int | None = None,
   anchor_datetime: pd.Timestamp | str | None = None,
-) -> pd.Series:
+) -> VWAPAnchoredResult:
   """Calculate Anchored VWAP from a specific point in time.
 
   Anchored VWAP calculates VWAP starting from a specific bar forward,
@@ -220,4 +220,4 @@ def vwap_anchored(
   vwap_values = compute_anchored_vwap_numba(typical_prices, volumes, anchor_index)
 
   # Return only the indicator (minimal return philosophy)
-  return pd.Series(vwap_values, index=data.index, name="vwap_anchored")
+  return VWAPAnchoredResult(index=data.index, vwap_anchored=vwap_values)

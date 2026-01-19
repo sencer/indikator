@@ -11,57 +11,22 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
-def _sma_seq(data: NDArray[np.float64], period: int) -> NDArray[np.float64]:
-  """Sequential SMA for internal use."""
-  n = len(data)
-  out = np.full(n, np.nan)
-
-  if n < period:
-    return out
-
-  # Initial sum
-  curr_sum = 0.0
-  for i in range(period):
-    val = data[i]
-    if np.isnan(val):
-      curr_sum = np.nan
-    else:
-      curr_sum += val
-
-  out[period - 1] = curr_sum / period
-
-  # Rolling
-  for i in range(period, n):
-    old = data[i - period]
-    new = data[i]
-
-    if np.isnan(curr_sum) or np.isnan(old) or np.isnan(new):
-      # Re-sum to be safe or propagate NaN?
-      # Standard SMA propagates NaN if any element in window is NaN.
-      # If we have NaNs, we must be careful.
-      # Re-summing at each step handles NaNs correctly (if window has NaN, sum is NaN).
-      # But it is O(N*Period).
-      # Optimized rolling handles it if we propagate NaNs logic carefully.
-      # Here we can just assume propagation.
-      curr_sum += new - old
-    else:
-      curr_sum += new - old
-
-    out[i] = curr_sum / period
-
-  return out
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True)
 def compute_trima_numba(
   prices: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate Triangular Moving Average (TRIMA)."""
+  """Calculate Triangular Moving Average (TRIMA) using a fused kernel.
+
+  Fuses two simple moving averages into a single pass using a ring buffer
+  for intermediate SMA values. O(N) time, O(N) memory (output only).
+  """
   n = len(prices)
+  out = np.empty(n, dtype=np.float64)
+  out[:] = np.nan
+
   if n == 0 or period <= 0:
-    return np.full(n, np.nan)
+    return out
 
   # Determine periods
   if period % 2 == 1:
@@ -71,45 +36,78 @@ def compute_trima_numba(
     p1 = period // 2
     p2 = p1 + 1
 
-  # 1. First Pass
-  # We use our own seq logic which is safer than calling parallel kernel
-  sma1 = _sma_seq(prices, p1)
+  # Total warmup needed
+  # SMA1 needs p1 inputs (valid at index p1-1)
+  # SMA2 needs p2 SMA1 inputs.
+  # First valid SMA1 is at p1-1.
+  # SMA2 takes SMA1[p1-1], SMA1[p1], ... SMA1[p1-1 + p2-1].
+  # So first valid TRIMA is at p1 - 1 + p2 - 1 = p1 + p2 - 2?
+  # Let's verify with period=4 (p1=2, p2=3). valid=2+3-2=3.
+  # TA-Lib TRIMA(4) valid at index 3. Correct.
+  # period=3 (p1=2, p2=2). valid=2+2-2=2. Correct.
 
-  # 2. Second Pass
-  # Only sma1 values starting from p1-1 are valid (non-NaN).
-  # But _sma_seq propagates NaN correctly?
-  # If sma1 has NaNs at start, _sma_seq rolling logic:
-  # Window 0..p2-1 includes NaNs from sma1. Sum will be NaN.
-  # Correct.
-  # So we don't need slicing if _sma_seq handles NaN propagation naturally!
-  # But rolling sum `curr_sum += new - old` fails if `old` is NaN.
-  # A simple `curr_sum` tracking NaNs?
-  # If `curr_sum` is NaN, can it recover? No.
-  # Once a NaN enters the window, sum is NaN.
-  # When NaN leaves the window, sum SHOULD become valid (if rest are valid).
-  # But `NaN - NaN` is NaN. So it never recovers.
-  # So rolling sum fails to recover from NaNs.
+  if n < p1 + p2 - 1:
+    return out
 
-  # We MUST slice to give valid data to the second pass.
-  # Or implement a smarter rolling sum that re-calculates if needed.
-  # Slicing is faster/easier for this structure.
+  # Ring Buffer for SMA1 history
+  # We need the last p2 values of SMA1 to compute the rolling window for SMA2.
+  # sma1_buf stores [sma1(t-p2+1), ..., sma1(t)]
+  sma1_buf = np.empty(p2, dtype=np.float64)
+  # Since we fill it sequentially, we can just use a pointer.
+  buf_idx = 0
 
-  valid_start = p1 - 1
-  if valid_start >= n:
-    return np.full(n, np.nan)
+  # State variables
+  sum1 = 0.0
+  sum2 = 0.0
 
-  # Slice valid portion
-  valid_sma1 = sma1[valid_start:]
-  # Ensure contiguous just in case
-  valid_sma1 = np.ascontiguousarray(valid_sma1)
+  # Count of VALID outputs from SMA1
+  count1_valid = 0
 
-  if len(valid_sma1) < p2:
-    return np.full(n, np.nan)
+  # Loop over prices
+  for i in range(n):
+    val = prices[i]
 
-  sma2_part = _sma_seq(valid_sma1, p2)
+    # --- SMA 1 Update ---
+    # Add new value
+    sum1 += val
+    # Remove old value if beyond window p1
+    if i >= p1:
+      sum1 -= prices[i - p1]
 
-  # Reconstruct
-  trima = np.full(n, np.nan)
-  trima[valid_start:] = sma2_part
+    # Check if SMA1 is valid
+    current_sma1 = np.nan
+    if i >= p1 - 1:
+      current_sma1 = sum1 / p1
 
-  return trima
+      # --- SMA 2 Update ---
+      # We only update SMA2 if we have a valid SMA1 input
+      # Wait, SMA2 logic is: sum over current window of SMA1 values.
+      # We feed 'current_sma1' into SMA2 pipeline.
+
+      sum2 += current_sma1
+
+      # Remove old SMA1 value from sum2 window?
+      # The value to remove is the one that entered SMA2 window p2 steps ago.
+      # We store history in sma1_buf.
+
+      # We need to know if we have filled p2 items in SMA2 window.
+      count1_valid += 1
+
+      if count1_valid > p2:
+        # Remove the oldest value from the buffer
+        # The buffer at buf_idx holds the oldest value (about to be overwritten)
+        old_sma1 = sma1_buf[buf_idx]
+        sum2 -= old_sma1
+
+      # Write current to buffer
+      sma1_buf[buf_idx] = current_sma1
+      buf_idx += 1
+      if buf_idx == p2:
+        buf_idx = 0
+
+      # Check if SMA2 is valid
+      # SMA2 is valid once we have processed p2 valid inputs from SMA1
+      if count1_valid >= p2:
+        out[i] = sum2 / p2
+
+  return out

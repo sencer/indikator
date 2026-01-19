@@ -51,7 +51,7 @@ class TestZScoreIntraday:
     data.iloc[4] = 112  # 10:30 was 110, now 112. Mean=111, Std=1.414
     data.iloc[5] = 118  # 11:30 was 120, now 118. Mean=119, Std=1.414
 
-    result = zscore_intraday(data["close"], min_samples=2)
+    result = zscore_intraday(data["close"], min_samples=2).to_pandas()
 
     # Check Day 3 (indices 6, 7, 8)
     # 9:30 AM: History [100, 102]. Mean=101, Std=sqrt(2)=1.414. Value=105.
@@ -88,7 +88,7 @@ class TestZScoreIntraday:
     # 12:30 History: [100, 101]. Mean=100.5, Std=0.707. Day 3 Value=102.
     # Z = (102 - 100.5) / 0.707 = 1.5 / 0.707 = 2.12
 
-    result = zscore_intraday(data["close"], min_samples=2)
+    result = zscore_intraday(data["close"], min_samples=2).to_pandas()
 
     np.testing.assert_almost_equal(result.iloc[4], 2.12, decimal=2)
     np.testing.assert_almost_equal(result.iloc[5], 2.12, decimal=2)
@@ -98,7 +98,7 @@ class TestZScoreIntraday:
     dates = pd.date_range("2024-01-01 09:30", periods=2, freq="1D")
     data = pd.DataFrame({"close": [100, 105]}, index=dates)
 
-    result = zscore_intraday(data["close"], min_samples=3)
+    result = zscore_intraday(data["close"], min_samples=3).to_pandas()
 
     # Insufficient samples results in default neutral value (0.0)
     assert result.iloc[0] == 0.0
@@ -127,7 +127,7 @@ class TestZScoreIntraday:
       index=dates,
     )
 
-    result = zscore_intraday(data["close"], min_samples=2)
+    result = zscore_intraday(data["close"], min_samples=2).to_pandas()
 
     # When std is 0 (no variance), z-score should default to 0.0
     # to avoid division by zero / infinity.
@@ -144,7 +144,7 @@ class TestZScoreIntraday:
       index=dates,
     )
 
-    result = zscore_intraday(data["close"])
+    result = zscore_intraday(data["close"]).to_pandas()
 
     assert isinstance(result, pd.Series)
-    assert result.name == "close_zscore_intraday"
+    assert result.name == "zscore_intraday"

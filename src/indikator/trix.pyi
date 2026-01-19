@@ -9,11 +9,13 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import TRIXResult
+
 class _trix_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> TRIXResult: ...
 
 class _trix_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for trix.
@@ -81,4 +83,4 @@ class trix:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+  ) -> TRIXResult: ...

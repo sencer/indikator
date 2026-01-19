@@ -65,6 +65,45 @@ def compute_true_range_numba(
   return tr
 
 
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_true_range_numba_2d(
+  ohlc: NDArray[np.float64],
+) -> NDArray[np.float64]:
+  """Numba JIT-compiled true range calculation for 2D array (OHLC input).
+
+  Assumes columns: 0=High, 1=Low, 2=Close.
+  Faster for DataFrame inputs as it avoids separating columns.
+  """
+  n = len(ohlc)
+  tr = np.empty(n, dtype=np.float64)
+
+  if n == 0:
+    return tr
+
+  # First bar: TR = high - low
+  tr[0] = ohlc[0, 0] - ohlc[0, 1]
+
+  # Subsequent bars
+  for i in range(1, n):
+    h = ohlc[i, 0]
+    l = ohlc[i, 1]
+    prev_c = ohlc[i - 1, 2]
+
+    hl = h - l
+    hc = abs(h - prev_c)
+    lc = abs(l - prev_c)
+
+    curr_max = hl
+    if hc > curr_max:
+      curr_max = hc
+    if lc > curr_max:
+      curr_max = lc
+
+    tr[i] = curr_max
+
+  return tr
+
+
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
 def compute_atr_numba(
   high: NDArray[np.float64],

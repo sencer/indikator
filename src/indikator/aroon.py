@@ -20,7 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._aroon_numba import compute_aroon_numba
-from indikator._results import AROONResult
+from indikator._results import AROONOSCResult, AROONResult
 
 
 @configurable
@@ -90,3 +90,40 @@ def aroon(
     aroon_down=down,
     aroon_osc=osc,
   )
+
+
+@configurable
+@validate
+def aroonosc(
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[2]] = 25,
+) -> AROONOSCResult:
+  """Calculate Aroon Oscillator.
+
+  AROONOSC = Aroon Up - Aroon Down
+
+  Range: -100 to +100
+  - Positive: Bullish (uptrend)
+  - Negative: Bearish (downtrend)
+
+  Args:
+    high: High prices Series
+    low: Low prices Series
+    period: Lookback period (default: 25)
+
+  Returns:
+    AROONOSCResult
+  """
+  high_vals = cast(
+    "NDArray[np.float64]",
+    high.to_numpy(dtype=np.float64, copy=False),
+  )
+  low_vals = cast(
+    "NDArray[np.float64]",
+    low.to_numpy(dtype=np.float64, copy=False),
+  )
+
+  _, _, osc = compute_aroon_numba(high_vals, low_vals, period)
+
+  return AROONOSCResult(index=high.index, aroonosc=osc)

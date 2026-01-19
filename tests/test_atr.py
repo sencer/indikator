@@ -66,7 +66,7 @@ def test_trange_matches_talib():
 
   from indikator.atr import trange
 
-  result = trange(high, low, close)
+  result = trange(high, low, close).to_pandas()
 
   # TA-Lib TRANGE
   expected = talib.TRANGE(high.values, low.values, close.values)

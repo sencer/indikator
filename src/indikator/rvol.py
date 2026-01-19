@@ -108,8 +108,10 @@ def rvol_intraday(
   )
 
   # Calculate RVOL with division by zero protection
+  # Calculate RVOL with division by zero protection
   vol_arr = data.to_numpy(dtype=np.float64, copy=False)
-  avg_arr = avg_volume_by_time.to_numpy(dtype=np.float64, copy=False)
+  # avg_volume_by_time is IntradaySeriesResult
+  avg_arr = avg_volume_by_time.values
 
   rvol_values = np.ones_like(vol_arr)
 

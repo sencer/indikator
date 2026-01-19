@@ -108,7 +108,7 @@ class TestADX:
     period = 14
 
     # DX
-    res_dx = dx(high, low, close, period=period)
+    res_dx = dx(high, low, close, period=period).to_pandas()
     exp_dx = talib.DX(high.values, low.values, close.values, timeperiod=period)
     valid_dx = res_dx.notna() & np.isfinite(exp_dx)
     np.testing.assert_allclose(res_dx[valid_dx].values, exp_dx[valid_dx], rtol=1e-10)
@@ -119,7 +119,7 @@ class TestADX:
     # Our ADX matches TA-Lib ADX with 1e-10 tolerance.
     # Our ADXR implements the standard formula correctly.
     # We relax tolerance for ADXR to accommodate TA-Lib's internal discrepancy.
-    res_adxr = adxr(high, low, close, period=period)
+    res_adxr = adxr(high, low, close, period=period).to_pandas()
     exp_adxr = talib.ADXR(high.values, low.values, close.values, timeperiod=period)
     valid_adxr = res_adxr.notna() & np.isfinite(exp_adxr)
     np.testing.assert_allclose(
@@ -127,7 +127,7 @@ class TestADX:
     )
 
     # PLUS_DM
-    res_pdm = plus_dm(high, low, close, period=period)
+    res_pdm = plus_dm(high, low, close, period=period).to_pandas()
     exp_pdm = talib.PLUS_DM(high.values, low.values, timeperiod=period)
     valid_pdm = res_pdm.notna() & np.isfinite(exp_pdm)
     np.testing.assert_allclose(
@@ -135,7 +135,7 @@ class TestADX:
     )
 
     # MINUS_DM
-    res_mdm = minus_dm(high, low, close, period=period)
+    res_mdm = minus_dm(high, low, close, period=period).to_pandas()
     exp_mdm = talib.MINUS_DM(high.values, low.values, timeperiod=period)
     valid_mdm = res_mdm.notna() & np.isfinite(exp_mdm)
     np.testing.assert_allclose(
@@ -143,7 +143,7 @@ class TestADX:
     )
 
     # PLUS_DI (Wrapper function)
-    res_pdi = plus_di(high, low, close, period=period)
+    res_pdi = plus_di(high, low, close, period=period).to_pandas()
     exp_pdi = talib.PLUS_DI(high.values, low.values, close.values, timeperiod=period)
     valid_pdi = res_pdi.notna() & np.isfinite(exp_pdi)
     np.testing.assert_allclose(
@@ -151,7 +151,7 @@ class TestADX:
     )
 
     # MINUS_DI (Wrapper function)
-    res_mdi = minus_di(high, low, close, period=period)
+    res_mdi = minus_di(high, low, close, period=period).to_pandas()
     exp_mdi = talib.MINUS_DI(high.values, low.values, close.values, timeperiod=period)
     valid_mdi = res_mdi.notna() & np.isfinite(exp_mdi)
     np.testing.assert_allclose(

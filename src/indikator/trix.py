@@ -29,7 +29,7 @@ from indikator._trix_numba import compute_trix_numba
 def trix(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> pd.Series:
+) -> TRIXResult:
   """Calculate TRIX (Triple Exponential Average).
 
   TRIX is a momentum oscillator that displays the percent rate of change

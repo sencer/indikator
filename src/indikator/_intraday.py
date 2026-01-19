@@ -17,6 +17,7 @@ from datawarden import (
 import pandas as pd
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
+from indikator._results import IntradaySeriesResult, IntradayStatsResult
 
 # Optimized aggregation functions (use these for best performance)
 AggFunc = Literal["mean", "std", "median", "min", "max"]
@@ -47,7 +48,7 @@ def intraday_aggregate(
   agg_func: AggFunc | Callable[[pd.Series], float],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
-) -> pd.Series:
+) -> IntradaySeriesResult:
   """Generic intraday aggregation by time-of-day.
 
   For each bar, aggregates historical values for that specific time of day
@@ -84,7 +85,9 @@ def intraday_aggregate(
     "__indikator_time_slot__", group_keys=False
   )["__indikator_value__"].transform(expanding_agg_shifted)
 
-  return pd.Series(agg_values, index=data.index, dtype=float)
+  return IntradaySeriesResult(
+    index=data.index, values=agg_values.to_numpy(dtype=float), name="intraday_aggregate"
+  )
 
 
 @validate
@@ -92,7 +95,7 @@ def intraday_stats(
   data: Validated[pd.Series, Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
-) -> tuple[pd.Series, pd.Series]:
+) -> IntradayStatsResult:
   """Compute both mean and std by time-of-day in a single pass.
 
   More efficient than calling intraday_aggregate twice when both
@@ -119,7 +122,8 @@ def intraday_stats(
     lambda g: g.expanding(min_periods=min_samples).std().shift(1)
   )
 
-  return (
-    pd.Series(mean_values, index=data.index, dtype=float),
-    pd.Series(std_values, index=data.index, dtype=float),
+  return IntradayStatsResult(
+    index=data.index,
+    mean=mean_values.to_numpy(dtype=float),
+    std=std_values.to_numpy(dtype=float),
   )

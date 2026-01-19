@@ -21,7 +21,7 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_stats
-from indikator._results import ZScoreResult
+from indikator._results import ZScoreIntradayResult, ZScoreResult
 from indikator._zscore_numba import compute_zscore_numba
 
 
@@ -76,7 +76,7 @@ def zscore_intraday(
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.Series:
+) -> ZScoreIntradayResult:
   """Calculate time-of-day adjusted Z-Score.
 
   Compares current value to the historical mean and std dev for that specific
@@ -119,11 +119,14 @@ def zscore_intraday(
   """
 
   # Get historical mean and std for each time slot in a single pass
-  mean_by_time, std_by_time = intraday_stats(
+  # Get historical mean and std for each time slot in a single pass
+  stats = intraday_stats(
     data,
     lookback_days=lookback_days,
     min_samples=min_samples,
   )
+  mean_by_time = stats.mean
+  std_by_time = stats.std
 
   # Calculate Z-Score with division by zero protection
   z_score_values = np.zeros(len(data))
@@ -134,8 +137,5 @@ def zscore_intraday(
   ]
 
   # Create result series
-  return pd.Series(
-    z_score_values,
-    index=data.index,
-    name=f"{data.name}_zscore_intraday" if data.name else "zscore_intraday",
-  )
+  # Create result series
+  return ZScoreIntradayResult(index=data.index, zscore_intraday=z_score_values)

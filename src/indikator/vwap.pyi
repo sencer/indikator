@@ -9,7 +9,7 @@ from datawarden import Columns, Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import VWAPResult
+from indikator._results import VWAPAnchoredResult, VWAPResult
 
 class _vwap_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -110,7 +110,7 @@ class _vwap_anchored_Bound(Protocol):
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
-  ) -> pd.Series: ...
+  ) -> VWAPAnchoredResult: ...
 
 class _vwap_anchored_ConfigDict(TypedDict, total=False):
   pass
@@ -179,4 +179,4 @@ class vwap_anchored:
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
-  ) -> pd.Series: ...
+  ) -> VWAPAnchoredResult: ...

@@ -23,10 +23,14 @@ from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-from indikator._atr_numba import compute_atr_numba, compute_true_range_numba
+from indikator._atr_numba import (
+  compute_atr_numba,
+  compute_true_range_numba,
+  compute_true_range_numba_2d,
+)
 from indikator._constants import DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
-from indikator._results import ATRResult
+from indikator._results import ATRIntradayResult, ATRResult, TRANGEResult
 
 
 @configurable
@@ -112,7 +116,7 @@ def atr_intraday(
   ],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
-) -> pd.Series:
+) -> ATRIntradayResult:
   """Calculate time-of-day adjusted ATR (intraday volatility).
 
   Compares current volatility to the historical average volatility for that
@@ -154,11 +158,16 @@ def atr_intraday(
     >>> # Returns DataFrame with time-of-day adjusted ATR
   """
   # Calculate true range first
-  highs = data["high"].to_numpy(dtype=np.float64, copy=False)
-  lows = data["low"].to_numpy(dtype=np.float64, copy=False)
-  closes = data["close"].to_numpy(dtype=np.float64, copy=False)
+  # Optimization: Use bulk 2D access for speed since we have a DataFrame
+  # We need High, Low, Close columns. We can extract them as a block if they are adjacent,
+  # but safely we should select them.
+  # data[["high", "low", "close"]] guarantees order 0=H, 1=L, 2=C
+  ohlc_values = cast(
+    "NDArray[np.float64]",
+    data[["high", "low", "close"]].to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
 
-  true_ranges = compute_true_range_numba(highs, lows, closes)
+  true_ranges = compute_true_range_numba_2d(ohlc_values)
 
   # Add true_range to dataframe for intraday aggregation
   data_with_tr = data.copy()
@@ -174,7 +183,12 @@ def atr_intraday(
 
   # Return only the indicator (minimal return philosophy)
   avg_tr_by_time.name = "atr_intraday"
-  return avg_tr_by_time
+  # avg_tr_by_time is a Series from intraday_aggregate (which returns Series for now)
+  # But I need to convert to ATRIntradayResult
+  # intraday_aggregate currently returns Series. I will update it later.
+  # Assuming intraday_aggregate returns Series (as per current code):
+  vals = cast("NDArray[np.float64]", avg_tr_by_time.to_numpy(dtype=float, copy=False))
+  return ATRIntradayResult(index=data.index, atr_intraday=vals)
 
 
 @configurable
@@ -183,7 +197,7 @@ def trange(
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
-) -> pd.Series:
+) -> TRANGEResult:
   """Calculate True Range (TRANGE).
 
   The True Range is the greatest of:
@@ -197,7 +211,7 @@ def trange(
     close: Close prices Series.
 
   Returns:
-    Series with True Range values.
+    TRangeResult(index, trange)
   """
   # Convert to numpy for Numba
   high_arr = cast(
@@ -216,4 +230,4 @@ def trange(
   # Calculate TR using Numba-optimized function
   tr_values = compute_true_range_numba(high_arr, low_arr, close_arr)
 
-  return pd.Series(tr_values, index=high.index, name="trange")
+  return TRANGEResult(index=high.index, trange=tr_values)

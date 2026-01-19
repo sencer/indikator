@@ -417,3 +417,245 @@ class ADOSCResult(NamedTuple):
 
   def to_pandas(self) -> pd.Series:
     return pd.Series(self.adosc, index=self.index, name="adosc", copy=False)
+
+
+class TRANGEResult(NamedTuple):
+  index: pd.Index
+  trange: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.trange, index=self.index, name="trange", copy=False)
+
+
+class VWAPAnchoredResult(NamedTuple):
+  index: pd.Index
+  vwap_anchored: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(
+      self.vwap_anchored, index=self.index, name="vwap_anchored", copy=False
+    )
+
+
+class PlusDMResult(NamedTuple):
+  index: pd.Index
+  plus_dm: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.plus_dm, index=self.index, name="plus_dm", copy=False)
+
+
+class MinusDMResult(NamedTuple):
+  index: pd.Index
+  minus_dm: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.minus_dm, index=self.index, name="minus_dm", copy=False)
+
+
+class PlusDIResult(NamedTuple):
+  index: pd.Index
+  plus_di: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.plus_di, index=self.index, name="plus_di", copy=False)
+
+
+class MinusDIResult(NamedTuple):
+  index: pd.Index
+  minus_di: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.minus_di, index=self.index, name="minus_di", copy=False)
+
+
+class DXResult(NamedTuple):
+  index: pd.Index
+  dx: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.dx, index=self.index, name="dx", copy=False)
+
+
+class ADXRResult(NamedTuple):
+  index: pd.Index
+  adxr: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.adxr, index=self.index, name="adxr", copy=False)
+
+
+class ZScoreIntradayResult(NamedTuple):
+  index: pd.Index
+  zscore_intraday: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(
+      self.zscore_intraday, index=self.index, name="zscore_intraday", copy=False
+    )
+
+
+class ATRIntradayResult(NamedTuple):
+  index: pd.Index
+  atr_intraday: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(
+      self.atr_intraday, index=self.index, name="atr_intraday", copy=False
+    )
+
+
+class IntradaySeriesResult(NamedTuple):
+  index: pd.Index
+  values: NDArray[np.float64]
+  name: str
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.values, index=self.index, name=self.name, copy=False)
+
+
+class IntradayStatsResult(NamedTuple):
+  index: pd.Index
+  mean: NDArray[np.float64]
+  std: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.DataFrame:
+    return pd.DataFrame(
+      {"mean": self.mean, "std": self.std}, index=self.index, copy=False
+    )
+
+
+class BOPResult(NamedTuple):
+  index: pd.Index
+  bop: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.bop, index=self.index, name="bop", copy=False)
+
+
+class TRIMAResult(NamedTuple):
+  index: pd.Index
+  trima: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.trima, index=self.index, name="trima", copy=False)
+
+
+class APOResult(NamedTuple):
+  index: pd.Index
+  apo: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.apo, index=self.index, name="apo", copy=False)
+
+
+class PPOResult(NamedTuple):
+  index: pd.Index
+  ppo: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.ppo, index=self.index, name="ppo", copy=False)
+
+
+class T3Result(NamedTuple):
+  index: pd.Index
+  t3: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.t3, index=self.index, name="t3", copy=False)
+
+
+class ROCPResult(NamedTuple):
+  index: pd.Index
+  rocp: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.rocp, index=self.index, name="rocp", copy=False)
+
+
+class ROCRResult(NamedTuple):
+  index: pd.Index
+  rocr: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.rocr, index=self.index, name="rocr", copy=False)
+
+
+class ROCR100Result(NamedTuple):
+  index: pd.Index
+  rocr100: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.rocr100, index=self.index, name="rocr100", copy=False)
+
+
+class TYPPRICEResult(NamedTuple):
+  index: pd.Index
+  typprice: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.typprice, index=self.index, name="typprice", copy=False)
+
+
+class MEDPRICEResult(NamedTuple):
+  index: pd.Index
+  medprice: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.medprice, index=self.index, name="medprice", copy=False)
+
+
+class WCLPRICEResult(NamedTuple):
+  index: pd.Index
+  wclprice: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.wclprice, index=self.index, name="wclprice", copy=False)
+
+
+class AVGPRICEResult(NamedTuple):
+  index: pd.Index
+  avgprice: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.avgprice, index=self.index, name="avgprice", copy=False)
+
+
+class MIDPRICEResult(NamedTuple):
+  index: pd.Index
+  midprice: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.midprice, index=self.index, name="midprice", copy=False)
+
+
+class MIDPOINTResult(NamedTuple):
+  index: pd.Index
+  midpoint: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.midpoint, index=self.index, name="midpoint", copy=False)
+
+
+class STDDEVResult(NamedTuple):
+  index: pd.Index
+  stddev: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.stddev, index=self.index, name="stddev", copy=False)
+
+
+class VARResult(NamedTuple):
+  index: pd.Index
+  var: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.var, index=self.index, name="var", copy=False)
+
+
+class AROONOSCResult(NamedTuple):
+  index: pd.Index
+  aroonosc: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.aroonosc, index=self.index, name="aroonosc", copy=False)

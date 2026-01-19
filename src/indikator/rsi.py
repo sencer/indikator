@@ -31,7 +31,7 @@ def rsi(
   data: Validated[pd.Series, Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> pd.Series:
+) -> RSIResult:
   """Calculate Relative Strength Index (RSI).
 
   RSI is a momentum oscillator that measures the speed and magnitude of

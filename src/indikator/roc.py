@@ -1,7 +1,6 @@
-"""ROC (Rate of Change) indicator module.
+"""ROC (Rate of Change) family of indicators.
 
-This module provides ROC calculation, a momentum oscillator that measures
-the percentage change between the current price and the price n periods ago.
+This module provides ROC, ROCP, ROCR, and ROCR100 calculations.
 """
 
 from typing import TYPE_CHECKING, cast
@@ -19,8 +18,13 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
-from indikator._results import ROCResult
-from indikator._roc_numba import compute_roc_numba
+from indikator._results import ROCResult, ROCRResult, ROCR100Result, ROCPResult
+from indikator._roc_numba import (
+  compute_roc_numba,
+  compute_rocp_numba,
+  compute_rocr_numba,
+  compute_rocr100_numba,
+)
 
 
 @configurable
@@ -31,50 +35,53 @@ def roc(
 ) -> ROCResult:
   """Calculate Rate of Change (ROC).
 
-  ROC is a momentum oscillator that measures the percentage change between
-  the current price and the price n periods ago.
-
-  Formula:
-  ROC = ((Price - Price_n_periods_ago) / Price_n_periods_ago) * 100
-
-  Interpretation:
-  - ROC > 0: Price is higher than n periods ago (bullish)
-  - ROC < 0: Price is lower than n periods ago (bearish)
-  - ROC crossing 0: Momentum shift
-  - Extreme readings: Potential reversal
-
-  Common strategies:
-  - Buy on positive ROC (momentum confirmation)
-  - Sell on negative ROC
-  - Look for divergences between price and ROC
-
-  Features:
-  - Numba-optimized for performance
-  - Standard 10-period default
-  - Simple percentage-based calculation
-
-  Args:
-    data: Input Series.
-    period: Lookback period (default: 10)
-
-  Returns:
-    ROCResult(index, roc)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> prices = pd.Series([100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120])
-    >>> result = roc(prices, period=5).to_pandas()
+  ROC = ((Price - Prev) / Prev) * 100
   """
-  # Convert to numpy for Numba
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  result = compute_roc_numba(values, period)
+  return ROCResult(index=data.index, roc=result)
 
-  # Calculate ROC using Numba-optimized function
-  roc_values = compute_roc_numba(values, period)
 
-  return ROCResult(index=data.index, roc=roc_values)
+@configurable
+@validate
+def rocp(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[1]] = 10,
+) -> ROCPResult:
+  """Calculate Rate of Change Percentage (ROCP).
+
+  ROCP = (Price - Prev) / Prev
+  """
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  result = compute_rocp_numba(values, period)
+  return ROCPResult(index=data.index, rocp=result)
+
+
+@configurable
+@validate
+def rocr(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[1]] = 10,
+) -> ROCRResult:
+  """Calculate Rate of Change Ratio (ROCR).
+
+  ROCR = Price / Prev
+  """
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  result = compute_rocr_numba(values, period)
+  return ROCRResult(index=data.index, rocr=result)
+
+
+@configurable
+@validate
+def rocr100(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[1]] = 10,
+) -> ROCR100Result:
+  """Calculate Rate of Change Ratio 100 Scale (ROCR100).
+
+  ROCR100 = (Price / Prev) * 100
+  """
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  result = compute_rocr100_numba(values, period)
+  return ROCR100Result(index=data.index, rocr100=result)

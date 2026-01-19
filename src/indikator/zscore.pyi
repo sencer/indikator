@@ -9,7 +9,7 @@ from datawarden import Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ZScoreResult
+from indikator._results import ZScoreIntradayResult, ZScoreResult
 
 class _zscore_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -89,7 +89,7 @@ class _zscore_intraday_Bound(Protocol):
     self,
     data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
     lookback_days: int | None = ...,
-  ) -> pd.Series: ...
+  ) -> ZScoreIntradayResult: ...
 
 class _zscore_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for zscore_intraday.
@@ -175,4 +175,4 @@ class zscore_intraday:
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,
-  ) -> pd.Series: ...
+  ) -> ZScoreIntradayResult: ...

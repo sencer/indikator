@@ -9,7 +9,7 @@ from datawarden import Columns, Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ATRResult
+from indikator._results import ATRIntradayResult, ATRResult, TRANGEResult
 
 class _atr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -115,7 +115,7 @@ class _atr_intraday_Bound(Protocol):
       pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty
     ],
     lookback_days: int | None = ...,
-  ) -> pd.Series: ...
+  ) -> ATRIntradayResult: ...
 
 class _atr_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr_intraday.
@@ -196,7 +196,7 @@ class atr_intraday:
     ],
     lookback_days: int | None = ...,
     min_samples: int = ...,
-  ) -> pd.Series: ...
+  ) -> ATRIntradayResult: ...
 
 class _trange_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -205,7 +205,7 @@ class _trange_Bound(Protocol):
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.Series: ...
+  ) -> TRANGEResult: ...
 
 class _trange_ConfigDict(TypedDict, total=False):
   pass
@@ -226,7 +226,7 @@ class _trange_Config(_NCMakeableModel[_trange_Bound]):
     close: Close prices Series.
 
   Returns:
-    Series with True Range values.
+    TRangeResult(index, trange)
   """
 
   pass
@@ -240,4 +240,4 @@ class trange:
     high: Validated[pd.Series, Finite, NotEmpty],
     low: Validated[pd.Series, Finite, NotEmpty],
     close: Validated[pd.Series, Finite, NotEmpty],
-  ) -> pd.Series: ...
+  ) -> TRANGEResult: ...

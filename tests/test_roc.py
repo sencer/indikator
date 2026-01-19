@@ -78,10 +78,40 @@ def test_roc_matches_talib():
   data = pd.Series(np.random.randn(100) + 100)
   period = 14
 
-  result = roc(data, period=period)
-  res = result.to_pandas()
-
+  result = roc(data, period=period).to_pandas()
   expected = talib.ROC(data.values, timeperiod=period)
+  pd.testing.assert_series_equal(
+    result, pd.Series(expected, index=data.index, name="roc")
+  )
 
-  # TA-Lib returns numpy array, we return Series
-  pd.testing.assert_series_equal(res, pd.Series(expected, index=data.index, name="roc"))
+
+from indikator.roc import rocp, rocr, rocr100
+
+
+@pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+def test_roc_variants_match_talib():
+  """Test ROCP, ROCR, ROCR100 match TA-Lib."""
+  np.random.seed(42)
+  data = pd.Series(np.random.randn(100) + 100)
+  period = 10
+
+  # ROCP
+  res_rocp = rocp(data, period=period).to_pandas()
+  exp_rocp = talib.ROCP(data.values, timeperiod=period)
+  pd.testing.assert_series_equal(
+    res_rocp, pd.Series(exp_rocp, index=data.index, name="rocp")
+  )
+
+  # ROCR
+  res_rocr = rocr(data, period=period).to_pandas()
+  exp_rocr = talib.ROCR(data.values, timeperiod=period)
+  pd.testing.assert_series_equal(
+    res_rocr, pd.Series(exp_rocr, index=data.index, name="rocr")
+  )
+
+  # ROCR100
+  res_rocr100 = rocr100(data, period=period).to_pandas()
+  exp_rocr100 = talib.ROCR100(data.values, timeperiod=period)
+  pd.testing.assert_series_equal(
+    res_rocr100, pd.Series(exp_rocr100, index=data.index, name="rocr100")
+  )

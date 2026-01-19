@@ -9,13 +9,15 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+from indikator._results import RSIResult
+
 class _rsi_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def window(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> RSIResult: ...
 
 class _rsi_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rsi.
@@ -109,4 +111,4 @@ class rsi:
     data: Validated[pd.Series, Finite, NotEmpty],
     window: int = ...,
     epsilon: float = ...,
-  ) -> pd.Series: ...
+  ) -> RSIResult: ...

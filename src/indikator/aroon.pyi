@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import AROONResult
+from indikator._results import AROONOSCResult, AROONResult
 
 class _aroon_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -100,3 +100,68 @@ class aroon:
     low: Validated[pd.Series, Finite, NotEmpty],
     period: int = ...,
   ) -> AROONResult: ...
+
+class _aroonosc_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(
+    self,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+  ) -> AROONOSCResult: ...
+
+class _aroonosc_ConfigDict(TypedDict, total=False):
+  """Configuration dictionary for aroonosc.
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+
+class _aroonosc_Config(_NCMakeableModel[_aroonosc_Bound]):
+  """Configuration class for aroonosc.
+
+  Calculate Aroon Oscillator.
+
+  AROONOSC = Aroon Up - Aroon Down
+
+  Range: -100 to +100
+  - Positive: Bullish (uptrend)
+  - Negative: Bearish (downtrend)
+
+  Args:
+    high: High prices Series
+    low: Low prices Series
+    period: Lookback period (default: 25)
+
+  Returns:
+    AROONOSCResult
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for aroonosc.
+
+    Configuration:
+        period (int)
+    """
+
+  @override
+  def make(self) -> _aroonosc_Bound: ...
+
+class aroonosc:
+  Type = _aroonosc_Bound
+  Config = _aroonosc_Config
+  ConfigDict = _aroonosc_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    period: int = ...,
+  ) -> AROONOSCResult: ...

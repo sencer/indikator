@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ROCResult
+from indikator._results import ROCPResult, ROCR100Result, ROCResult, ROCRResult
 
 class _roc_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -31,42 +31,7 @@ class _roc_Config(_NCMakeableModel[_roc_Bound]):
 
   Calculate Rate of Change (ROC).
 
-  ROC is a momentum oscillator that measures the percentage change between
-  the current price and the price n periods ago.
-
-  Formula:
-  ROC = ((Price - Price_n_periods_ago) / Price_n_periods_ago) * 100
-
-  Interpretation:
-  - ROC > 0: Price is higher than n periods ago (bullish)
-  - ROC < 0: Price is lower than n periods ago (bearish)
-  - ROC crossing 0: Momentum shift
-  - Extreme readings: Potential reversal
-
-  Common strategies:
-  - Buy on positive ROC (momentum confirmation)
-  - Sell on negative ROC
-  - Look for divergences between price and ROC
-
-  Features:
-  - Numba-optimized for performance
-  - Standard 10-period default
-  - Simple percentage-based calculation
-
-  Args:
-    data: Input Series.
-    period: Lookback period (default: 10)
-
-  Returns:
-    ROCResult(index, roc)
-
-  Raises:
-    ValueError: If data contains NaN/Inf
-
-  Example:
-    >>> import pandas as pd
-    >>> prices = pd.Series([100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120])
-    >>> result = roc(prices, period=5).to_pandas()
+  ROC = ((Price - Prev) / Prev) * 100
 
   Configuration:
       period (int)
@@ -91,3 +56,141 @@ class roc:
   def __new__(
     cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
   ) -> ROCResult: ...
+
+class _rocp_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCPResult: ...
+
+class _rocp_ConfigDict(TypedDict, total=False):
+  """Configuration dictionary for rocp.
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+
+class _rocp_Config(_NCMakeableModel[_rocp_Bound]):
+  """Configuration class for rocp.
+
+  Calculate Rate of Change Percentage (ROCP).
+
+  ROCP = (Price - Prev) / Prev
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for rocp.
+
+    Configuration:
+        period (int)
+    """
+
+  @override
+  def make(self) -> _rocp_Bound: ...
+
+class rocp:
+  Type = _rocp_Bound
+  Config = _rocp_Config
+  ConfigDict = _rocp_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCPResult: ...
+
+class _rocr_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCRResult: ...
+
+class _rocr_ConfigDict(TypedDict, total=False):
+  """Configuration dictionary for rocr.
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+
+class _rocr_Config(_NCMakeableModel[_rocr_Bound]):
+  """Configuration class for rocr.
+
+  Calculate Rate of Change Ratio (ROCR).
+
+  ROCR = Price / Prev
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for rocr.
+
+    Configuration:
+        period (int)
+    """
+
+  @override
+  def make(self) -> _rocr_Bound: ...
+
+class rocr:
+  Type = _rocr_Bound
+  Config = _rocr_Config
+  ConfigDict = _rocr_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCRResult: ...
+
+class _rocr100_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCR100Result: ...
+
+class _rocr100_ConfigDict(TypedDict, total=False):
+  """Configuration dictionary for rocr100.
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+
+class _rocr100_Config(_NCMakeableModel[_rocr100_Bound]):
+  """Configuration class for rocr100.
+
+  Calculate Rate of Change Ratio 100 Scale (ROCR100).
+
+  ROCR100 = (Price / Prev) * 100
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for rocr100.
+
+    Configuration:
+        period (int)
+    """
+
+  @override
+  def make(self) -> _rocr100_Bound: ...
+
+class rocr100:
+  Type = _rocr100_Bound
+  Config = _rocr100_Config
+  ConfigDict = _rocr100_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCR100Result: ...
