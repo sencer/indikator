@@ -100,6 +100,13 @@ with config.Overrides(skip_validation=True):
     stddev,
     var,
     aroonosc,
+    linearreg,
+    linearreg_angle,
+    linearreg_intercept,
+    tsf,
+    beta,
+    beta_statistical,
+    correl,
   )
 
 
@@ -551,6 +558,55 @@ def run_benchmarks() -> None:
       lambda d: (d["high"], d["low"], 25),
       talib.AROONOSC,
       lambda d: (d["np_high"], d["np_low"], 25),
+    ),
+    (
+      "LINEARREG",
+      linearreg,
+      lambda d: (d["close"], 14),
+      talib.LINEARREG,
+      lambda d: (d["np_close"], 14),
+    ),
+    (
+      "LINREGINT",
+      linearreg_intercept,
+      lambda d: (d["close"], 14),
+      talib.LINEARREG_INTERCEPT,
+      lambda d: (d["np_close"], 14),
+    ),
+    (
+      "LINREGANG",
+      linearreg_angle,
+      lambda d: (d["close"], 14),
+      talib.LINEARREG_ANGLE,
+      lambda d: (d["np_close"], 14),
+    ),
+    (
+      "TSF",
+      tsf,
+      lambda d: (d["close"], 14),
+      talib.TSF,
+      lambda d: (d["np_close"], 14),
+    ),
+    (
+      "BETA_STAT",
+      beta_statistical,
+      lambda d: (d["close"], d["open"], 5),
+      None,
+      None,
+    ),
+    (
+      "BETA",
+      beta,
+      lambda d: (d["close"], d["open"], 5),
+      talib.BETA,
+      lambda d: (d["np_close"], d["np_open"], 5),
+    ),
+    (
+      "CORREL",
+      correl,
+      lambda d: (d["close"], d["open"], 30),
+      talib.CORREL,
+      lambda d: (d["np_close"], d["np_open"], 30),
     ),
     # fmt: on
   ]

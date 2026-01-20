@@ -659,3 +659,71 @@ class AROONOSCResult(NamedTuple):
 
   def to_pandas(self) -> pd.Series:
     return pd.Series(self.aroonosc, index=self.index, name="aroonosc", copy=False)
+
+
+# --- Linear Regression Indicators ---
+
+
+class LINEARREGResult(NamedTuple):
+  index: pd.Index
+  linearreg: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.linearreg, index=self.index, name="linearreg", copy=False)
+
+
+class LINEARREGInterceptResult(NamedTuple):
+  index: pd.Index
+  linearreg_intercept: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(
+      self.linearreg_intercept, index=self.index, name="linearreg_intercept", copy=False
+    )
+
+
+class LINEARREGAngleResult(NamedTuple):
+  index: pd.Index
+  linearreg_angle: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(
+      self.linearreg_angle, index=self.index, name="linearreg_angle", copy=False
+    )
+
+
+class LINEARREGSlopeResult(NamedTuple):
+  index: pd.Index
+  linearreg_slope: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(
+      self.linearreg_slope, index=self.index, name="linearreg_slope", copy=False
+    )
+
+
+class TSFResult(NamedTuple):
+  index: pd.Index
+  tsf: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.tsf, index=self.index, name="tsf", copy=False)
+
+
+# --- Statistical Indicators ---
+
+
+class BETAResult(NamedTuple):
+  index: pd.Index
+  beta: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.beta, index=self.index, name="beta", copy=False)
+
+
+class CORRELResult(NamedTuple):
+  index: pd.Index
+  correl: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.Series:
+    return pd.Series(self.correl, index=self.index, name="correl", copy=False)

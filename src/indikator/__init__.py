@@ -17,15 +17,24 @@ from indikator.adx import (
 from indikator.aroon import aroon, aroonosc
 from indikator.avgprice import avgprice
 from indikator.atr import atr, atr_intraday, trange
+from indikator.beta import beta, beta_statistical
 from indikator.bollinger import bollinger_bands
 from indikator.bop import bop
 from indikator.cci import cci
 from indikator.churn_factor import churn_factor
 from indikator.cmo import cmo
+from indikator.correl import correl
 from indikator.dema import dema
 from indikator.ema import ema
 from indikator.kama import kama
 from indikator.legs import legs
+from indikator.linearreg import (
+  linearreg,
+  linearreg_angle,
+  linearreg_intercept,
+  linearreg_slope,
+  tsf,
+)
 from indikator.macd import macd
 from indikator.medprice import medprice
 from indikator.midpoint import midpoint
@@ -77,16 +86,23 @@ __all__ = [
   "atr",
   "avgprice",
   "atr_intraday",
+  "beta",
+  "beta_statistical",
   "trange",
   "bollinger_bands",
   "bop",
   "cci",
   "churn_factor",
   "cmo",
+  "correl",
   "dema",
   "ema",
   "kama",
   "legs",
+  "linearreg",
+  "linearreg_angle",
+  "linearreg_intercept",
+  "linearreg_slope",
   "macd",
   "medprice",
   "mfi",
@@ -117,6 +133,7 @@ __all__ = [
   "apo",
   "ppo",
   "trix",
+  "tsf",
   "typprice",
   "ultosc",
   "var",
