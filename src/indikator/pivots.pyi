@@ -3,12 +3,17 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import ClassVar, Literal, Protocol, TypedDict, override
+from typing import ClassVar
+from typing import Literal
+from typing import Protocol
+from typing import TypedDict
+from typing import override
 
-from datawarden import Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
-import pandas as pd
 
+from typing import Literal
+from datawarden import Datetime, Finite, Index, NotEmpty, Validated
+import pandas as pd
 from indikator._results import PivotPointsResult
 
 class _pivots_Bound(Protocol):

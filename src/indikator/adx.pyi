@@ -3,15 +3,18 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import ClassVar, Protocol, TypedDict, override
+from typing import ClassVar
+from typing import Protocol
+from typing import TypedDict
+from typing import override
+
+from nonfig import MakeableModel as _NCMakeableModel
 
 from datawarden import Finite, NotEmpty, Validated
-from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-
 from indikator._results import (
-  ADXResult,
   ADXRResult,
+  ADXResult,
   ADXSingleResult,
   DXResult,
   MinusDIResult,

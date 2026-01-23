@@ -14,6 +14,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
+# Optimized: use Numpy directly as it outperforms Numba for simple subtract
 def compute_mom_numba(
   prices: NDArray[np.float64],
   period: int,
@@ -21,16 +22,6 @@ def compute_mom_numba(
   """Momentum calculation using optimized NumPy.
 
   MOM = price[i] - price[i - period]
-
-  Uses np.subtract with 'out' parameter to avoid intermediate allocations.
-  This is faster than Numba for simple vectorized operations due to lower overhead.
-
-  Args:
-    prices: Array of prices (typically closing prices)
-    period: Lookback period
-
-  Returns:
-    Array of momentum values (NaN for initial bars)
   """
   n = len(prices)
 

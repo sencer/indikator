@@ -158,3 +158,232 @@ def compute_midpoint_numba(
     out[i] = (max_val + min_val) / 2.0
 
   return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_min_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> NDArray[np.float64]:
+  """Calculate rolling MIN using amortized O(n) lazy rescan."""
+  n = len(data)
+  out = np.empty(n, dtype=np.float64)
+
+  if n < period:
+    for i in range(n):
+      out[i] = np.nan
+    return out
+
+  # NaN for warmup
+  for i in range(period - 1):
+    out[i] = np.nan
+
+  # First window
+  l_idx = 0
+  l_val = data[0]
+  for k in range(1, period):
+    if data[k] <= l_val:
+      l_val = data[k]
+      l_idx = k
+  out[period - 1] = l_val
+
+  # Lazy rescan
+  for i in range(period, n):
+    trailing = i - period + 1
+
+    # Update low
+    if l_idx < trailing:
+      # Rescan
+      l_idx = trailing
+      l_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] <= l_val:
+          l_val = data[k]
+          l_idx = k
+    elif data[i] <= l_val:
+      l_val = data[i]
+      l_idx = i
+
+    out[i] = l_val
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_max_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> NDArray[np.float64]:
+  """Calculate rolling MAX using amortized O(n) lazy rescan."""
+  n = len(data)
+  out = np.empty(n, dtype=np.float64)
+
+  if n < period:
+    for i in range(n):
+      out[i] = np.nan
+    return out
+
+  # NaN for warmup
+  for i in range(period - 1):
+    out[i] = np.nan
+
+  # First window
+  h_idx = 0
+  h_val = data[0]
+  for k in range(1, period):
+    if data[k] >= h_val:
+      h_val = data[k]
+      h_idx = k
+  out[period - 1] = h_val
+
+  # Lazy rescan
+  for i in range(period, n):
+    trailing = i - period + 1
+
+    # Update high
+    if h_idx < trailing:
+      # Rescan
+      h_idx = trailing
+      h_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] >= h_val:
+          h_val = data[k]
+          h_idx = k
+    elif data[i] >= h_val:
+      h_val = data[i]
+      h_idx = i
+
+    out[i] = h_val
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_minindex_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> NDArray[np.float64]:
+  """Calculate rolling MININDEX (index relative to start of array)."""
+  n = len(data)
+  out = np.empty(n, dtype=np.float64)
+
+  if n < period:
+    for i in range(n):
+      out[i] = np.nan
+    return out
+
+  # NaN for warmup
+  for i in range(period - 1):
+    out[i] = np.nan
+
+  # First window
+  l_idx = 0
+  l_val = data[0]
+  for k in range(1, period):
+    if data[k] <= l_val:
+      l_val = data[k]
+      l_idx = k
+  out[period - 1] = float(l_idx)
+
+  # Lazy rescan
+  for i in range(period, n):
+    trailing = i - period + 1
+
+    if l_idx < trailing:
+      # Rescan
+      l_idx = trailing
+      l_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] <= l_val:
+          l_val = data[k]
+          l_idx = k
+    elif data[i] <= l_val:
+      l_val = data[i]
+      l_idx = i
+
+    out[i] = float(l_idx)
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_maxindex_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> NDArray[np.float64]:
+  """Calculate rolling MAXINDEX (index relative to start of array)."""
+  n = len(data)
+  out = np.empty(n, dtype=np.float64)
+
+  if n < period:
+    for i in range(n):
+      out[i] = np.nan
+    return out
+
+  # NaN for warmup
+  for i in range(period - 1):
+    out[i] = np.nan
+
+  # First window
+  h_idx = 0
+  h_val = data[0]
+  for k in range(1, period):
+    if data[k] >= h_val:
+      h_val = data[k]
+      h_idx = k
+  out[period - 1] = float(h_idx)
+
+  # Lazy rescan
+  for i in range(period, n):
+    trailing = i - period + 1
+
+    if h_idx < trailing:
+      # Rescan
+      h_idx = trailing
+      h_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] >= h_val:
+          h_val = data[k]
+          h_idx = k
+    elif data[i] >= h_val:
+      h_val = data[i]
+      h_idx = i
+
+    out[i] = float(h_idx)
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_sum_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> NDArray[np.float64]:
+  """Calculate rolling SUM using O(1) rolling update."""
+  n = len(data)
+  out = np.empty(n, dtype=np.float64)
+
+  if n < period:
+    for i in range(n):
+      out[i] = np.nan
+    return out
+
+  # NaN for warmup
+  for i in range(period - 1):
+    out[i] = np.nan
+
+  # First window sum
+  current_sum = 0.0
+  for i in range(period):
+    current_sum += data[i]
+
+  out[period - 1] = current_sum
+
+  # Rolling update
+  for i in range(period, n):
+    old_val = data[i - period]
+    new_val = data[i]
+    current_sum = current_sum - old_val + new_val
+    out[i] = current_sum
+
+  return out
