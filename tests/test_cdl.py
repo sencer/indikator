@@ -40,7 +40,13 @@ from indikator.cdl import (
   cdl_rickshaw_man,
   cdl_shooting_star,
   cdl_spinning_top,
+  cdl_2crows,
+  cdl_gap_side_by_side_white,
+  cdl_separating_lines,
+  cdl_tasuki_gap,
+  cdl_tasuki_gap,
   cdl_tristar,
+  cdl_upside_gap_two_crows,
 )
 
 
@@ -578,3 +584,72 @@ def test_cdl_high_wave_matches_talib():
   
   result = cdl_high_wave(open_, high, low, close)
   assert result.iloc[50] != 0
+
+
+def test_cdl_separating_lines_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Bear
+  open_.iloc[i-1] = 100.0
+  close.iloc[i-1] = 95.0
+  # Bull same open
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 105.0
+  
+  result = cdl_separating_lines(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_tasuki_gap_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bull
+  open_.iloc[i-2] = 100.0
+  close.iloc[i-2] = 105.0
+  high.iloc[i-2] = 105; low.iloc[i-2] = 100
+  
+  # 2. Bull (Gap Up)
+  open_.iloc[i-1] = 106.0
+  close.iloc[i-1] = 110.0
+  high.iloc[i-1] = 110; low.iloc[i-1] = 106
+  
+  # 3. Bear (Opens inside 2, Closes in gap)
+  open_.iloc[i] = 108.0 
+  close.iloc[i] = 105.5 # Inside gap (105..106)
+  high.iloc[i] = 109; low.iloc[i] = 105.5
+  
+  result = cdl_tasuki_gap(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_2crows_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bull
+  close.iloc[i-2] = 105.0
+  
+  # 2. Gap Up Bear
+  open_.iloc[i-1] = 107.0
+  close.iloc[i-1] = 106.0 # Above 105
+  
+  # 3. Bear opens inside 2 body, closes inside 1 body
+  # C2 is 107(O) -> 106(C). Body 106-107.
+  # C3 must open in 106-107. Say 106.5.
+  # And close in C1 (100-105). Say 104.0.
+  open_.iloc[i] = 106.5
+  close.iloc[i] = 104.0
+  
+  result = cdl_2crows(open_, high, low, close)
+  assert result.iloc[50] == -100

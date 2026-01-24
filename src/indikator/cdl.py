@@ -47,7 +47,12 @@ from indikator._cdl_numba import (
   detect_long_legged_doji_numba,
   detect_rickshaw_man_numba,
   detect_spinning_top_numba,
+  detect_gap_side_by_side_white_numba,
+  detect_separating_lines_numba,
+  detect_tasuki_gap_numba,
   detect_tristar_numba,
+  detect_two_crows_numba,
+  detect_upside_gap_two_crows_numba,
 )
 
 
@@ -542,6 +547,99 @@ def cdl_tristar(
   o, h, l, c = _alloc_ohlc(open_, high, low, close)
   result = detect_tristar_numba(o, h, l, c)
   return pd.Series(result, index=open_.index, name="cdl_tristar")
+
+
+@configurable
+@validate
+def cdl_tasuki_gap(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Tasuki Gap pattern.
+
+  Returns:
+  - 100: Upside Tasuki Gap
+  - -100: Downside Tasuki Gap
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_tasuki_gap_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_tasuki_gap")
+
+
+@configurable
+@validate
+def cdl_separating_lines(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Separating Lines pattern.
+
+  Returns:
+  - 100: Bullish
+  - -100: Bearish
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_separating_lines_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_separating_lines")
+
+
+@configurable
+@validate
+def cdl_gap_side_by_side_white(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Gap Side-by-Side White Lines.
+
+  Returns:
+  - 100: Bullish
+  - -100: Bearish
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_gap_side_by_side_white_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_gap_side_by_side_white")
+
+
+@configurable
+@validate
+def cdl_2crows(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Two Crows pattern.
+
+  Returns:
+  - -100: Bearish Two Crows
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_two_crows_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_2crows")
+
+
+@configurable
+@validate
+def cdl_upside_gap_two_crows(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Upside Gap Two Crows pattern.
+
+  Returns:
+  - -100: Bearish Upside Gap Two Crows
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_upside_gap_two_crows_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_upside_gap_two_crows")
 
 
 def _alloc_ohlc(open_, high, low, close):
