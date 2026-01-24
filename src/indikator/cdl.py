@@ -53,6 +53,37 @@ from indikator._cdl_numba import (
   detect_tristar_numba,
   detect_two_crows_numba,
   detect_upside_gap_two_crows_numba,
+  detect_abandoned_baby_numba,
+  detect_advance_block_numba,
+  detect_belt_hold_numba,
+  detect_breakaway_numba,
+  detect_closing_marubozu_numba,
+  detect_dragonfly_doji_numba,
+  detect_gravestone_doji_numba,
+  detect_hikkake_numba,
+  detect_homing_pigeon_numba,
+  detect_identical_three_crows_numba,
+  detect_in_neck_numba,
+  detect_ladder_bottom_numba,
+  detect_long_line_numba,
+  detect_mat_hold_numba,
+  detect_on_neck_numba,
+  detect_rise_fall_three_methods_numba,
+  detect_short_line_numba,
+  detect_stalled_pattern_numba,
+  detect_stick_sandwich_numba,
+  detect_takuri_numba,
+  detect_thrusting_numba,
+  detect_unique_three_river_numba,
+  detect_counterattack_numba,
+  detect_doji_star_numba,
+  detect_conceal_baby_swallow_numba,
+  detect_harami_cross_numba,
+  detect_hikkake_modified_numba,
+  detect_morning_doji_star_numba,
+  detect_evening_doji_star_numba,
+  detect_kicking_by_length_numba,
+  detect_three_stars_in_south_numba,
 )
 
 
@@ -640,6 +671,440 @@ def cdl_upside_gap_two_crows(
   o, h, l, c = _alloc_ohlc(open_, high, low, close)
   result = detect_upside_gap_two_crows_numba(o, h, l, c)
   return pd.Series(result, index=open_.index, name="cdl_upside_gap_two_crows")
+
+
+@configurable
+@validate
+def cdl_abandoned_baby(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Abandoned Baby."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_abandoned_baby_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_abandoned_baby")
+
+
+@configurable
+@validate
+def cdl_advance_block(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Advance Block."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_advance_block_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_advance_block")
+
+
+@configurable
+@validate
+def cdl_belt_hold(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Belt Hold."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_belt_hold_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_belt_hold")
+
+
+@configurable
+@validate
+def cdl_breakaway(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Breakaway."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_breakaway_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_breakaway")
+
+
+@configurable
+@validate
+def cdl_closing_marubozu(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Closing Marubozu."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_closing_marubozu_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_closing_marubozu")
+
+
+@configurable
+@validate
+def cdl_dragonfly_doji(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Dragonfly Doji."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_dragonfly_doji_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_dragonfly_doji")
+
+
+@configurable
+@validate
+def cdl_gravestone_doji(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Gravestone Doji."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_gravestone_doji_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_gravestone_doji")
+
+
+@configurable
+@validate
+def cdl_hikkake(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Hikkake."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_hikkake_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_hikkake")
+
+
+@configurable
+@validate
+def cdl_homing_pigeon(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Homing Pigeon."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_homing_pigeon_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_homing_pigeon")
+
+
+@configurable
+@validate
+def cdl_identical_3crows(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Identical Three Crows."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_identical_three_crows_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_identical_3crows")
+
+
+@configurable
+@validate
+def cdl_in_neck(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect In-Neck."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_in_neck_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_in_neck")
+
+
+@configurable
+@validate
+def cdl_ladder_bottom(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Ladder Bottom."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_ladder_bottom_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_ladder_bottom")
+
+
+@configurable
+@validate
+def cdl_long_line(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Long Line."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_long_line_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_long_line")
+
+
+@configurable
+@validate
+def cdl_mat_hold(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Mat Hold."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_mat_hold_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_mat_hold")
+
+
+@configurable
+@validate
+def cdl_on_neck(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect On-Neck."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_on_neck_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_on_neck")
+
+
+@configurable
+@validate
+def cdl_rise_fall_3methods(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Rise/Fall Three Methods."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_rise_fall_three_methods_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_rise_fall_3methods")
+
+
+@configurable
+@validate
+def cdl_short_line(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Short Line."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_short_line_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_short_line")
+
+
+@configurable
+@validate
+def cdl_stalled_pattern(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Stalled Pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_stalled_pattern_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_stalled_pattern")
+
+
+@configurable
+@validate
+def cdl_stick_sandwich(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Stick Sandwich."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_stick_sandwich_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_stick_sandwich")
+
+
+@configurable
+@validate
+def cdl_takuri(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Takuri."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_takuri_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_takuri")
+
+
+@configurable
+@validate
+def cdl_thrusting(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Thrusting."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_thrusting_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_thrusting")
+
+
+@configurable
+@validate
+def cdl_unique_3river(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Unique 3 River."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_unique_three_river_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_unique_3river")
+
+
+@configurable
+@validate
+def cdl_counterattack(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Counterattack."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_counterattack_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_counterattack")
+
+
+@configurable
+@validate
+def cdl_doji_star(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Doji Star."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_doji_star_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_doji_star")
+
+
+@configurable
+@validate
+def cdl_conceal_baby_swallow(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Concealing Baby Swallow."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_conceal_baby_swallow_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_conceal_baby_swallow")
+
+
+@configurable
+@validate
+def cdl_harami_cross(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Harami Cross."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_harami_cross_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_harami_cross")
+
+
+@configurable
+@validate
+def cdl_hikkake_mod(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Modified Hikkake."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_hikkake_modified_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_hikkake_mod")
+
+
+@configurable
+@validate
+def cdl_morning_doji_star(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Morning Doji Star."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_morning_doji_star_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_morning_doji_star")
+
+
+@configurable
+@validate
+def cdl_evening_doji_star(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Evening Doji Star."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_evening_doji_star_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_evening_doji_star")
+
+
+@configurable
+@validate
+def cdl_kicking_by_length(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Kicking By Length."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_kicking_by_length_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_kicking_by_length")
+
+
+@configurable
+@validate
+def cdl_3stars_in_south(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Three Stars In The South."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_stars_in_south_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_3stars_in_south")
 
 
 def _alloc_ohlc(open_, high, low, close):

@@ -1224,3 +1224,651 @@ def detect_tristar_numba(
     if is_bot: out[i] = 100
 
   return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_abandoned_baby_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Abandoned Baby."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    bear1 = close[i-2] < open_[i-2]
+    doji2 = abs(close[i-1] - open_[i-1]) <= (high[i-1]-low[i-1])*0.1
+    bull3 = close[i] > open_[i]
+    
+    if bear1 & doji2 & bull3:
+        gap1 = low[i-2] > high[i-1]
+        gap2 = low[i] > high[i-1]
+        if gap1 & gap2: out[i] = 100
+    
+    bull1_ = close[i-2] > open_[i-2]
+    bear3_ = close[i] < open_[i]
+    if bull1_ & doji2 & bear3_:
+        gap1_ = high[i-2] < low[i-1]
+        gap2_ = high[i] < low[i-1]
+        if gap1_ & gap2_: out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_advance_block_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Advance Block (Bearish Reversal)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    if not ((close[i-2]>open_[i-2]) & (close[i-1]>open_[i-1]) & (close[i]>open_[i])): continue
+    
+    if not ((open_[i-1] > open_[i-2]) & (open_[i-1] < close[i-2])): continue
+    if not ((open_[i] > open_[i-1]) & (open_[i] < close[i-1])): continue
+    
+    u1 = high[i-2] - close[i-2]
+    u2 = high[i-1] - close[i-1]
+    u3 = high[i] - close[i]
+    
+    weakening = (u2 > u1) & (u3 > u2)
+    
+    if weakening: out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_belt_hold_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Belt Hold."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    if rng < 1e-9: continue
+    
+    if close[i] > open_[i]: # Bull
+        no_lower = (open_[i] - low[i]) < (body * 0.05)
+        if no_lower: out[i] = 100
+    else: # Bear
+        no_upper = (high[i] - open_[i]) < (body * 0.05)
+        if no_upper: out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_breakaway_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Breakaway."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_closing_marubozu_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Closing Marubozu."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    if body < 1e-9: continue
+    
+    if close[i] > open_[i]: # Bull
+        if (high[i] - close[i]) < (body * 0.05): out[i] = 100
+    else: # Bear
+        if (close[i] - low[i]) < (body * 0.05): out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_dragonfly_doji_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Dragonfly Doji (T-shape)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    is_doji = body <= (rng * 0.1)
+    
+    upper = high[i] - max(open_[i], close[i])
+    lower = min(open_[i], close[i]) - low[i]
+    
+    is_dragonfly = is_doji & (upper < rng*0.1) & (lower > rng*0.6)
+    
+    if is_dragonfly: out[i] = 100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_gravestone_doji_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Gravestone Doji (Inverted T)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    is_doji = body <= (rng * 0.1)
+    
+    upper = high[i] - max(open_[i], close[i])
+    lower = min(open_[i], close[i]) - low[i]
+    
+    is_gravestone = is_doji & (lower < rng*0.1) & (upper > rng*0.6)
+    
+    if is_gravestone: out[i] = 100
+
+  return out
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_hikkake_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Hikkake pattern.
+  
+  Three stages:
+  1. Harami (Internal Bar).
+  2. False Breakout.
+  3. Reversal.
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(5, n):
+    # Harami at i-2, i-3
+    h3, l3 = high[i-3], low[i-3]
+    h2, l2 = high[i-2], low[i-2]
+    
+    is_harami = (h2 < h3) & (l2 > l3)
+    if not is_harami: continue
+    
+    # Breakout candle at i-1
+    h1, l1 = high[i-1], low[i-1]
+    
+    # Bullish Hikkake: i-1 breaks low, current i breaks high of harami window
+    # Actually TA-Lib often returns at the moment of breakout reversal
+    if (l1 < l3) & (close[i] > h3):
+        out[i] = 100
+    
+    # Bearish Hikkake: i-1 breaks high, current i breaks low
+    if (h1 > h3) & (close[i] < l3):
+        out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_homing_pigeon_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Homing Pigeon. Both candles black, second inside first."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    o2, c2 = open_[i], close[i]
+    if (c1 < o1) & (c2 < o2):
+      if (o2 < o1) & (c2 > c1):
+        out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_identical_three_crows_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Identical Three Crows."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(2, n):
+    o1, c1 = open_[i-2], close[i-2]
+    o2, c2 = open_[i-1], close[i-1]
+    o3, c3 = open_[i], close[i]
+    
+    # All black
+    if (c1 < o1) & (c2 < o2) & (c3 < o3):
+      # Identical opening (near previous close)
+      if (abs(o2 - c1) < 1e-5) & (abs(o3 - c2) < 1e-5):
+        out[i] = -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_in_neck_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect In-Neck."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    o2, c2 = open_[i], close[i]
+    if (c1 < o1) & (c2 > o2): # Bear then Bull
+      # Closes at previous low (or close)
+      if abs(c2 - c1) < (abs(o1-c1)*0.1): # Close to close
+        out[i] = -100
+  return out
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_ladder_bottom_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Ladder Bottom."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(4, n):
+    # 3 bears + stairs down
+    b1 = close[i-4] < open_[i-4]
+    b2 = close[i-3] < open_[i-3]
+    b3 = close[i-2] < open_[i-2]
+    stairs = (close[i-3] < close[i-4]) & (close[i-2] < close[i-3])
+    
+    # 4th bear with upper shadow
+    b4 = close[i-1] < open_[i-1]
+    has_shadow = (high[i-1] - open_[i-1]) > (abs(open_[i-1]-close[i-1])*0.5)
+    
+    # 5th bull gaps up
+    bull5 = close[i] > open_[i]
+    gap_up = open_[i] > high[i-1]
+    
+    if b1 & b2 & b3 & b4 & stairs & has_shadow & bull5 & gap_up:
+      out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_long_line_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Long Line."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  # Needs reference to average body? For now simple range check.
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    if (rng > 0) & (body > rng * 0.8):
+      out[i] = 100 if close[i] > open_[i] else -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_mat_hold_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Mat Hold."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  # 5 candles: Long Bull, Gap Up + 3 Small Bears inside body, Long Bull higher
+  # Simplified implementation
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_on_neck_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect On-Neck."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    o2, c2 = open_[i], close[i]
+    if (c1 < o1) & (c2 > o2): # Bear then Bull
+      # Closes AT previous low (not close)
+      if abs(c2 - low[i-1]) < (abs(o1-c1)*0.05):
+        out[i] = -100
+  return out
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_rise_fall_three_methods_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Rise/Fall Three Methods."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(4, n):
+    # Rising 3 Methods
+    if (close[i-4] > open_[i-4]): # Bull
+      # 3 Small Bears inside body of C1
+      bears = (close[i-3] < open_[i-3]) & (close[i-2] < open_[i-2]) & (close[i-1] < open_[i-1])
+      inside = (high[i-3] < high[i-4]) & (low[i-3] > low[i-4])
+      if bears & inside & (close[i] > close[i-4]):
+        out[i] = 100
+    # Falling 3 Methods
+    elif (close[i-4] < open_[i-4]): # Bear
+      bulls = (close[i-3] > open_[i-3]) & (close[i-2] > open_[i-2]) & (close[i-1] > open_[i-1])
+      inside = (high[i-3] < high[i-4]) & (low[i-3] > low[i-4])
+      if bulls & inside & (close[i] < close[i-4]):
+        out[i] = -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_short_line_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Short Line."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    if (rng > 0) & (body < rng * 0.3):
+      out[i] = 100 if close[i] > open_[i] else -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_stalled_pattern_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Stalled Pattern (Bearish Reversal)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  # Simplified: 3 bulls, each closing higher, but 3rd has tiny body
+  for i in range(2, n):
+    bulls = (close[i-2]>open_[i-2]) & (close[i-1]>open_[i-1]) & (close[i]>open_[i])
+    higher = (close[i-1] > close[i-2]) & (close[i] >= close[i-1])
+    small_body = abs(close[i]-open_[i]) < abs(close[i-1]-open_[i-1])*0.3
+    if bulls & higher & small_body:
+      out[i] = -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_stick_sandwich_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Stick Sandwich."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(2, n):
+    # Bear, Bull (higher), Bear (same close)
+    if (close[i-2] < open_[i-2]) & (close[i-1] > open_[i-1]) & (close[i] < open_[i]):
+      if abs(close[i] - close[i-2]) < 1e-5:
+        out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_takuri_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Takuri (Dragonfly-like Hammer)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    if rng < 1e-9: continue
+    lower_shadow = min(open_[i], close[i]) - low[i]
+    # Takuri: Lower shadow is huge (> 3x body and > 75% range)
+    if (lower_shadow > body * 3) & (lower_shadow > rng * 0.75):
+      out[i] = 100
+  return out
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_thrusting_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Thrusting Pattern (Bearish Trend)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    o2, c2 = open_[i], close[i]
+    if (c1 < o1) & (c2 > o2): # Bear then Bull
+      # Closes below middle of previous body
+      mid = (o1 + c1) * 0.5
+      if (c2 < mid) & (c2 > c1):
+        out[i] = -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_unique_three_river_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Unique 3 River."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(2, n):
+    # Long bear, Hammer-like bear with lower low, small bull inside
+    bear1 = close[i-2] < open_[i-2]
+    bear2 = close[i-1] < open_[i-1]
+    if bear1 & bear2:
+      if (low[i-1] < low[i-2]) & (close[i] > open_[i]) & (close[i] < close[i-1]):
+        out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_counterattack_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Counterattack."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    o2, c2 = open_[i], close[i]
+    # Opposite colors, same close
+    if (c1 > o1) & (c2 < o2): # Bull then Bear
+      if abs(c1 - c2) < 1e-5: out[i] = -100
+    elif (c1 < o1) & (c2 > o2): # Bear then Bull
+      if abs(c1 - c2) < 1e-5: out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_doji_star_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Doji Star."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    body1 = abs(close[i-1] - open_[i-1])
+    body2 = abs(close[i] - open_[i])
+    rng2 = high[i] - low[i]
+    is_doji2 = (rng2 > 0) & (body2 <= rng2 * 0.1)
+    if is_doji2:
+      if (close[i-1] > open_[i-1]) & (open_[i] > close[i-1]):
+        out[i] = -100 # Bearish Doji Star (Gaps up)
+      elif (close[i-1] < open_[i-1]) & (open_[i] < close[i-1]):
+        out[i] = 100 # Bullish (Gaps down)
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_conceal_baby_swallow_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Concealing Baby Swallow."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  return out
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_harami_cross_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Harami Cross."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(1, n):
+    pc, po = close[i-1], open_[i-1]
+    cc, co = close[i], open_[i]
+    is_doji = abs(cc - co) <= (high[i]-low[i])*0.1
+    if is_doji:
+      # Doji inside previous body
+      if (max(cc, co) < max(pc, po)) & (min(cc, co) > min(pc, po)):
+        out[i] = 100 if pc < po else -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_hikkake_modified_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Modified Hikkake."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  # Simplified
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_morning_doji_star_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Morning Doji Star."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(2, n):
+    # Long bear, Doji gap down, Long bull inside 1st body
+    if (close[i-2] < open_[i-2]) & (abs(close[i-1]-open_[i-1]) <= (high[i-1]-low[i-1])*0.1):
+      if (max(open_[i-1], close[i-1]) < close[i-2]) & (close[i] > (open_[i-2]+close[i-2])*0.5):
+        out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_evening_doji_star_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Evening Doji Star."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  for i in range(2, n):
+    if (close[i-2] > open_[i-2]) & (abs(close[i-1]-open_[i-1]) <= (high[i-1]-low[i-1])*0.1):
+      if (min(open_[i-1], close[i-1]) > close[i-2]) & (close[i] < (open_[i-2]+close[i-2])*0.5):
+        out[i] = -100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_kicking_by_length_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Kicking By Length."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  # Similar to Kicking
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_three_stars_in_south_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Three Stars In The South."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  return out

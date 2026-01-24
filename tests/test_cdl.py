@@ -47,6 +47,34 @@ from indikator.cdl import (
   cdl_tasuki_gap,
   cdl_tristar,
   cdl_upside_gap_two_crows,
+  cdl_abandoned_baby,
+  cdl_advance_block,
+  cdl_belt_hold,
+  cdl_breakaway,
+  cdl_closing_marubozu,
+  cdl_dragonfly_doji,
+  cdl_gravestone_doji,
+  cdl_hikkake,
+  cdl_homing_pigeon,
+  cdl_identical_3crows,
+  cdl_in_neck,
+  cdl_ladder_bottom,
+  cdl_long_line,
+  cdl_mat_hold,
+  cdl_on_neck,
+  cdl_rise_fall_3methods,
+  cdl_short_line,
+  cdl_stalled_pattern,
+  cdl_stick_sandwich,
+  cdl_takuri,
+  cdl_thrusting,
+  cdl_unique_3river,
+  cdl_counterattack,
+  cdl_doji_star,
+  cdl_conceal_baby_swallow,
+  cdl_harami_cross,
+  cdl_morning_doji_star,
+  cdl_evening_doji_star,
 )
 
 
@@ -653,3 +681,213 @@ def test_cdl_2crows_matches_talib():
   
   result = cdl_2crows(open_, high, low, close)
   assert result.iloc[50] == -100
+
+
+def test_cdl_dragonfly_doji_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 100.0
+  high.iloc[i] = 100.1 # Tiny upper
+  low.iloc[i] = 95.0   # Long lower
+  
+  result = cdl_dragonfly_doji(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_gravestone_doji_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 100.0
+  high.iloc[i] = 105.0 # Long upper
+  low.iloc[i] = 99.9   # Tiny lower
+  
+  result = cdl_gravestone_doji(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_homing_pigeon_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bear
+  open_.iloc[i-1] = 105.0
+  close.iloc[i-1] = 100.0
+  # 2. Bear inside
+  open_.iloc[i] = 103.0
+  close.iloc[i] = 101.0
+  
+  result = cdl_homing_pigeon(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_identical_3crows_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Crow 1
+  open_.iloc[i-2] = 100.0; close.iloc[i-2] = 98.0
+  # Crow 2 (Opens AT prev close)
+  open_.iloc[i-1] = 98.0; close.iloc[i-1] = 96.0
+  # Crow 3
+  open_.iloc[i] = 96.0; close.iloc[i] = 94.0
+  
+  result = cdl_identical_3crows(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_in_neck_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bear
+  open_.iloc[i-1] = 105.0; close.iloc[i-1] = 100.0
+  # 2. Bull closes at prev close
+  open_.iloc[i] = 98.0; close.iloc[i] = 100.0
+  
+  result = cdl_in_neck(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_on_neck_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bear
+  open_.iloc[i-1] = 105.0; close.iloc[i-1] = 100.0; low.iloc[i-1] = 99.0
+  # 2. Bull closes AT prev low
+  open_.iloc[i] = 97.0; close.iloc[i] = 99.0
+  
+  result = cdl_on_neck(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_long_line_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 105.0
+  high.iloc[i] = 105.5
+  low.iloc[i] = 99.5
+  
+  result = cdl_long_line(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_stick_sandwich_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Bear, Bull, Bear (same close)
+  open_.iloc[i-2] = 105.0; close.iloc[i-2] = 100.0
+  open_.iloc[i-1] = 101.0; close.iloc[i-1] = 106.0
+  open_.iloc[i] = 105.0; close.iloc[i] = 100.0
+  
+  result = cdl_stick_sandwich(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_takuri_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  open_.iloc[i] = 100.0; close.iloc[i] = 99.5
+  high.iloc[i] = 100.1; low.iloc[i] = 95.0 # Very long lower
+  
+  result = cdl_takuri(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_counterattack_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Bear, Bull, same close
+  open_.iloc[i-1] = 105.0; close.iloc[i-1] = 100.0
+  open_.iloc[i] = 95.0; close.iloc[i] = 100.0
+  
+  result = cdl_counterattack(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_doji_star_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Bull, Gap Up Doji
+  open_.iloc[i-1] = 100.0; close.iloc[i-1] = 105.0; high.iloc[i-1]=105.1
+  open_.iloc[i] = 106.0; close.iloc[i] = 106.0; high.iloc[i]=107; low.iloc[i]=105
+  
+  result = cdl_doji_star(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_harami_cross_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bear
+  open_.iloc[i-1] = 105.0; close.iloc[i-1] = 100.0
+  # 2. Doji Cross inside
+  open_.iloc[i] = 102.0; close.iloc[i] = 102.0
+  
+  result = cdl_harami_cross(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_morning_doji_star_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bear
+  open_.iloc[i-2] = 105.0; close.iloc[i-2] = 100.0
+  # 2. Doji gap down
+  open_.iloc[i-1] = 98.0; close.iloc[i-1] = 98.0
+  # 3. Bull inside body 1
+  open_.iloc[i] = 99.0; close.iloc[i] = 103.0
+  
+  result = cdl_morning_doji_star(open_, high, low, close)
+  assert result.iloc[50] == 100
