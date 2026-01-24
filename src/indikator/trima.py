@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     Validated,
   )
   from nonfig import Ge, Hyper
+  from numpy.typing import NDArray
   import pandas as pd
 
 

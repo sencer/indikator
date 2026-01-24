@@ -4,7 +4,10 @@ This module provides MACD calculation, a trend-following momentum indicator
 that shows the relationship between two moving averages.
 """
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
 
 from datawarden import (
   Finite,

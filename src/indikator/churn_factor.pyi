@@ -12,62 +12,73 @@ import pandas as pd
 from indikator._results import ChurnFactorResult
 
 class _churn_factor_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def epsilon(self) -> float: ...
-    def __call__(self, high: Validated[pd.Series, Finite, NotEmpty], low: Validated[pd.Series, Finite, NotEmpty], volume: Validated[pd.Series, Finite, NotEmpty]) -> ChurnFactorResult: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def epsilon(self) -> float: ...
+  def __call__(
+    self,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    volume: Validated[pd.Series, Finite, NotEmpty],
+  ) -> ChurnFactorResult: ...
 
 class _churn_factor_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for churn_factor.
+  """Configuration dictionary for churn_factor.
 
-    Configuration:
-        epsilon (float)
-    """
+  Configuration:
+      epsilon (float)
+  """
 
-    epsilon: float
+  epsilon: float
 
 class _churn_factor_Config(_NCMakeableModel[_churn_factor_Bound]):
-    """Configuration class for churn_factor.
+  """Configuration class for churn_factor.
 
-    Calculate Churn Factor.
+  Calculate Churn Factor.
 
-    Churn factor measures the efficiency of volume in moving the price.
-    High churn means high volume but low price movement (indecision/turning point).
+  Churn factor measures the efficiency of volume in moving the price.
+  High churn means high volume but low price movement (indecision/turning point).
 
-    Formula:
-    Churn = Volume / (High - Low)
+  Formula:
+  Churn = Volume / (High - Low)
 
-    Interpretation:
-    - High Churn: High volume with tight range (distribution/accumulation)
-    - Low Churn: Price moving freely on low volume (or low vol/low range)
+  Interpretation:
+  - High Churn: High volume with tight range (distribution/accumulation)
+  - Low Churn: Price moving freely on low volume (or low vol/low range)
 
-    Args:
-      high: High prices Series.
-      low: Low prices Series.
-      volume: Volume Series.
-      epsilon: Division by zero protection.
+  Args:
+    high: High prices Series.
+    low: Low prices Series.
+    volume: Volume Series.
+    epsilon: Division by zero protection.
 
-    Returns:
-      ChurnFactorResult(index, churn)
+  Returns:
+    ChurnFactorResult(index, churn)
+
+  Configuration:
+      epsilon (float)
+  """
+
+  epsilon: float
+  def __init__(self, *, epsilon: float = ...) -> None: ...
+  """Initialize configuration for churn_factor.
 
     Configuration:
         epsilon (float)
     """
 
-    epsilon: float
-    def __init__(self, *, epsilon: float = ...) -> None: ...
-    """Initialize configuration for churn_factor.
-
-    Configuration:
-        epsilon (float)
-    """
-
-    @override
-    def make(self) -> _churn_factor_Bound: ...
+  @override
+  def make(self) -> _churn_factor_Bound: ...
 
 class churn_factor:
-    Type = _churn_factor_Bound
-    Config = _churn_factor_Config
-    ConfigDict = _churn_factor_ConfigDict
-    epsilon: ClassVar[float]
-    def __new__(cls, high: Validated[pd.Series, Finite, NotEmpty], low: Validated[pd.Series, Finite, NotEmpty], volume: Validated[pd.Series, Finite, NotEmpty], epsilon: float = ...) -> ChurnFactorResult: ...
+  Type = _churn_factor_Bound
+  Config = _churn_factor_Config
+  ConfigDict = _churn_factor_ConfigDict
+  epsilon: ClassVar[float]
+  def __new__(
+    cls,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    volume: Validated[pd.Series, Finite, NotEmpty],
+    epsilon: float = ...,
+  ) -> ChurnFactorResult: ...

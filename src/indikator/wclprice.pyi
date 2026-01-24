@@ -5,42 +5,52 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from __future__ import annotations
 
-from typing import Protocol, TypedDict
+from typing import Protocol, TypedDict, TYPE_CHECKING
 
 from nonfig import MakeableModel as _NCMakeableModel
 
 if TYPE_CHECKING:
-    from datawarden import Finite, NotEmpty, Validated
-    import pandas as pd
+  from datawarden import Finite, NotEmpty, Validated
+  import pandas as pd
 from indikator._results import WCLPRICEResult
 
 class _wclprice_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    def __call__(self, high: Validated[pd.Series, Finite, NotEmpty], low: Validated[pd.Series, Finite, NotEmpty], close: Validated[pd.Series, Finite, NotEmpty]) -> WCLPRICEResult: ...
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+  ) -> WCLPRICEResult: ...
 
 class _wclprice_ConfigDict(TypedDict, total=False):
-    pass
+  pass
 
 class _wclprice_Config(_NCMakeableModel[_wclprice_Bound]):
-    """Configuration class for wclprice.
+  """Configuration class for wclprice.
 
-    Calculate Weighted Close Price.
+  Calculate Weighted Close Price.
 
-    WCLPRICE = (High + Low + 2*Close) / 4
+  WCLPRICE = (High + Low + 2*Close) / 4
 
-    Args:
-      high: High prices
-      low: Low prices
-      close: Close prices
+  Args:
+    high: High prices
+    low: Low prices
+    close: Close prices
 
-    Returns:
-      WCLPRICEResult
-    """
+  Returns:
+    WCLPRICEResult
+  """
 
-    pass
+  pass
 
 class wclprice:
-    Type = _wclprice_Bound
-    Config = _wclprice_Config
-    ConfigDict = _wclprice_ConfigDict
-    def __new__(cls, high: Validated[pd.Series, Finite, NotEmpty], low: Validated[pd.Series, Finite, NotEmpty], close: Validated[pd.Series, Finite, NotEmpty]) -> WCLPRICEResult: ...
+  Type = _wclprice_Bound
+  Config = _wclprice_Config
+  ConfigDict = _wclprice_ConfigDict
+  def __new__(
+    cls,
+    high: Validated[pd.Series, Finite, NotEmpty],
+    low: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series, Finite, NotEmpty],
+  ) -> WCLPRICEResult: ...

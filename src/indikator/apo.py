@@ -9,6 +9,7 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
+import numpy as np
 import pandas as pd
 
 from indikator._results import APOResult

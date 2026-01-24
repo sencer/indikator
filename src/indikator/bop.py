@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     NotEmpty,
     Validated,
   )
+  from numpy.typing import NDArray
   import pandas as pd
 
 

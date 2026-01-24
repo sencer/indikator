@@ -12,177 +12,185 @@ import pandas as pd
 from indikator._results import ROCPResult, ROCR100Result, ROCResult, ROCRResult
 
 class _roc_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def period(self) -> int: ...
-    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCResult: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCResult: ...
 
 class _roc_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for roc.
+  """Configuration dictionary for roc.
 
-    Configuration:
-        period (int)
-    """
+  Configuration:
+      period (int)
+  """
 
-    period: int
+  period: int
 
 class _roc_Config(_NCMakeableModel[_roc_Bound]):
-    """Configuration class for roc.
+  """Configuration class for roc.
 
-    Calculate Rate of Change (ROC).
+  Calculate Rate of Change (ROC).
 
-    ROC = ((Price - Prev) / Prev) * 100
+  ROC = ((Price - Prev) / Prev) * 100
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for roc.
 
     Configuration:
         period (int)
     """
 
-    period: int
-    def __init__(self, *, period: int = ...) -> None: ...
-    """Initialize configuration for roc.
-
-    Configuration:
-        period (int)
-    """
-
-    @override
-    def make(self) -> _roc_Bound: ...
+  @override
+  def make(self) -> _roc_Bound: ...
 
 class roc:
-    Type = _roc_Bound
-    Config = _roc_Config
-    ConfigDict = _roc_ConfigDict
-    period: ClassVar[int]
-    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> ROCResult: ...
+  Type = _roc_Bound
+  Config = _roc_Config
+  ConfigDict = _roc_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCResult: ...
 
 class _rocp_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def period(self) -> int: ...
-    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCPResult: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCPResult: ...
 
 class _rocp_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for rocp.
+  """Configuration dictionary for rocp.
 
-    Configuration:
-        period (int)
-    """
+  Configuration:
+      period (int)
+  """
 
-    period: int
+  period: int
 
 class _rocp_Config(_NCMakeableModel[_rocp_Bound]):
-    """Configuration class for rocp.
+  """Configuration class for rocp.
 
-    Calculate Rate of Change Percentage (ROCP).
+  Calculate Rate of Change Percentage (ROCP).
 
-    ROCP = (Price - Prev) / Prev
+  ROCP = (Price - Prev) / Prev
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for rocp.
 
     Configuration:
         period (int)
     """
 
-    period: int
-    def __init__(self, *, period: int = ...) -> None: ...
-    """Initialize configuration for rocp.
-
-    Configuration:
-        period (int)
-    """
-
-    @override
-    def make(self) -> _rocp_Bound: ...
+  @override
+  def make(self) -> _rocp_Bound: ...
 
 class rocp:
-    Type = _rocp_Bound
-    Config = _rocp_Config
-    ConfigDict = _rocp_ConfigDict
-    period: ClassVar[int]
-    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> ROCPResult: ...
+  Type = _rocp_Bound
+  Config = _rocp_Config
+  ConfigDict = _rocp_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCPResult: ...
 
 class _rocr_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def period(self) -> int: ...
-    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCRResult: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCRResult: ...
 
 class _rocr_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for rocr.
+  """Configuration dictionary for rocr.
 
-    Configuration:
-        period (int)
-    """
+  Configuration:
+      period (int)
+  """
 
-    period: int
+  period: int
 
 class _rocr_Config(_NCMakeableModel[_rocr_Bound]):
-    """Configuration class for rocr.
+  """Configuration class for rocr.
 
-    Calculate Rate of Change Ratio (ROCR).
+  Calculate Rate of Change Ratio (ROCR).
 
-    ROCR = Price / Prev
+  ROCR = Price / Prev
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for rocr.
 
     Configuration:
         period (int)
     """
 
-    period: int
-    def __init__(self, *, period: int = ...) -> None: ...
-    """Initialize configuration for rocr.
-
-    Configuration:
-        period (int)
-    """
-
-    @override
-    def make(self) -> _rocr_Bound: ...
+  @override
+  def make(self) -> _rocr_Bound: ...
 
 class rocr:
-    Type = _rocr_Bound
-    Config = _rocr_Config
-    ConfigDict = _rocr_ConfigDict
-    period: ClassVar[int]
-    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> ROCRResult: ...
+  Type = _rocr_Bound
+  Config = _rocr_Config
+  ConfigDict = _rocr_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCRResult: ...
 
 class _rocr100_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def period(self) -> int: ...
-    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCR100Result: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ROCR100Result: ...
 
 class _rocr100_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for rocr100.
+  """Configuration dictionary for rocr100.
 
-    Configuration:
-        period (int)
-    """
+  Configuration:
+      period (int)
+  """
 
-    period: int
+  period: int
 
 class _rocr100_Config(_NCMakeableModel[_rocr100_Bound]):
-    """Configuration class for rocr100.
+  """Configuration class for rocr100.
 
-    Calculate Rate of Change Ratio 100 Scale (ROCR100).
+  Calculate Rate of Change Ratio 100 Scale (ROCR100).
 
-    ROCR100 = (Price / Prev) * 100
+  ROCR100 = (Price / Prev) * 100
+
+  Configuration:
+      period (int)
+  """
+
+  period: int
+  def __init__(self, *, period: int = ...) -> None: ...
+  """Initialize configuration for rocr100.
 
     Configuration:
         period (int)
     """
 
-    period: int
-    def __init__(self, *, period: int = ...) -> None: ...
-    """Initialize configuration for rocr100.
-
-    Configuration:
-        period (int)
-    """
-
-    @override
-    def make(self) -> _rocr100_Bound: ...
+  @override
+  def make(self) -> _rocr100_Bound: ...
 
 class rocr100:
-    Type = _rocr100_Bound
-    Config = _rocr100_Config
-    ConfigDict = _rocr100_ConfigDict
-    period: ClassVar[int]
-    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> ROCR100Result: ...
+  Type = _rocr100_Bound
+  Config = _rocr100_Config
+  ConfigDict = _rocr100_ConfigDict
+  period: ClassVar[int]
+  def __new__(
+    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+  ) -> ROCR100Result: ...
