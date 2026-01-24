@@ -9,6 +9,15 @@ from indikator._results import BollingerResult
 from indikator.bollinger import bollinger_bands, bollinger_with_bandwidth
 
 
+# Try to import talib for comparison tests
+try:
+  import talib  # type: ignore[import-untyped]
+
+  HAS_TALIB = True
+except ImportError:
+  HAS_TALIB = False
+
+
 class TestBollingerBands:
   """Tests for Bollinger Bands indicator."""
 
@@ -121,3 +130,30 @@ class TestBollingerBands:
 
     with pytest.raises((ValueError, ValidationError), match="Finite"):
       bollinger_bands(prices)
+
+  @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
+  def test_bollinger_matches_talib(self):
+    """Test Bollinger Bands matches TA-Lib (population std)."""
+    np.random.seed(42)
+    prices = pd.Series(100.0 + np.cumsum(np.random.randn(100) * 0.5))
+
+    # bollinger_bands() uses ddof=0 which matches TA-Lib
+    res_obj = bollinger_bands(prices, window=20, num_std=2.0).to_pandas()
+    exp_u, exp_m, exp_l = talib.BBANDS(
+      prices.values, timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0
+    )
+
+    valid_mask = res_obj["bb_middle"].notna() & np.isfinite(exp_m)
+
+    # Compare middle
+    np.testing.assert_allclose(
+      res_obj["bb_middle"][valid_mask].values, exp_m[valid_mask], rtol=1e-10
+    )
+    # Compare upper
+    np.testing.assert_allclose(
+      res_obj["bb_upper"][valid_mask].values, exp_u[valid_mask], rtol=1e-10
+    )
+    # Compare lower
+    np.testing.assert_allclose(
+      res_obj["bb_lower"][valid_mask].values, exp_l[valid_mask], rtol=1e-10
+    )
