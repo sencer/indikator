@@ -65,7 +65,7 @@ def natr(
     "NDArray[np.float64]",
     high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
-  l = cast(
+  low_np = cast(
     "NDArray[np.float64]",
     low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
@@ -74,6 +74,6 @@ def natr(
     close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  natr_values = compute_natr_numba(h, l, c, period)
+  natr_values = compute_natr_numba(h, low_np, c, period)
 
   return NATRResult(index=close.index, natr=natr_values)

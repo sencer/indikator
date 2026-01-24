@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from indikator._results import SlopeResult
+from indikator._results import SlopeResult  # noqa: PLC2701
 from indikator.slope import slope
 
 

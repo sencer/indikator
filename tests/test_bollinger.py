@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from indikator._results import BollingerResult
+from indikator._results import BollingerResult  # noqa: PLC2701
 from indikator.bollinger import bollinger_bands, bollinger_with_bandwidth
 
 # Try to import talib for comparison tests

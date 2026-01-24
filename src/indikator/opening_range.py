@@ -102,8 +102,7 @@ def opening_range(
 
   # Define valid OR window mask
   # First, find the "start" of each day.
-  pd.Series(session_date).diff().fillna(pd.Timedelta(days=1)) != pd.Timedelta(0)
-  # Actually `diff` on datetime gives timedelta.
+  # Define valid OR window mask
 
   # We need to know "Time since session open".
   # If we don't know session open, we can't do this accurately without config.

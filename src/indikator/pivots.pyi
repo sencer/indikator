@@ -12,67 +12,80 @@ import pandas as pd
 from indikator._results import PivotPointsResult
 
 class _pivots_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def anchor(self) -> str: ...
-    def __call__(self, high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty], low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty], close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty], method: Literal['standard', 'fibonacci', 'woodie', 'camarilla'] = ...) -> PivotPointsResult: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def anchor(self) -> str: ...
+  def __call__(
+    self,
+    high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    method: Literal["standard", "fibonacci", "woodie", "camarilla"] = ...,
+  ) -> PivotPointsResult: ...
 
 class _pivots_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for pivots.
+  """Configuration dictionary for pivots.
 
-    Configuration:
-        anchor (str)
-    """
+  Configuration:
+      anchor (str)
+  """
 
-    anchor: str
+  anchor: str
 
 class _pivots_Config(_NCMakeableModel[_pivots_Bound]):
-    """Configuration class for pivots.
+  """Configuration class for pivots.
 
-    Calculate Pivot Points.
+  Calculate Pivot Points.
 
-    Pivot points are significant support and resistance levels derived from
-    prior period's price action.
+  Pivot points are significant support and resistance levels derived from
+  prior period's price action.
 
-    Methods:
-    - Standard: Floor pivots (Classic)
-    - Fibonacci: Standard Pivot + Fibonacci extensions
-    - Woodie: Weighted close, forward-looking
-    - Camarilla: Mean reversion/Breakout levels
+  Methods:
+  - Standard: Floor pivots (Classic)
+  - Fibonacci: Standard Pivot + Fibonacci extensions
+  - Woodie: Weighted close, forward-looking
+  - Camarilla: Mean reversion/Breakout levels
 
-    Levels typically include:
-    - P: Pivot Point (Central)
-    - R1, R2, R3, R4: Resistance levels
-    - S1, S2, S3, S4: Support levels
+  Levels typically include:
+  - P: Pivot Point (Central)
+  - R1, R2, R3, R4: Resistance levels
+  - S1, S2, S3, S4: Support levels
 
-    Args:
-      high: High prices with DatetimeIndex
-      low: Low prices with DatetimeIndex
-      close: Close prices with DatetimeIndex
-      method: Calculation method (default: 'standard')
-      anchor: Period to aggregate prior data (default: 'D' for Daily)
+  Args:
+    high: High prices with DatetimeIndex
+    low: Low prices with DatetimeIndex
+    close: Close prices with DatetimeIndex
+    method: Calculation method (default: 'standard')
+    anchor: Period to aggregate prior data (default: 'D' for Daily)
 
-    Returns:
-      PivotPointsResult(index, levels: dict)
+  Returns:
+    PivotPointsResult(index, levels: dict)
+
+  Configuration:
+      anchor (str)
+  """
+
+  anchor: str
+  def __init__(self, *, anchor: str = ...) -> None: ...
+  """Initialize configuration for pivots.
 
     Configuration:
         anchor (str)
     """
 
-    anchor: str
-    def __init__(self, *, anchor: str = ...) -> None: ...
-    """Initialize configuration for pivots.
-
-    Configuration:
-        anchor (str)
-    """
-
-    @override
-    def make(self) -> _pivots_Bound: ...
+  @override
+  def make(self) -> _pivots_Bound: ...
 
 class pivots:
-    Type = _pivots_Bound
-    Config = _pivots_Config
-    ConfigDict = _pivots_ConfigDict
-    anchor: ClassVar[str]
-    def __new__(cls, high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty], low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty], close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty], method: Literal['standard', 'fibonacci', 'woodie', 'camarilla'] = ..., anchor: str = ...) -> PivotPointsResult: ...
+  Type = _pivots_Bound
+  Config = _pivots_Config
+  ConfigDict = _pivots_ConfigDict
+  anchor: ClassVar[str]
+  def __new__(
+    cls,
+    high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    method: Literal["standard", "fibonacci", "woodie", "camarilla"] = ...,
+    anchor: str = ...,
+  ) -> PivotPointsResult: ...

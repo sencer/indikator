@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from indikator.atr import atr
+from indikator.atr import atr, trange
 
 try:
   import talib
@@ -63,8 +63,6 @@ def test_trange_matches_talib():
   high = pd.Series(np.random.uniform(105, 110, 100))
   low = pd.Series(np.random.uniform(95, 100, 100))
   close = pd.Series(np.random.uniform(95, 110, 100))
-
-  from indikator.atr import trange
 
   result = trange(high, low, close).to_pandas()
 

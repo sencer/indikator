@@ -91,7 +91,6 @@ def pivots(
   levels = {}
 
   if method == "standard":
-    # P = (H + L + C) / 3
     pp = (prev_high + prev_low + prev_close) / 3.0
     r1 = 2 * pp - prev_low
     s1 = 2 * pp - prev_high

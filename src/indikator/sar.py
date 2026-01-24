@@ -67,19 +67,19 @@ def sar(
     "NDArray[np.float64]",
     high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
-  l = cast(
+  low_np = cast(
     "NDArray[np.float64]",
     low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  sar_values = compute_sar_numba(h, l, acceleration, acceleration, maximum)
+  sar_values = compute_sar_numba(h, low_np, acceleration, acceleration, maximum)
 
   return SARResult(index=high.index, sar=sar_values)
 
 
 @configurable
 @validate
-def sarext(
+def sarext(  # noqa: PLR0913, PLR0917
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   start_value: Hyper[float] = 0.0,
@@ -111,11 +111,11 @@ def sarext(
     SARResult(index, sar)
   """
   h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
 
   sar_values = compute_sarext_numba(
     h,
-    l,
+    low_np,
     start_value,
     offset_on_reversal,
     acceleration_init_long,

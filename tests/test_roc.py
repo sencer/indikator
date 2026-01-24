@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from indikator.roc import roc
+from indikator.roc import roc, rocp, rocr, rocr100
 
 try:
   import talib
@@ -83,9 +83,6 @@ def test_roc_matches_talib():
   pd.testing.assert_series_equal(
     result, pd.Series(expected, index=data.index, name="roc")
   )
-
-
-from indikator.roc import rocp, rocr, rocr100
 
 
 @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")

@@ -40,9 +40,9 @@ def typprice(
     TYPPRICEResult
   """
   h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  result = compute_typprice_numba(h, l, c)
+  result = compute_typprice_numba(h, low_np, c)
 
   return TYPPRICEResult(index=high.index, typprice=result)

@@ -98,7 +98,7 @@ class TestADX:
     )
 
   @pytest.mark.skipif(not HAS_TALIB, reason="TA-Lib not installed")
-  def test_wrappers_match_talib(self):
+  def test_wrappers_match_talib(self):  # noqa: PLR0914
     """Test individual wrappers (DX, ADXR, DM, DI) match TA-Lib."""
     np.random.seed(43)
     n = 100

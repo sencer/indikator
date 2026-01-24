@@ -34,7 +34,7 @@ def mfi(
   volume: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> MFIResult:
+) -> MFIResult:  # noqa: PLR0913, PLR0917, ARG001
   """Calculate Money Flow Index (MFI).
 
   MFI is a momentum indicator that uses both price and volume to measure

@@ -1999,29 +1999,29 @@ def detect_three_stars_in_south_numba(
       if c1 < o1:
         # Check Day 2 (i) Black
         if c2 < o2:
-            # All 3 black. Now detailed logic.
-            
-            # Day 0: Long lower shadow
-            # logic: shadow > body
-            body0 = o0 - c0
-            shadow0 = c0 - l0
-            
-            if shadow0 > body0:
-                # Day 1: Inside Day 0's range? (Harami-like)
-                # Logic: High < Prev High AND Low > Prev Low
-                if (h1 < h0) and (l1 > l0):
-                    # Day 2: Inside Day 1? Small Marubozu?
-                    # Logic: High < Prev High AND Low > Prev Low
-                    # And "Small Marubozu" means small range/shadows.
-                    # Simplified: Small body, small shadows.
-                    # Or just "Inside Day 1".
-                    if (h2 < h1) and (l2 > l1):
-                         # Check strict "Small Marubozu" for Day 2?
-                         # Usually means Close ~= Low for black cdl.
-                         # And small range.
-                         # But let's stick to the previous implementation's simplified logic:
-                         # "inside2 = (h2 < h1) & (l2 > l1)"
-                         out[i] = 100
+          # All 3 black. Now detailed logic.
+
+          # Day 0: Long lower shadow
+          # logic: shadow > body
+          body0 = o0 - c0
+          shadow0 = c0 - l0
+
+          if shadow0 > body0:
+            # Day 1: Inside Day 0's range? (Harami-like)
+            # Logic: High < Prev High AND Low > Prev Low
+            if (h1 < h0) and (l1 > l0):
+              # Day 2: Inside Day 1? Small Marubozu?
+              # Logic: High < Prev High AND Low > Prev Low
+              # And "Small Marubozu" means small range/shadows.
+              # Simplified: Small body, small shadows.
+              # Or just "Inside Day 1".
+              if (h2 < h1) and (l2 > l1):
+                # Check strict "Small Marubozu" for Day 2?
+                # Usually means Close ~= Low for black cdl.
+                # And small range.
+                # But let's stick to the previous implementation's simplified logic:
+                # "inside2 = (h2 < h1) & (l2 > l1)"
+                out[i] = 100
 
     # Shift state
     o0, h0, l0, c0 = o1, h1, l1, c1

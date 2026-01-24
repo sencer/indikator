@@ -24,7 +24,7 @@ from indikator._ultosc_numba import compute_ultosc_numba
 
 @configurable
 @validate
-def ultosc(
+def ultosc(  # noqa: PLR0913, PLR0917
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
@@ -69,7 +69,7 @@ def ultosc(
     "NDArray[np.float64]",
     high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
-  l = cast(
+  low_np = cast(
     "NDArray[np.float64]",
     low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
@@ -78,6 +78,6 @@ def ultosc(
     close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  ultosc_values = compute_ultosc_numba(h, l, c, period1, period2, period3)
+  ultosc_values = compute_ultosc_numba(h, low_np, c, period1, period2, period3)
 
   return ULTOSCResult(index=close.index, ultosc=ultosc_values)

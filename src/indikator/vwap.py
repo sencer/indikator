@@ -27,6 +27,8 @@ from indikator._vwap_numba import (
   compute_vwap_parallel_numba,
 )
 
+PARALLEL_THRESHOLD = 5
+
 
 @configurable
 @validate
@@ -111,8 +113,7 @@ def vwap(
   # Calculate VWAP using Numba-optimized function
   # If we have multiple sessions, use the parallel version for speedup
   reset_indices = np.where(reset_mask)[0].astype(np.int64)
-
-  if len(reset_indices) > 5:  # Threshold for parallel gain
+  if len(reset_indices) > PARALLEL_THRESHOLD:  # Threshold for parallel gain
     vwap_values = compute_vwap_parallel_numba(
       high_arr, low_arr, close_arr, vol_arr, reset_indices
     )
