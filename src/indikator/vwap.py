@@ -117,9 +117,7 @@ def vwap(
       high_arr, low_arr, close_arr, vol_arr, reset_indices
     )
   else:
-    vwap_values = compute_vwap_numba(
-      high_arr, low_arr, close_arr, vol_arr, reset_mask
-    )
+    vwap_values = compute_vwap_numba(high_arr, low_arr, close_arr, vol_arr, reset_mask)
 
   return VWAPResult(index=high.index, vwap=vwap_values)
 

@@ -4,7 +4,7 @@ This module provides MACD calculation, a trend-following momentum indicator
 that shows the relationship between two moving averages.
 """
 
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from datawarden import (
   Finite,
@@ -21,28 +21,28 @@ from indikator._results import MACDResult
 
 
 def _get_ma_func(matype: int):
-    from indikator.sma import sma
-    from indikator.ema import ema
-    from indikator.wma import wma
-    from indikator.dema import dema
-    from indikator.tema import tema
-    from indikator.trima import trima
-    from indikator.kama import kama
-    from indikator.t3 import t3
-    from indikator.mesa import mama
+  from indikator.dema import dema
+  from indikator.ema import ema
+  from indikator.kama import kama
+  from indikator.mesa import mama
+  from indikator.sma import sma
+  from indikator.t3 import t3
+  from indikator.tema import tema
+  from indikator.trima import trima
+  from indikator.wma import wma
 
-    mapping = {
-        0: lambda d, p: sma(d, p).sma,
-        1: lambda d, p: ema(d, p).ema,
-        2: lambda d, p: wma(d, p).wma,
-        3: lambda d, p: dema(d, p).dema,
-        4: lambda d, p: tema(d, p).tema,
-        5: lambda d, p: trima(d, p).trima,
-        6: lambda d, p: kama(d, p).kama,
-        7: lambda d, p: mama(d).mama, # Period ignored for MAMA
-        8: lambda d, p: t3(d, p).t3,
-    }
-    return mapping.get(matype, mapping[1]) # Default EMA
+  mapping = {
+    0: lambda d, p: sma(d, p).sma,
+    1: lambda d, p: ema(d, p).ema,
+    2: lambda d, p: wma(d, p).wma,
+    3: lambda d, p: dema(d, p).dema,
+    4: lambda d, p: tema(d, p).tema,
+    5: lambda d, p: trima(d, p).trima,
+    6: lambda d, p: kama(d, p).kama,
+    7: lambda d, p: mama(d).mama,  # Period ignored for MAMA
+    8: lambda d, p: t3(d, p).t3,
+  }
+  return mapping.get(matype, mapping[1])  # Default EMA
 
 
 @configurable
@@ -144,11 +144,11 @@ def macdext(
   s_ma = slow_func(data, slow_period)
 
   macd_line = f_ma - s_ma
-  
+
   # Wrap macd_line in Series for signal calculation
   macd_series = pd.Series(macd_line, index=data.index)
   signal_line = signal_func(macd_series, signal_period)
-  
+
   histogram = macd_line - signal_line
 
   return MACDResult(

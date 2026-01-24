@@ -86,7 +86,7 @@ class vwap:
 
 class _vwap_anchored_Bound(Protocol):
     """Bound function with hyperparameters as attributes."""
-    def __call__(self, data: Validated[pd.DataFrame, Columns(["high", "low", "close", "volume"]), Finite, NotEmpty], anchor_index: int | None = ..., anchor_datetime: pd.Timestamp | str | None = ...) -> VWAPAnchoredResult: ...
+    def __call__(self, data: Validated[pd.DataFrame, Columns(['high', 'low', 'close', 'volume']), Finite, NotEmpty], anchor_index: int | None = ..., anchor_datetime: pd.Timestamp | str | None = ...) -> VWAPAnchoredResult: ...
 
 class _vwap_anchored_ConfigDict(TypedDict, total=False):
     pass
@@ -148,4 +148,4 @@ class vwap_anchored:
     Type = _vwap_anchored_Bound
     Config = _vwap_anchored_Config
     ConfigDict = _vwap_anchored_ConfigDict
-    def __new__(cls, data: Validated[pd.DataFrame, Columns(["high", "low", "close", "volume"]), Finite, NotEmpty], anchor_index: int | None = ..., anchor_datetime: pd.Timestamp | str | None = ...) -> VWAPAnchoredResult: ...
+    def __new__(cls, data: Validated[pd.DataFrame, Columns(['high', 'low', 'close', 'volume']), Finite, NotEmpty], anchor_index: int | None = ..., anchor_datetime: pd.Timestamp | str | None = ...) -> VWAPAnchoredResult: ...

@@ -1,19 +1,24 @@
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from datawarden import (
-  Finite,
-  NotEmpty,
-  Validated,
   validate,
 )
-from nonfig import Ge, Hyper, configurable
+from nonfig import configurable
 import numpy as np
-import pandas as pd
 
 from indikator._results import TRIMAResult
 from indikator._trima_numba import compute_trima_numba
+
+if TYPE_CHECKING:
+  from datawarden import (
+    Finite,
+    NotEmpty,
+    Validated,
+  )
+  from nonfig import Ge, Hyper
+  import pandas as pd
 
 
 @configurable

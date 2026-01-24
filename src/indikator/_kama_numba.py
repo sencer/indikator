@@ -67,13 +67,10 @@ def compute_kama_numba(
   # Direction from prices[0] to prices[period]
   direction = abs(prices[period] - prices[0])
 
-  if volatility > 1e-10:
-    er = direction / volatility
-  else:
-    er = 0.0
+  er = direction / volatility if volatility > 1e-10 else 0.0
 
   sc = (er * sc_diff + slow_sc) ** 2
-  current_kama = current_kama + sc * (prices[period] - current_kama)
+  current_kama += sc * (prices[period] - current_kama)
   kama[period] = current_kama
 
   # Main loop from index period+1 onwards
@@ -87,16 +84,13 @@ def compute_kama_numba(
     direction = abs(prices[i] - prices[i - period])
 
     # Efficiency Ratio
-    if volatility > 1e-10:
-      er = direction / volatility
-    else:
-      er = 0.0
+    er = direction / volatility if volatility > 1e-10 else 0.0
 
     # Smoothing Constant
     sc = (er * sc_diff + slow_sc) ** 2
 
     # Update KAMA
-    current_kama = current_kama + sc * (prices[i] - current_kama)
+    current_kama += sc * (prices[i] - current_kama)
     kama[i] = current_kama
 
   return kama

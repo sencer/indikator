@@ -51,7 +51,7 @@ def compute_natr_numba(
     hl = high[i] - low[i]
     hc = abs(high[i] - close[i - 1])
     lc = abs(low[i] - close[i - 1])
-    tr = max(hl, max(hc, lc))
+    tr = max(hl, hc, lc)
     sum_tr += tr
 
   # First ATR at index period
@@ -72,7 +72,7 @@ def compute_natr_numba(
     hl = high[i] - low[i]
     hc = abs(high[i] - close[i - 1])
     lc = abs(low[i] - close[i - 1])
-    tr = max(hl, max(hc, lc))
+    tr = max(hl, hc, lc)
 
     # Wilder's smoothing
     atr = (atr * period_m1 + tr) * inv_period

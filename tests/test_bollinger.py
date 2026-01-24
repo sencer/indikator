@@ -8,7 +8,6 @@ import pytest
 from indikator._results import BollingerResult
 from indikator.bollinger import bollinger_bands, bollinger_with_bandwidth
 
-
 # Try to import talib for comparison tests
 try:
   import talib  # type: ignore[import-untyped]

@@ -5,12 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
-  Finite,
-  NotEmpty,
-  Validated,
   validate,
 )
-from nonfig import Ge, Hyper, configurable
+from nonfig import configurable
 import numpy as np
 import pandas as pd
 
@@ -25,6 +22,12 @@ from indikator._rolling_numba import (
 )
 
 if TYPE_CHECKING:
+  from datawarden import (
+    Finite,
+    NotEmpty,
+    Validated,
+  )
+  from nonfig import Ge, Hyper
   from numpy.typing import NDArray
 
 
@@ -170,7 +173,7 @@ def minmax(
   """
   input_arr = cast(
     "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False), # pyright: ignore
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore
   )
 
   m, x = compute_minmax_numba(input_arr, period)
@@ -196,7 +199,7 @@ def minmaxindex(
   """
   input_arr = cast(
     "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False), # pyright: ignore
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore
   )
 
   mi, xi = compute_minmaxindex_numba(input_arr, period)

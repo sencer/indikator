@@ -46,7 +46,6 @@ def compute_stochrsi_numba(
   n = len(prices)
 
   # First valid indices
-  rsi_start = rsi_period  # First RSI at rsi_period
   fastk_start = rsi_period + stoch_period  # First fastk at rsi_period + stoch_period
   fastd_start = fastk_start + d_period - 1  # First fastd needs d_period fastk values
 

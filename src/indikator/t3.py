@@ -1,17 +1,24 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from datawarden import (
-  Finite,
-  NotEmpty,
-  Validated,
   validate,
 )
-from nonfig import Ge, Hyper, configurable
+from nonfig import configurable
 import numpy as np
-import pandas as pd
 
 from indikator._results import T3Result
 from indikator._t3_numba import compute_t3_numba
+
+if TYPE_CHECKING:
+  from datawarden import (
+    Finite,
+    NotEmpty,
+    Validated,
+  )
+  from nonfig import Ge, Hyper
+  import pandas as pd
 
 
 @configurable

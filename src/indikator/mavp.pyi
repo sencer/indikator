@@ -7,9 +7,11 @@ from __future__ import annotations
 
 from typing import Annotated, Protocol, TypedDict
 
-from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
+if TYPE_CHECKING:
+    from datawarden import Finite, NotEmpty, Validated
 
 class _mavp_Bound(Protocol):
     """Bound function with hyperparameters as attributes."""
@@ -32,7 +34,7 @@ class _mavp_Config(_NCMakeableModel[_mavp_Bound]):
                Values are clamped between minperiod and maxperiod.
       minperiod: Minimum period allowed (default: 2).
       maxperiod: Maximum period allowed (default: 30).
-      matype: Moving Average Type (0=SMA). Currently only 0 is supported.
+      matype: Moving Average Type (0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA).
 
     Returns:
       pd.Series: MAVP values.

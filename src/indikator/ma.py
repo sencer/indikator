@@ -8,25 +8,27 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from datawarden import (
-  Finite,
-  NotEmpty,
-  Validated,
   validate,
 )
-from nonfig import Ge, Hyper, configurable, DEFAULT
-import pandas as pd
+from nonfig import configurable
 
-if TYPE_CHECKING:
-  from indikator._results import IndicatorResult
-
-from indikator.sma import sma
-from indikator.ema import ema
-from indikator.wma import wma
 from indikator.dema import dema
+from indikator.ema import ema
+from indikator.kama import kama
+from indikator.sma import sma
+from indikator.t3 import t3
 from indikator.tema import tema
 from indikator.trima import trima
-from indikator.kama import kama
-from indikator.t3 import t3
+from indikator.wma import wma
+
+if TYPE_CHECKING:
+  from datawarden import (
+    Finite,
+    NotEmpty,
+    Validated,
+  )
+  from nonfig import Ge, Hyper
+  import pandas as pd
 
 # Type mapping for TA-Lib compatibility
 MAType = {
@@ -37,9 +39,10 @@ MAType = {
   4: tema,
   5: trima,
   6: kama,
-  7: None, # MAMA (To be implemented)
+  7: None,  # MAMA (To be implemented)
   8: t3,
 }
+
 
 @configurable
 @validate
@@ -60,10 +63,11 @@ def ma(
   """
   ma_func = MAType.get(matype)
   if ma_func is None:
-      if matype == 7:
-          from indikator.mesa import mama
-          return mama(data) # Default mama parameters
-      raise ValueError(f"Invalid matype: {matype}")
-  
+    if matype == 7:
+      from indikator.mesa import mama
+
+      return mama(data)  # Default mama parameters
+    raise ValueError(f"Invalid matype: {matype}")
+
   # Note: T3 has different default/hyper for vfactor, but here we use period.
   return ma_func(data, period=period)

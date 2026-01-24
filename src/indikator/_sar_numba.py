@@ -73,7 +73,7 @@ def compute_sar_numba(
 
   for i in range(2, n):
     # Calculate SAR for today based on yesterday's state
-    sar_value = sar_value + af * (ep - sar_value)
+    sar_value += af * (ep - sar_value)
 
     # SAR cannot penetrate prior two bars (but skip initial bar where SAR was set)
     if is_long:
@@ -132,12 +132,12 @@ def compute_sarext_numba(
   acceleration_max_short: float,
 ) -> NDArray[np.float64]:
   """Compute SAREXT - Parabolic SAR Extended.
-  
+
   Matches TA-Lib SAREXT logic.
   """
   n = len(high)
   sar = np.empty(n, dtype=np.float64)
-  
+
   if n < 2:
     sar[:] = np.nan
     return sar
@@ -145,7 +145,7 @@ def compute_sarext_numba(
   # Initialization logic from TA-Lib:
   # If start_value > 0, use it. If < 0, use high-start.
   # For simplicity, we assume start_value logic is handled in wrapper or match standard.
-  
+
   h0 = high[0]
   h1 = high[1]
   l0 = low[0]
@@ -162,8 +162,8 @@ def compute_sarext_numba(
     sar_val = max(h0, h1)
 
   if start_value != 0:
-      sar_val = abs(start_value)
-      is_long = start_value > 0
+    sar_val = abs(start_value)
+    is_long = start_value > 0
 
   af = acceleration_init_long if is_long else acceleration_init_short
   sar[0] = np.nan
@@ -172,25 +172,24 @@ def compute_sarext_numba(
   for i in range(2, n):
     hi = high[i]
     li = low[i]
-    hi_p1 = high[i-1]
-    li_p1 = low[i-1]
-    
-    sar_val = sar_val + af * (ep - sar_val)
+    hi_p1 = high[i - 1]
+    li_p1 = low[i - 1]
+
+    sar_val += af * (ep - sar_val)
 
     if is_long:
       if i > 2:
-        hi_p2 = high[i-2]
-        li_p2 = low[i-2]
+        hi_p2 = high[i - 2]
+        li_p2 = low[i - 2]
         sar_val = min(sar_val, li_p1, li_p2)
       else:
         sar_val = min(sar_val, li_p1)
+    elif i > 2:
+      hi_p2 = high[i - 2]
+      li_p2 = low[i - 2]
+      sar_val = max(sar_val, hi_p1, hi_p2)
     else:
-      if i > 2:
-        hi_p2 = high[i-2]
-        li_p2 = low[i-2]
-        sar_val = max(sar_val, hi_p1, hi_p2)
-      else:
-        sar_val = max(sar_val, hi_p1)
+      sar_val = max(sar_val, hi_p1)
 
     if is_long:
       if li < sar_val:
@@ -203,16 +202,15 @@ def compute_sarext_numba(
       elif hi > ep:
         ep = hi
         af = min(af + acceleration_long, acceleration_max_long)
-    else:
-      if hi > sar_val:
-        # Reversal to long
-        is_long = True
-        sar_val = ep - offset_on_reversal if offset_on_reversal != 0 else ep
-        ep = hi
-        af = acceleration_init_long
-      elif li < ep:
-        ep = li
-        af = min(af + acceleration_short, acceleration_max_short)
+    elif hi > sar_val:
+      # Reversal to long
+      is_long = True
+      sar_val = ep - offset_on_reversal if offset_on_reversal != 0 else ep
+      ep = hi
+      af = acceleration_init_long
+    elif li < ep:
+      ep = li
+      af = min(af + acceleration_short, acceleration_max_short)
 
     sar[i] = sar_val
 

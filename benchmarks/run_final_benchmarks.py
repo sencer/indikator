@@ -97,7 +97,6 @@ with config.Overrides(skip_validation=True):
     cdl_rickshaw_man,
     cdl_rise_fall_3methods,
     cdl_separating_lines,
-    cdl_xsidegap3methods,
     cdl_shooting_star,
     cdl_short_line,
     cdl_spinning_top,
@@ -109,6 +108,7 @@ with config.Overrides(skip_validation=True):
     cdl_tristar,
     cdl_unique_3river,
     cdl_upside_gap_two_crows,
+    cdl_xsidegap3methods,
     churn_factor,
     cmo,
     correl,
@@ -122,8 +122,6 @@ with config.Overrides(skip_validation=True):
     ht_trendline,
     ht_trendmode,
     kama,
-    ma,
-    mama,
     legs,
     linearreg,
     linearreg_angle,
@@ -131,6 +129,7 @@ with config.Overrides(skip_validation=True):
     macd,
     macdext,
     macdfix,
+    mama,
     mavp,
     medprice,
     mfi,
@@ -196,9 +195,6 @@ def generate_data(size: int) -> dict[str, Any]:
     "volume": pd.Series(volume, index=dates),
     "open": pd.Series(price, index=dates),
     "sector": pd.Series(close, index=dates) * (1 + np.random.randn(size) * 0.01),
-    "np_high": high.astype(np.float64),
-    "np_low": low.astype(np.float64),
-    "np_close": close.astype(np.float64),
     "np_high": high.astype(np.float64),
     "np_low": low.astype(np.float64),
     "np_close": close.astype(np.float64),
@@ -277,7 +273,6 @@ def run_benchmarks() -> None:
       Callable[[dict], tuple] | None,
     ]
   ] = [
-    # fmt: off
     (
       "HT_DCPERIOD",
       ht_dcperiod,
@@ -1178,7 +1173,6 @@ def run_benchmarks() -> None:
       talib.CDL3STARSINSOUTH,
       lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
     ),
-    # fmt: on
   ]
 
   # Filter benchmarks if requested
@@ -1201,7 +1195,7 @@ def run_benchmarks() -> None:
   for name, ind_func, ind_args_fn, ta_func, ta_args_fn in benchmarks:
     row = f"{name:<12}"
 
-    for size_idx, size in enumerate(sizes):
+    for _size_idx, size in enumerate(sizes):
       data = generate_data(size)
       ind_args = ind_args_fn(data)
 

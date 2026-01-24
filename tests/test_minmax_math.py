@@ -87,7 +87,7 @@ def test_max_index_matches_talib(period):
 
 
 def test_minmax_with_nans():
-  data = pd.Series([10.0, 20.0, np.nan, 5.0, 15.0])
+  pd.Series([10.0, 20.0, np.nan, 5.0, 15.0])
   # Standard behavior: NaNs propagate? Or ignore?
   # TA-Lib MIN/MAX usually propagate NaNs.
   # Our implementation:

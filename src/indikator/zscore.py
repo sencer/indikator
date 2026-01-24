@@ -4,7 +4,7 @@ This module provides a generic Z-Score calculator that measures how many
 standard deviations a value is away from its rolling mean.
 """
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from datawarden import (
   Datetime,
@@ -16,13 +16,15 @@ from datawarden import (
 )
 from nonfig import Ge, Gt, Hyper, configurable
 import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_stats
 from indikator._results import ZScoreIntradayResult, ZScoreResult
 from indikator._zscore_numba import compute_zscore_numba
+
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
 
 
 @configurable

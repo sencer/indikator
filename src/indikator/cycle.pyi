@@ -7,9 +7,11 @@ from __future__ import annotations
 
 from typing import Protocol, TypedDict
 
-from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
+if TYPE_CHECKING:
+    from datawarden import Finite, NotEmpty, Validated
 
 class _ht_dcperiod_Bound(Protocol):
     """Bound function with hyperparameters as attributes."""
@@ -146,4 +148,31 @@ class ht_trendmode:
     Type = _ht_trendmode_Bound
     Config = _ht_trendmode_Config
     ConfigDict = _ht_trendmode_ConfigDict
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+
+class _ht_trendline_Bound(Protocol):
+    """Bound function with hyperparameters as attributes."""
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+
+class _ht_trendline_ConfigDict(TypedDict, total=False):
+    pass
+
+class _ht_trendline_Config(_NCMakeableModel[_ht_trendline_Bound]):
+    """Configuration class for ht_trendline.
+
+    Hilbert Transform - Trendline.
+
+    Args:
+      data: Input price series.
+
+    Returns:
+      pd.Series: Trendline.
+    """
+
+    pass
+
+class ht_trendline:
+    Type = _ht_trendline_Bound
+    Config = _ht_trendline_Config
+    ConfigDict = _ht_trendline_ConfigDict
     def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...

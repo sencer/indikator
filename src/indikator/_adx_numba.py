@@ -81,7 +81,7 @@ def compute_adx_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_plus_dm += p_dm
     smoothed_minus_dm += m_dm
@@ -126,7 +126,7 @@ def compute_adx_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     # Wilder's smoothing
     smoothed_plus_dm = smoothed_plus_dm * k1 + p_dm
@@ -173,7 +173,7 @@ def compute_adx_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_plus_dm = smoothed_plus_dm * k1 + p_dm
     smoothed_minus_dm = smoothed_minus_dm * k1 + m_dm
@@ -251,7 +251,7 @@ def compute_adx_numba_pure(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_plus_dm += p_dm
     smoothed_minus_dm += m_dm
@@ -288,7 +288,7 @@ def compute_adx_numba_pure(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_plus_dm = smoothed_plus_dm * k1 + p_dm
     smoothed_minus_dm = smoothed_minus_dm * k1 + m_dm
@@ -331,7 +331,7 @@ def compute_adx_numba_pure(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_plus_dm = smoothed_plus_dm * k1 + p_dm
     smoothed_minus_dm = smoothed_minus_dm * k1 + m_dm
@@ -409,7 +409,7 @@ def compute_dms_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_p_dm += p_dm
     smoothed_m_dm += m_dm
@@ -444,7 +444,7 @@ def compute_dms_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_p_dm = smoothed_p_dm * k1 + p_dm
     smoothed_m_dm = smoothed_m_dm * k1 + m_dm
@@ -513,7 +513,7 @@ def compute_dx_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_p_dm += p_dm
     smoothed_m_dm += m_dm
@@ -558,7 +558,7 @@ def compute_dx_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_p_dm = smoothed_p_dm * k1 + p_dm
     smoothed_m_dm = smoothed_m_dm * k1 + m_dm
@@ -638,7 +638,7 @@ def compute_di_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_p_dm += p_dm
     smoothed_m_dm += m_dm
@@ -673,7 +673,7 @@ def compute_di_numba(
     hl = curr_high - curr_low
     hc = abs(curr_high - prev_close)
     lc = abs(low[i] - prev_close)
-    curr_tr = max(hl, max(hc, lc))
+    curr_tr = max(hl, hc, lc)
 
     smoothed_p_dm = smoothed_p_dm * k1 + p_dm
     smoothed_m_dm = smoothed_m_dm * k1 + m_dm

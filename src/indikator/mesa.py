@@ -8,20 +8,23 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
-  Finite,
-  NotEmpty,
-  Validated,
   validate,
 )
-from nonfig import Ge, Hyper, configurable, Gt, Le
+from nonfig import configurable
 import numpy as np
-import pandas as pd
 
 if TYPE_CHECKING:
+  from datawarden import (
+    Finite,
+    NotEmpty,
+    Validated,
+  )
+  from nonfig import Gt, Hyper, Le
   from numpy.typing import NDArray
+  import pandas as pd
 
-from indikator._results import MAMAResult
 from indikator._mesa_numba import compute_mama_numba
+from indikator._results import MAMAResult
 
 
 @configurable
@@ -46,7 +49,7 @@ def mama(
   """
   values = cast(
     "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False), # pyright: ignore
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore
   )
 
   m, f = compute_mama_numba(values, fastlimit, slowlimit)

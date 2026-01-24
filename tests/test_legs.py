@@ -16,7 +16,7 @@ def test_legs_basic():
   prices = [10, 20, 10, 20, 10]
   # Should find legs: 10->20 (Up), 20->10 (Down), 10->20 (Up), 20->10 (Down)
 
-  n = len(prices)
+  len(prices)
   high = pd.Series(prices)
   low = pd.Series(prices)
   close = pd.Series(prices)

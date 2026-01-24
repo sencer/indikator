@@ -61,7 +61,6 @@ def compute_zigzag_numba(
   # Find first trend
   # We need to find the first swing that exceeds deviation
 
-  start_idx = 0
   last_pivot_price = 0.0
   last_pivot_idx = 0
   trend = 0  # 1=Up, -1=Down, 0=Unknown

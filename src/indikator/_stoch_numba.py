@@ -107,7 +107,7 @@ def compute_stoch_numba(
         raw_stoch[i] = 50.0
 
   # 2. %K = SMA(raw_stoch, k_slowing) using Parallel Chunked SMA
-  start_k = (
+  (
     k_period + k_slowing - 2
   )  # Correction: First valid raw is k_period-1. SMA needs k_slowing.
   # First valid K index = (k_period-1) + (k_slowing-1)

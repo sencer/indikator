@@ -184,7 +184,7 @@ def test_churn_factor_fuzz(data):
 @pytest.mark.parametrize("func", [rsi, slope, zscore])
 def test_series_window_indicators(func, data, window):
   kw = {}
-  if func.__name__ in ["rsi", "slope"]:
+  if func.__name__ in {"rsi", "slope"}:
     kw["window"] = window
   else:
     kw["period"] = window
@@ -237,7 +237,7 @@ def test_intraday_indicators(data):
 def test_pivots_fuzz(data, method):
   try:
     # Pass Series explicitly
-    result = pivots(data["high"], data["low"], data["close"], method=method, anchor="D")
+    pivots(data["high"], data["low"], data["close"], method=method, anchor="D")
     # Result is PivotPointsResult(index, levels: dict)
     # It doesn't have .to_pandas() returning a DataFrame with all levels unless I implemented methods on result?
     # PivotPointsResult is a NamedTuple.

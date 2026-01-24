@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
@@ -259,3 +258,95 @@ class sum_val:
     ConfigDict = _sum_val_ConfigDict
     period: ClassVar[int]
     def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> pd.Series: ...
+
+class _minmax_Bound(Protocol):
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> tuple[pd.Series, pd.Series]: ...
+
+class _minmax_ConfigDict(TypedDict, total=False):
+    """Configuration dictionary for minmax.
+
+    Configuration:
+        period (int)
+    """
+
+    period: int
+
+class _minmax_Config(_NCMakeableModel[_minmax_Bound]):
+    """Configuration class for minmax.
+
+    Rolling Minimum and Maximum of a series.
+
+    Returns:
+      tuple[pd.Series, pd.Series]: (min, max) series.
+
+    Configuration:
+        period (int)
+    """
+
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for minmax.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _minmax_Bound: ...
+
+class minmax:
+    Type = _minmax_Bound
+    Config = _minmax_Config
+    ConfigDict = _minmax_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> tuple[pd.Series, pd.Series]: ...
+
+class _minmaxindex_Bound(Protocol):
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> tuple[pd.Series, pd.Series]: ...
+
+class _minmaxindex_ConfigDict(TypedDict, total=False):
+    """Configuration dictionary for minmaxindex.
+
+    Configuration:
+        period (int)
+    """
+
+    period: int
+
+class _minmaxindex_Config(_NCMakeableModel[_minmaxindex_Bound]):
+    """Configuration class for minmaxindex.
+
+    Rolling Minimum and Maximum index of a series.
+
+    Returns indices (0-based) relative to start of series.
+
+    Returns:
+      tuple[pd.Series, pd.Series]: (min_index, max_index) series.
+
+    Configuration:
+        period (int)
+    """
+
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for minmaxindex.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _minmaxindex_Bound: ...
+
+class minmaxindex:
+    Type = _minmaxindex_Bound
+    Config = _minmaxindex_Config
+    ConfigDict = _minmaxindex_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> tuple[pd.Series, pd.Series]: ...

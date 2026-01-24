@@ -14,8 +14,6 @@ from indikator.adx import (
   plus_di,
   plus_dm,
 )
-from indikator.ma import ma
-from indikator.mesa import mama
 from indikator.apo import apo
 from indikator.aroon import aroon, aroonosc
 from indikator.atr import atr, atr_intraday, trange
@@ -109,6 +107,7 @@ from indikator.linearreg import (
   linearreg_slope,
   tsf,
 )
+from indikator.ma import ma
 from indikator.macd import macd, macdext, macdfix
 from indikator.math_transform import (
   acos,
@@ -129,6 +128,7 @@ from indikator.math_transform import (
 )
 from indikator.mavp import mavp
 from indikator.medprice import medprice
+from indikator.mesa import mama
 from indikator.mfi import mfi
 from indikator.midpoint import midpoint
 from indikator.midprice import midprice

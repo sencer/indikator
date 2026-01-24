@@ -102,3 +102,141 @@ class macd:
     slow_period: ClassVar[int]
     signal_period: ClassVar[int]
     def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], fast_period: int = ..., slow_period: int = ..., signal_period: int = ...) -> MACDResult: ...
+
+class _macdext_Bound(Protocol):
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def fast_period(self) -> int: ...
+    @property
+    def fast_matype(self) -> int: ...
+    @property
+    def slow_period(self) -> int: ...
+    @property
+    def slow_matype(self) -> int: ...
+    @property
+    def signal_period(self) -> int: ...
+    @property
+    def signal_matype(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MACDResult: ...
+
+class _macdext_ConfigDict(TypedDict, total=False):
+    """Configuration dictionary for macdext.
+
+    Configuration:
+        fast_period (int)
+        fast_matype (int)
+        slow_period (int)
+        slow_matype (int)
+        signal_period (int)
+        signal_matype (int)
+    """
+
+    fast_period: int
+    fast_matype: int
+    slow_period: int
+    slow_matype: int
+    signal_period: int
+    signal_matype: int
+
+class _macdext_Config(_NCMakeableModel[_macdext_Bound]):
+    """Configuration class for macdext.
+
+    Calculate MACD with full control over MA types.
+
+    Args:
+      data: Input Series.
+      fast_period: Fast period (default: 12)
+      fast_matype: Fast MA type (default: 0 - SMA)
+      slow_period: Slow period (default: 26)
+      slow_matype: Slow MA type (default: 0 - SMA)
+      signal_period: Signal period (default: 9)
+      signal_matype: Signal MA type (default: 0 - SMA)
+
+    Returns:
+      MACDResult(index, macd, signal, histogram)
+
+    Configuration:
+        fast_period (int)
+        fast_matype (int)
+        slow_period (int)
+        slow_matype (int)
+        signal_period (int)
+        signal_matype (int)
+    """
+
+    fast_period: int
+    fast_matype: int
+    slow_period: int
+    slow_matype: int
+    signal_period: int
+    signal_matype: int
+    def __init__(self, *, fast_period: int = ..., fast_matype: int = ..., slow_period: int = ..., slow_matype: int = ..., signal_period: int = ..., signal_matype: int = ...) -> None: ...
+    """Initialize configuration for macdext.
+
+    Configuration:
+        fast_period (int)
+        fast_matype (int)
+        slow_period (int)
+        slow_matype (int)
+        signal_period (int)
+        signal_matype (int)
+    """
+
+    @override
+    def make(self) -> _macdext_Bound: ...
+
+class macdext:
+    Type = _macdext_Bound
+    Config = _macdext_Config
+    ConfigDict = _macdext_ConfigDict
+    fast_period: ClassVar[int]
+    fast_matype: ClassVar[int]
+    slow_period: ClassVar[int]
+    slow_matype: ClassVar[int]
+    signal_period: ClassVar[int]
+    signal_matype: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], fast_period: int = ..., fast_matype: int = ..., slow_period: int = ..., slow_matype: int = ..., signal_period: int = ..., signal_matype: int = ...) -> MACDResult: ...
+
+class _macdfix_Bound(Protocol):
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def signal_period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MACDResult: ...
+
+class _macdfix_ConfigDict(TypedDict, total=False):
+    """Configuration dictionary for macdfix.
+
+    Configuration:
+        signal_period (int)
+    """
+
+    signal_period: int
+
+class _macdfix_Config(_NCMakeableModel[_macdfix_Bound]):
+    """Configuration class for macdfix.
+
+    Calculate MACD with fixed periods (12, 26).
+
+    Matches TA-Lib MACDFIX.
+
+    Configuration:
+        signal_period (int)
+    """
+
+    signal_period: int
+    def __init__(self, *, signal_period: int = ...) -> None: ...
+    """Initialize configuration for macdfix.
+
+    Configuration:
+        signal_period (int)
+    """
+
+    @override
+    def make(self) -> _macdfix_Bound: ...
+
+class macdfix:
+    Type = _macdfix_Bound
+    Config = _macdfix_Config
+    ConfigDict = _macdfix_ConfigDict
+    signal_period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], signal_period: int = ...) -> MACDResult: ...

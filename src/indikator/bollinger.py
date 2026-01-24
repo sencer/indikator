@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 
 from indikator._bollinger_numba import (
   compute_bollinger_basic_numba,
-  compute_bollinger_numba,
   compute_bollinger_numba_fast,
 )
 from indikator._results import BollingerBandsResult, BollingerResult

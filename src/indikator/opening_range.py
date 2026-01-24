@@ -87,7 +87,7 @@ def opening_range(
   # Using groupby + transformation is efficient enough.
 
   session_date = idx.normalize()  # Date component
-  time_component = idx - session_date  # Timedelta since midnight
+  idx - session_date  # Timedelta since midnight
 
   # Determine each day's start time (min time)
   # day_start = time_component.groupby(session_date).min()
@@ -102,9 +102,7 @@ def opening_range(
 
   # Define valid OR window mask
   # First, find the "start" of each day.
-  is_new_day = pd.Series(session_date).diff().fillna(
-    pd.Timedelta(days=1)
-  ) != pd.Timedelta(0)
+  pd.Series(session_date).diff().fillna(pd.Timedelta(days=1)) != pd.Timedelta(0)
   # Actually `diff` on datetime gives timedelta.
 
   # We need to know "Time since session open".

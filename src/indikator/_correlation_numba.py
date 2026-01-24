@@ -257,15 +257,9 @@ def compute_beta_fused_rocp_numba(
     prev_y = y[i - 1]
 
     # Avoid div by zero
-    if prev_x != 0.0:
-      val_x = (x[i] - prev_x) / prev_x
-    else:
-      val_x = 0.0
+    val_x = (x[i] - prev_x) / prev_x if prev_x != 0.0 else 0.0
 
-    if prev_y != 0.0:
-      val_y = (y[i] - prev_y) / prev_y
-    else:
-      val_y = 0.0
+    val_y = (y[i] - prev_y) / prev_y if prev_y != 0.0 else 0.0
 
     sum_x += val_x
     sum_y += val_y
@@ -306,30 +300,18 @@ def compute_beta_fused_rocp_numba(
     prev_x_rem = x[remove_idx - 1]
     prev_y_rem = y[remove_idx - 1]
 
-    if prev_x_rem != 0.0:
-      rem_x = (x[remove_idx] - prev_x_rem) / prev_x_rem
-    else:
-      rem_x = 0.0
+    rem_x = (x[remove_idx] - prev_x_rem) / prev_x_rem if prev_x_rem != 0.0 else 0.0
 
-    if prev_y_rem != 0.0:
-      rem_y = (y[remove_idx] - prev_y_rem) / prev_y_rem
-    else:
-      rem_y = 0.0
+    rem_y = (y[remove_idx] - prev_y_rem) / prev_y_rem if prev_y_rem != 0.0 else 0.0
 
     # Add new (index i)
     # Re-calculate ROCP at index i
     prev_x_new = x[i - 1]
     prev_y_new = y[i - 1]
 
-    if prev_x_new != 0.0:
-      add_x = (x[i] - prev_x_new) / prev_x_new
-    else:
-      add_x = 0.0
+    add_x = (x[i] - prev_x_new) / prev_x_new if prev_x_new != 0.0 else 0.0
 
-    if prev_y_new != 0.0:
-      add_y = (y[i] - prev_y_new) / prev_y_new
-    else:
-      add_y = 0.0
+    add_y = (y[i] - prev_y_new) / prev_y_new if prev_y_new != 0.0 else 0.0
 
     sum_x = sum_x - rem_x + add_x
     sum_y = sum_y - rem_y + add_y

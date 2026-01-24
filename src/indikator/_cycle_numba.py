@@ -47,15 +47,15 @@ def compute_ht_master_numba(
   # Scalar History (Ring Buffers)
   x0, x1, x2, x3 = 0.0, 0.0, 0.0, 0.0  # WMA inputs (data)
   s0, s1, s2, s3, s4, s5, s6 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  # Smooth history
-  d0, d1, d2, d3 = 0.0, 0.0, 0.0, 0.0 # Hilbert feedback history
-  
+  d0, d1, d2, d3 = 0.0, 0.0, 0.0, 0.0  # Hilbert feedback history
+
   prev_period = 0.0
   prev_smooth_period = 0.0
-  dc_phase = 45.0 # Initial 45 deg match TA-Lib
-  
+  dc_phase = 45.0  # Initial 45 deg match TA-Lib
+
   i1, q1 = 0.0, 0.0
   i1_prev, q1_prev, jI, jQ, jI_prev, jQ_prev = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-  
+
   rad2deg = 180.0 / math.pi
   deg2rad = math.pi / 180.0
 
@@ -64,22 +64,22 @@ def compute_ht_master_numba(
     x3, x2, x1 = x2, x1, x0
     x0 = data[i]
     curr_smooth = (4.0 * x0 + 3.0 * x1 + 2.0 * x2 + x3) * 0.1 if i >= 3 else x0
-    
+
     # 2. Update Smooth History
     s6, s5, s4, s3, s2, s1 = s5, s4, s3, s2, s1, s0
     s0 = curr_smooth
-    
+
     # 3. Hilbert transform (detrender)
     h_val = (0.0962 * s0 + 0.5769 * s2 - 0.5769 * s4 - 0.0962 * s6) if i >= 6 else 0.0
-    
+
     # 4. Feedback
     d3, d2, d1 = d2, d1, d0
     d0 = h_val * (0.075 * prev_period + 0.54) if i >= 6 else 0.0
-    
+
     i1_prev, q1_prev = i1, q1
     q1 = d0
     i1 = d3 if i >= 3 else 0.0
-    
+
     if i >= 6:
       raw_re = i1 * i1_prev + q1 * q1_prev
       raw_im = i1 * q1_prev - q1 * i1_prev
@@ -97,19 +97,27 @@ def compute_ht_master_numba(
       temp_period = max(6.0, min(50.0, abs(temp_period) * 0.82))
 
       if prev_period > 0.0:
-          temp_period = min(1.5 * prev_period, max(0.67 * prev_period, temp_period))
+        temp_period = min(1.5 * prev_period, max(0.67 * prev_period, temp_period))
 
-      period = temp_period if prev_period == 0.0 else 0.2 * temp_period + 0.8 * prev_period
-      smooth_period = period if prev_smooth_period == 0.0 else 0.33 * period + 0.67 * prev_smooth_period
+      period = (
+        temp_period if prev_period == 0.0 else 0.2 * temp_period + 0.8 * prev_period
+      )
+      smooth_period = (
+        period
+        if prev_smooth_period == 0.0
+        else 0.33 * period + 0.67 * prev_smooth_period
+      )
       prev_period, prev_smooth_period = period, smooth_period
-      
+
       # Phase
       if smooth_period != 0.0:
-          dc_phase += 360.0 / smooth_period
-      
-      while dc_phase >= 360.0: dc_phase -= 360.0
-      while dc_phase < 0.0: dc_phase += 360.0
-      
+        dc_phase += 360.0 / smooth_period
+
+      while dc_phase >= 360.0:
+        dc_phase -= 360.0
+      while dc_phase < 0.0:
+        dc_phase += 360.0
+
       # TrendMode Logic (Matches TA-Lib HT_TRENDMODE)
       # Usually requires complex sine wave comparison.
       # Using 1.0/0.0 as real output.
@@ -153,7 +161,6 @@ def compute_ht_dcperiod_numba(data: NDArray[np.float64]) -> NDArray[np.float64]:
 
   prev_period = 0.0
   prev_smooth_period = 0.0
-  dc_phase = 45.0
   d0, d1, d2, d3 = 0.0, 0.0, 0.0, 0.0
   i1, q1 = 0.0, 0.0
   i1_prev, q1_prev, jI, jQ, jI_prev, jQ_prev = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -238,7 +245,6 @@ def compute_ht_phasor_numba(
 
   prev_period = 0.0
   prev_smooth_period = 0.0
-  dc_phase = 45.0
   d0, d1, d2, d3 = 0.0, 0.0, 0.0, 0.0
   i1, q1 = 0.0, 0.0
   i1_prev, q1_prev, jI, jQ, jI_prev, jQ_prev = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -467,6 +473,7 @@ def compute_ht_dcphase_numba(data: NDArray[np.float64]) -> NDArray[np.float64]:
 
   return out_phase
 
+
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
 def compute_ht_trendline_numba(data: NDArray[np.float64]) -> NDArray[np.float64]:
   """Compute Hilbert Transform - Trendline.
@@ -545,13 +552,13 @@ def compute_ht_trendline_numba(data: NDArray[np.float64]) -> NDArray[np.float64]
     # 4. Trendline is WMA of smooth_price (s0)
     t3, t2, t1 = t2, t1, t0
     t0 = s0
-    
+
     if i >= 3:
       out_trendline[i] = (4.0 * t0 + 3.0 * t1 + 2.0 * t2 + t3) * 0.1
     else:
       out_trendline[i] = t0
-    
+
     if i < 11:
       out_trendline[i] = np.nan
-  
+
   return out_trendline

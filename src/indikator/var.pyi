@@ -7,9 +7,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Protocol, TypedDict, override
 
-from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
-import pandas as pd
 
 from indikator._results import VARResult
 

@@ -42,13 +42,11 @@ def test_ht_phasor_sine_wave():
   x = np.linspace(0, 40 * np.pi, 400)
   data = pd.Series(np.sin(x), name="data")
 
-  i_res, q_res = ht_phasor(data)
-  i_exp, q_exp = talib.HT_PHASOR(data.values)
+  i_res, _q_res = ht_phasor(data)
+  i_exp, _q_exp = talib.HT_PHASOR(data.values)
 
   # InPhase matches well (Signal)
   assert i_res.iloc[300:].corr(pd.Series(i_exp).iloc[300:]) > 0.95
-  # Quadrature differs
-  # assert q_res.iloc[300:].corr(pd.Series(q_exp).iloc[300:]) > 0.95
 
 
 # @pytest.mark.xfail(reason="Sine indicators depend on Phase, which has offset")
@@ -73,10 +71,6 @@ def test_ht_trendmode_placeholder():
   # Just check it runs and returns 0/1 (or 0.0/1.0)
   assert len(result) == 100
   assert result.isna().sum() < 100  # Some valid values
-
-  # Since we implemented placeholder, expect mostly 0
-  # Or strict 0 for now.
-  # assert (result.fillna(0) == 0).all()
 
 
 def test_ht_dcperiod_noise_approx():

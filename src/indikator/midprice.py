@@ -7,13 +7,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from datawarden import Finite, NotEmpty, Validated, validate
-from nonfig import Ge, Hyper, configurable
+from datawarden import validate
+from nonfig import configurable
 import numpy as np
-import pandas as pd
 
 if TYPE_CHECKING:
+  from datawarden import Finite, NotEmpty, Validated
+  from nonfig import Ge, Hyper
   from numpy.typing import NDArray
+  import pandas as pd
 
 from indikator._results import MIDPRICEResult
 from indikator._rolling_numba import compute_midprice_numba

@@ -5,7 +5,6 @@ Cumulative volume-weighted indicator using CLV.
 
 from __future__ import annotations
 
-
 from typing import TYPE_CHECKING
 
 from numba import jit  # type: ignore[import-untyped]
@@ -35,11 +34,8 @@ def compute_ad_numba(
 
   for i in range(n):
     hl = high[i] - low[i]
-    if hl > EPSILON:
-      clv = (2.0 * close[i] - high[i] - low[i]) / hl
-    else:
-      clv = 0.0
-    
+    clv = (2.0 * close[i] - high[i] - low[i]) / hl if hl > EPSILON else 0.0
+
     cumulative += clv * volume[i]
     ad[i] = cumulative
 
