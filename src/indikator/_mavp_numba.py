@@ -137,8 +137,129 @@ def compute_mavp_general_numba(
           out[i] = w_sum / w_denom
       return out
 
-  # Default fallback or SMA if type not specifically optimized
-  # (Currently only SMA, EMA, WMA implemented for variable period)
-  # For others, we might need more complex logic.
-  # TA-Lib supports all 9.
-  return out # Should handle other types or return SMA
+  if matype == 3: # DEMA
+      # DEMA = 2 * EMA1 - EMA(EMA1)
+      ema1 = data[0]
+      ema2 = data[0]
+      out[0] = data[0]
+      for i in range(1, n):
+          p = periods[i]
+          if np.isnan(p):
+              out[i] = np.nan
+              continue
+          p = max(min_period, min(max_period, int(p)))
+          k = 2.0 / (p + 1)
+          ema1 = data[i] * k + ema1 * (1.0 - k)
+          ema2 = ema1 * k + ema2 * (1.0 - k)
+          out[i] = 2.0 * ema1 - ema2
+      return out
+
+  if matype == 4: # TEMA
+      # TEMA = 3 * EMA1 - 3 * EMA2 + EMA3
+      ema1 = data[0]
+      ema2 = data[0]
+      ema3 = data[0]
+      out[0] = data[0]
+      for i in range(1, n):
+          p = periods[i]
+          if np.isnan(p):
+              out[i] = np.nan
+              continue
+          p = max(min_period, min(max_period, int(p)))
+          k = 2.0 / (p + 1)
+          ema1 = data[i] * k + ema1 * (1.0 - k)
+          ema2 = ema1 * k + ema2 * (1.0 - k)
+          ema3 = ema2 * k + ema3 * (1.0 - k)
+          out[i] = 3.0 * ema1 - 3.0 * ema2 + ema3
+      return out
+
+  if matype == 5: # TRIMA
+      # TRIMA(p) = SMA(SMA(x, p1), p2)
+      # This is expensive for variable period if we don't have a double prefix sum.
+      # Actually, TRIMA(p) is a triangular weighted average.
+      # Weights: 1, 2, ..., midpoint, ..., 2, 1.
+      for i in range(n):
+          p_float = periods[i]
+          if np.isnan(p_float):
+              out[i] = np.nan
+              continue
+          p = max(min_period, min(max_period, int(p_float)))
+          if i < p - 1:
+              out[i] = np.nan
+              continue
+          
+          # Symmetric triangular weights
+          # p1, p2 as used in TRIMA:
+          if p % 2 == 1:
+              p1 = (p + 1) // 2
+              p2 = p1
+          else:
+              p1 = p // 2
+              p2 = p1 + 1
+          
+          w_sum = 0.0
+          w_total = float(p1 * p2)
+          # Sum over kernel
+          # This is O(N*P).
+          for j in range(p):
+              # weight = min(j+1, p-j, p1, p2) ? no
+              # standard trima kernel: SMA of SMA
+              # For simplicity, use the direct SMA of SMA logic inside bar i
+              pass
+          
+          # Implementation via sliding window of SMA is hard for variable period.
+          # We'll use the weighted sum definition.
+          idx = 0
+          for k2 in range(p2):
+              for k1 in range(p1):
+                  # This is slow, but we'll optimize if needed.
+                  # A bar's value is prices[i - k2 - k1]
+                  w_sum += data[i - k2 - k1]
+          out[i] = w_sum / w_total
+      return out
+
+  if matype == 6: # KAMA
+      # Variable window Efficiency Ratio (ER) based KAMA
+      # This is O(N*P) if we don't use a rolling absolute difference sum.
+      # But variable period ER is rare. We'll use a local window scan.
+      fast_ema = 2.0 / (2.0 + 1.0)
+      slow_ema = 2.0 / (30.0 + 1.0)
+      
+      curr_kama = data[0]
+      out[0] = curr_kama
+      
+      for i in range(1, n):
+          p_f = periods[i]
+          if np.isnan(p_f):
+              out[i] = np.nan
+              continue
+          p = max(min_period, min(max_period, int(p_f)))
+          
+          if i < p:
+              out[i] = np.nan
+              continue
+          
+          # Calculate ER = |price[i] - price[i-p]| / sum(|diffs|)
+          price_diff = abs(data[i] - data[i-p])
+          
+          # Absolute difference sum
+          diff_sum = 0.0
+          for k in range(p):
+              diff_sum += abs(data[i-k] - data[i-k-1])
+          
+          er = price_diff / diff_sum if diff_sum > 1e-12 else 0.0
+          sc = (er * (fast_ema - slow_ema) + slow_ema) ** 2
+          
+          curr_kama = curr_kama + sc * (data[i] - curr_kama)
+          out[i] = curr_kama
+      return out
+
+  # Type 5 (TRIMA) already implemented above.
+  # matype 7 (MAMA) and 8 (T3) are highly specialized and typically not 
+  # used with variable period in a sliding way, but TA-Lib might support them.
+  # For matype 7, MAMA already has internal adaptive period.
+  # For matype 8, variable T3 is extremely niche.
+  # We'll leave them as SMA fallback or unimplemented for now.
+
+  # Default fallback or SMA
+  return out

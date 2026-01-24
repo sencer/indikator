@@ -40,7 +40,7 @@ def mavp(
              Values are clamped between minperiod and maxperiod.
     minperiod: Minimum period allowed (default: 2).
     maxperiod: Maximum period allowed (default: 30).
-    matype: Moving Average Type (0=SMA, 1=EMA, 2=WMA).
+    matype: Moving Average Type (0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA).
 
   Returns:
     pd.Series: MAVP values.
