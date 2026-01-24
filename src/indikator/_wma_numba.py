@@ -1,84 +1,88 @@
 """Numba-optimized WMA (Weighted Moving Average) calculation.
 
-Uses O(1) rolling update similar to slope calculation.
+Uses parallel chunked O(1) rolling update.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit  # type: ignore[import-untyped]
+from numba import jit, prange  # type: ignore[import-untyped]
 import numpy as np
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_wma_numba(
   prices: NDArray[np.float64],
   period: int,
-) -> NDArray[np.float64]:  # pragma: no cover
-  """Numba JIT-compiled WMA with O(1) rolling update.
+) -> NDArray[np.float64]:
+  """Numba JIT-compiled WMA with Parallel Chunked Rolling Update.
 
   WMA = sum(price[i] * weight[i]) / sum(weights)
-  where weight[i] = i + 1 (most recent has highest weight)
-
-  Optimization: Instead of O(period) per step, uses rolling update:
-  - Maintain weighted_sum and unweighted_sum
-  - When sliding: subtract unweighted_sum, add new_price * period
-  - This works because shifting weights down by 1 = subtracting sum of prices
-
-  Args:
-    prices: Array of prices
-    period: Lookback period
-
-  Returns:
-    Array of WMA values
   """
   n = len(prices)
+  out = np.full(n, np.nan, dtype=np.float64)
 
   if n < period:
-    return np.full(n, np.nan)
+    return out
 
-  wma = np.empty(n, dtype=np.float64)
-
-  # Fill NaN for warmup
-  for i in range(period - 1):
-    wma[i] = np.nan
-
-  # Weight sum: 1 + 2 + ... + period = period * (period + 1) / 2
-  weight_sum = period * (period + 1) / 2
+  # Constants
+  weight_sum = period * (period + 1) / 2.0
   inv_weight_sum = 1.0 / weight_sum
 
-  # Initial weighted sum: price[0]*1 + price[1]*2 + ... + price[period-1]*period
-  weighted_sum = 0.0
-  unweighted_sum = 0.0
+  start_v = period - 1
+  total_len = n - start_v
 
-  for j in range(period):
-    weight = j + 1
-    weighted_sum += prices[j] * weight
-    unweighted_sum += prices[j]
+  num_chunks = 16
+  # Adaptive
+  if total_len < 2048:
+    num_chunks = 1
 
-  wma[period - 1] = weighted_sum * inv_weight_sum
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-  # Rolling update loop
-  # When sliding from [i-period+1, i] to [i-period+2, i+1]:
-  # - Remove: prices[i-period+1] had weight 1
-  # - Shift: all other prices' weights decrease by 1 (subtract unweighted_sum - leaving_price)
-  # - Add: new price gets weight = period
-  #
-  # New weighted_sum = old_weighted_sum - unweighted_sum + new_price * period
-  # New unweighted_sum = old_unweighted_sum - leaving_price + new_price
+  for c in prange(num_chunks + 1):
+    idx_start = start_v + c * chunk_size
+    idx_end = start_v + (c + 1) * chunk_size
+    if c == num_chunks:
+      idx_end = n
+    if idx_start >= n:
+      continue
 
-  for i in range(period, n):
-    leaving_price = prices[i - period]
-    entering_price = prices[i]
+    # Initialize rolling state for window ending at idx_start - 1
+    # Range: [idx_start - period, idx_start)
+    weighted_sum = 0.0
+    unweighted_sum = 0.0
 
-    # Update: shift all weights down by 1, remove old, add new
-    weighted_sum = weighted_sum - unweighted_sum + entering_price * period
-    unweighted_sum = unweighted_sum - leaving_price + entering_price
+    start_lookback = idx_start - period
 
-    wma[i] = weighted_sum * inv_weight_sum
+    for k_idx in range(period):
+      # We need to construct WMA state ending at idx_start - 1
+      # Indices in prices: start_lookback ... idx_start - 1
+      # Weights: 1 ... period
 
-  return wma
+      val = prices[start_lookback + k_idx]
+      weight = k_idx + 1
+      weighted_sum += val * weight
+      unweighted_sum += val
+
+    # Rolling Loop
+    for i in range(idx_start, idx_end):
+      leaving_price = prices[i - period]
+      entering_price = prices[i]
+
+      # O(1) Update
+      # New WeightedSum = OldWeightedSum - OldUnweightedSum + NewPrice * Period
+      # New UnweightedSum = OldUnweightedSum - LeavingPrice + EnteringPrice
+
+      weighted_sum = weighted_sum - unweighted_sum + entering_price * period
+      unweighted_sum = unweighted_sum - leaving_price + entering_price
+
+      out[i] = weighted_sum * inv_weight_sum
+
+  return out

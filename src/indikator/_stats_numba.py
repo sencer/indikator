@@ -4,113 +4,166 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit  # type: ignore[import-untyped]
+from numba import jit, prange  # type: ignore[import-untyped]
 import numpy as np
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_stddev_numba(
   data: NDArray[np.float64],
   period: int,
   nbdev: float,
 ) -> NDArray[np.float64]:
-  """Calculate rolling standard deviation using Welford's online algorithm.
+  """Calculate rolling parallel standard deviation.
 
-  Uses population std (ddof=0) to match TA-Lib.
+  Uses Parallel Chunked Welford's algorithm.
   """
   n = len(data)
-  out = np.empty(n, dtype=np.float64)
+  out = np.full(n, np.nan, dtype=np.float64)
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
+  if n < period or period < 2:
+    return out
 
-  # Initialize with first window
-  mean = 0.0
-  m2 = 0.0
-  for i in range(period):
-    delta = data[i] - mean
-    mean += delta / (i + 1)
-    delta2 = data[i] - mean
-    m2 += delta * delta2
+  start_v = period - 1
+  total_len = n - start_v
 
-  # First valid output
-  variance = m2 / period
-  out[period - 1] = np.sqrt(variance) * nbdev
+  num_chunks = 16
+  if total_len < 2048:
+    num_chunks = 1
 
-  # Rolling using incremental update
-  for i in range(period, n):
-    old_val = data[i - period]
-    new_val = data[i]
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    # Remove old value from stats
-    old_mean = mean
-    mean = old_mean + (new_val - old_val) / period
-    # Update M2:
-    # m2_new = m2 - (old - old_mean)(old - mean) + (new - old_mean)(new - mean)
-    m2 = (
-      m2
-      - (old_val - old_mean) * (old_val - mean)
-      + (new_val - old_mean) * (new_val - mean)
-    )
+  # Parallel execution
+  for c in prange(num_chunks + 1):
+    idx_start = start_v + c * chunk_size
+    idx_end = start_v + (c + 1) * chunk_size
+    if c == num_chunks:
+      idx_end = n
+    if idx_start >= n:
+      continue
 
-    variance = m2 / period
-    # Handle numerical issues
-    variance = max(variance, 0.0)
-    out[i] = np.sqrt(variance) * nbdev
+    # Initialize Welford stats for window ending at idx_start - 1
+    # Range: [idx_start - period, idx_start)
+    mean = 0.0
+    m2 = 0.0
+
+    # We must scan the initializing window sequentially to build Welford state
+    # O(Period) overhead per chunk
+
+    # First element of the window
+    start_lookback = idx_start - period
+
+    # Welford initialization loop
+    for k_idx in range(start_lookback, idx_start):
+      val = data[k_idx]
+      # Welford step (incremental)
+      # k is 1-based count in this window
+      count = k_idx - start_lookback + 1
+      delta = val - mean
+      mean += delta / count
+      delta2 = val - mean
+      m2 += delta * delta2
+
+    # Now roll through the chunk
+    for i in range(idx_start, idx_end):
+      old_val = data[i - period]
+      new_val = data[i]
+
+      old_mean = mean
+      mean = old_mean + (new_val - old_val) / period
+      m2 = (
+        m2
+        - (old_val - old_mean) * (old_val - mean)
+        + (new_val - old_mean) * (new_val - mean)
+      )
+
+      # FP correction
+      if m2 < 0:
+        m2 = 0.0
+
+      variance = m2 / period
+      out[i] = np.sqrt(variance) * nbdev
 
   return out
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_var_numba(
   data: NDArray[np.float64],
   period: int,
   nbdev: float,
 ) -> NDArray[np.float64]:
-  """Calculate rolling variance using Welford's online algorithm.
+  """Calculate rolling parallel variance.
 
-  Uses population variance (ddof=0) to match TA-Lib.
+  Uses Parallel Chunked Welford's algorithm.
   """
   n = len(data)
-  out = np.empty(n, dtype=np.float64)
+  out = np.full(n, np.nan, dtype=np.float64)
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
+  if n < period or period < 2:
+    return out
 
-  # Initialize with first window
-  mean = 0.0
-  m2 = 0.0
-  for i in range(period):
-    delta = data[i] - mean
-    mean += delta / (i + 1)
-    delta2 = data[i] - mean
-    m2 += delta * delta2
+  start_v = period - 1
+  total_len = n - start_v
 
-  # First valid output
-  variance = m2 / period
-  out[period - 1] = variance * nbdev
+  num_chunks = 16
+  if total_len < 2048:
+    num_chunks = 1
 
-  # Rolling using incremental update
-  for i in range(period, n):
-    old_val = data[i - period]
-    new_val = data[i]
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    # Remove old value from stats
-    old_mean = mean
-    mean = old_mean + (new_val - old_val) / period
-    m2 = (
-      m2
-      - (old_val - old_mean) * (old_val - mean)
-      + (new_val - old_mean) * (new_val - mean)
-    )
+  for c in prange(num_chunks + 1):
+    idx_start = start_v + c * chunk_size
+    idx_end = start_v + (c + 1) * chunk_size
+    if c == num_chunks:
+      idx_end = n
+    if idx_start >= n:
+      continue
 
-    variance = m2 / period
-    variance = max(variance, 0.0)
-    out[i] = variance * nbdev
+    # Initialize Welford stats
+    mean = 0.0
+    m2 = 0.0
+    start_lookback = idx_start - period
+
+    for k_idx in range(start_lookback, idx_start):
+      val = data[k_idx]
+      count = k_idx - start_lookback + 1
+      delta = val - mean
+      mean += delta / count
+      delta2 = val - mean
+      m2 += delta * delta2
+
+    # Roll
+    for i in range(idx_start, idx_end):
+      old_val = data[i - period]
+      new_val = data[i]
+
+      old_mean = mean
+      mean = old_mean + (new_val - old_val) / period
+      m2 = (
+        m2
+        - (old_val - old_mean) * (old_val - mean)
+        + (new_val - old_mean) * (new_val - mean)
+      )
+
+      if m2 < 0:
+        m2 = 0.0
+
+      variance = m2 / period
+      # nbdev acts as multiplier for variance too? (Usually for STDDEV)
+      # TA-Lib VAR output: real = variance.
+      # Indicator signature: def var(data, period, nbdev=1).
+      # If nbdev is passed, we multiply? TA-Lib has no nbdev for VAR.
+      # But Indikator.VAR signature seems to have it. Let's support it.
+      out[i] = variance * nbdev
 
   return out

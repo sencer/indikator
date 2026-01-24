@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 from indikator._bollinger_numba import (
   compute_bollinger_basic_numba,
   compute_bollinger_numba,
+  compute_bollinger_numba_fast,
 )
 from indikator._results import BollingerBandsResult, BollingerResult
 
@@ -130,7 +131,9 @@ def bollinger_with_bandwidth(
     data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  middle, upper, lower, bandwidth, percent_b = compute_bollinger_numba(
+  # Use optimized Parallel Chunked implementation (fast)
+  # DataWarden guarantees input validity, so we can skip NaN checks in the tight loop
+  middle, upper, lower, bandwidth, percent_b = compute_bollinger_numba_fast(
     values, window, num_std
   )
 

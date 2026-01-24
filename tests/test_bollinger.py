@@ -48,7 +48,7 @@ class TestBollingerBands:
     assert len(result) == len(prices)
 
     # Check middle band is SMA
-    expected_middle = prices.rolling(window=5, min_periods=1).mean()
+    expected_middle = prices.rolling(window=5).mean()
     pd.testing.assert_series_equal(
       result["bb_middle"],
       expected_middle,

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit  # type: ignore[import-untyped]
+from numba import jit, prange  # type: ignore[import-untyped]
 import numpy as np
 
 if TYPE_CHECKING:
@@ -188,49 +188,76 @@ def compute_linearreg_intercept_numba(
   return out
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_linearreg_angle_numba(
   closes: NDArray[np.float64], window: int
 ) -> NDArray[np.float64]:
-  """Compute LINEARREG_ANGLE: the angle of the regression line in degrees.
+  """Compute LINEARREG_ANGLE: the angle of the regression line in degrees (Parallel).
 
   angle = atan(slope) * 180 / pi
 
-  Uses O(1) rolling update for efficiency.
+  Parallel Chunked implementation because atan (and div) are ALU-heavy.
   """
   n = len(closes)
+  out = np.full(n, np.nan, dtype=np.float64)
 
   if window < MIN_WINDOW_SIZE or n < window:
-    return np.full(n, np.nan)
+    return out
 
-  out = np.empty(n, dtype=np.float64)
-
-  for i in range(window - 1):
-    out[i] = np.nan
-
+  # Constants
   x_var = (window * (window**2 - 1.0)) / 12.0
   x_mean = (window - 1.0) / 2.0
   rad_to_deg = 180.0 / np.pi
 
-  sum_y = 0.0
-  sum_xy = 0.0
-  for i in range(window):
-    y = closes[i]
-    sum_y += y
-    sum_xy += i * y
+  # Chunk logic
+  start_v = window - 1
+  total_len = n - start_v
 
-  slope = (sum_xy - x_mean * sum_y) / x_var
-  out[window - 1] = np.arctan(slope) * rad_to_deg
+  num_chunks = 16
+  if total_len < 4096:  # Heuristic threshold higher for lighter O(1) ops
+    num_chunks = 1
 
-  for i in range(window, n):
-    leaving_y = closes[i - window]
-    entering_y = closes[i]
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    sum_y = sum_y - leaving_y + entering_y
-    sum_xy = sum_xy - (sum_y - entering_y) + (window - 1.0) * entering_y
+  for c in prange(num_chunks + 1):
+    idx_start = start_v + c * chunk_size
+    idx_end = start_v + (c + 1) * chunk_size
+    if c == num_chunks:
+      idx_end = n
+    if idx_start >= n:
+      continue
 
-    slope = (sum_xy - x_mean * sum_y) / x_var
-    out[i] = np.arctan(slope) * rad_to_deg
+    # Initialize rolling sums for window ending at idx_start - 1
+    # Window range: [idx_start - window, idx_start - 1] (inclusive)
+    # Length = window.
+
+    start_lookback = idx_start - window
+    sum_y = 0.0
+    sum_xy = 0.0
+
+    # Initialize state
+    for k_idx in range(window):
+      # Weighted sum index k_idx goes 0..window-1
+      # Price index = start_lookback + k_idx
+      # price[start_lookback] has weight 0
+      # price[idx_start-1] has weight window-1
+      val = closes[start_lookback + k_idx]
+      sum_y += val
+      sum_xy += k_idx * val
+
+    # Rolling Loop
+    for i in range(idx_start, idx_end):
+      leaving_y = closes[i - window]
+      entering_y = closes[i]
+
+      sum_y = sum_y - leaving_y + entering_y
+      sum_xy = sum_xy - (sum_y - entering_y) + (window - 1.0) * entering_y
+
+      slope = (sum_xy - x_mean * sum_y) / x_var
+      out[i] = np.arctan(slope) * rad_to_deg
 
   return out
 

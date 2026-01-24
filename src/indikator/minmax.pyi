@@ -12,260 +12,250 @@ from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
 class _min_val_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  @property
-  def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _min_val_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for min_val.
+    """Configuration dictionary for min_val.
 
-  Configuration:
-      period (int)
-  """
+    Configuration:
+        period (int)
+    """
 
-  period: int
+    period: int
 
 class _min_val_Config(_NCMakeableModel[_min_val_Bound]):
-  """Configuration class for min_val.
+    """Configuration class for min_val.
 
-  Rolling Minimum of a series.
+    Rolling Minimum of a series.
 
-  Args:
-    data: Input series used for min calculation.
-    period: The lookback window size (default: 30).
+    Args:
+      data: Input series used for min calculation.
+      period: The lookback window size (default: 30).
 
-  Returns:
-    pd.Series: Rolling minimum values.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-  def __init__(self, *, period: int = ...) -> None: ...
-  """Initialize configuration for min_val.
+    Returns:
+      pd.Series: Rolling minimum values.
 
     Configuration:
         period (int)
     """
 
-  @override
-  def make(self) -> _min_val_Bound: ...
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for min_val.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _min_val_Bound: ...
 
 class min_val:
-  Type = _min_val_Bound
-  Config = _min_val_Config
-  ConfigDict = _min_val_ConfigDict
-  period: ClassVar[int]
-  def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+    Type = _min_val_Bound
+    Config = _min_val_Config
+    ConfigDict = _min_val_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> pd.Series: ...
 
 class _max_val_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  @property
-  def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _max_val_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for max_val.
+    """Configuration dictionary for max_val.
 
-  Configuration:
-      period (int)
-  """
+    Configuration:
+        period (int)
+    """
 
-  period: int
+    period: int
 
 class _max_val_Config(_NCMakeableModel[_max_val_Bound]):
-  """Configuration class for max_val.
+    """Configuration class for max_val.
 
-  Rolling Maximum of a series.
+    Rolling Maximum of a series.
 
-  Args:
-    data: Input series used for max calculation.
-    period: The lookback window size (default: 30).
+    Args:
+      data: Input series used for max calculation.
+      period: The lookback window size (default: 30).
 
-  Returns:
-    pd.Series: Rolling maximum values.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-  def __init__(self, *, period: int = ...) -> None: ...
-  """Initialize configuration for max_val.
+    Returns:
+      pd.Series: Rolling maximum values.
 
     Configuration:
         period (int)
     """
 
-  @override
-  def make(self) -> _max_val_Bound: ...
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for max_val.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _max_val_Bound: ...
 
 class max_val:
-  Type = _max_val_Bound
-  Config = _max_val_Config
-  ConfigDict = _max_val_ConfigDict
-  period: ClassVar[int]
-  def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+    Type = _max_val_Bound
+    Config = _max_val_Config
+    ConfigDict = _max_val_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> pd.Series: ...
 
 class _min_index_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  @property
-  def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _min_index_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for min_index.
+    """Configuration dictionary for min_index.
 
-  Configuration:
-      period (int)
-  """
+    Configuration:
+        period (int)
+    """
 
-  period: int
+    period: int
 
 class _min_index_Config(_NCMakeableModel[_min_index_Bound]):
-  """Configuration class for min_index.
+    """Configuration class for min_index.
 
-  Rolling Index of Minimum value (relative to start of series).
+    Rolling Index of Minimum value (relative to start of series).
 
-  Returns the integer index (0-based) where the minimum value occurred.
+    Returns the integer index (0-based) where the minimum value occurred.
 
-  Args:
-    data: Input series used for min calculation.
-    period: The lookback window size (default: 30).
+    Args:
+      data: Input series used for min calculation.
+      period: The lookback window size (default: 30).
 
-  Returns:
-    pd.Series: Rolling index of minimum values.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-  def __init__(self, *, period: int = ...) -> None: ...
-  """Initialize configuration for min_index.
+    Returns:
+      pd.Series: Rolling index of minimum values.
 
     Configuration:
         period (int)
     """
 
-  @override
-  def make(self) -> _min_index_Bound: ...
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for min_index.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _min_index_Bound: ...
 
 class min_index:
-  Type = _min_index_Bound
-  Config = _min_index_Config
-  ConfigDict = _min_index_ConfigDict
-  period: ClassVar[int]
-  def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+    Type = _min_index_Bound
+    Config = _min_index_Config
+    ConfigDict = _min_index_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> pd.Series: ...
 
 class _max_index_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  @property
-  def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _max_index_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for max_index.
+    """Configuration dictionary for max_index.
 
-  Configuration:
-      period (int)
-  """
+    Configuration:
+        period (int)
+    """
 
-  period: int
+    period: int
 
 class _max_index_Config(_NCMakeableModel[_max_index_Bound]):
-  """Configuration class for max_index.
+    """Configuration class for max_index.
 
-  Rolling Index of Maximum value (relative to start of series).
+    Rolling Index of Maximum value (relative to start of series).
 
-  Returns the integer index (0-based) where the maximum value occurred.
+    Returns the integer index (0-based) where the maximum value occurred.
 
-  Args:
-    data: Input series used for max calculation.
-    period: The lookback window size (default: 30).
+    Args:
+      data: Input series used for max calculation.
+      period: The lookback window size (default: 30).
 
-  Returns:
-    pd.Series: Rolling index of maximum values.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-  def __init__(self, *, period: int = ...) -> None: ...
-  """Initialize configuration for max_index.
+    Returns:
+      pd.Series: Rolling index of maximum values.
 
     Configuration:
         period (int)
     """
 
-  @override
-  def make(self) -> _max_index_Bound: ...
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for max_index.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _max_index_Bound: ...
 
 class max_index:
-  Type = _max_index_Bound
-  Config = _max_index_Config
-  ConfigDict = _max_index_ConfigDict
-  period: ClassVar[int]
-  def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+    Type = _max_index_Bound
+    Config = _max_index_Config
+    ConfigDict = _max_index_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> pd.Series: ...
 
 class _sum_val_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  @property
-  def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
 
 class _sum_val_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for sum_val.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-
-class _sum_val_Config(_NCMakeableModel[_sum_val_Bound]):
-  """Configuration class for sum_val.
-
-  Rolling Sum of a series.
-
-  Args:
-    data: Input series used for sum calculation.
-    period: The lookback window size (default: 30).
-
-  Returns:
-    pd.Series: Rolling sum values.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-  def __init__(self, *, period: int = ...) -> None: ...
-  """Initialize configuration for sum_val.
+    """Configuration dictionary for sum_val.
 
     Configuration:
         period (int)
     """
 
-  @override
-  def make(self) -> _sum_val_Bound: ...
+    period: int
+
+class _sum_val_Config(_NCMakeableModel[_sum_val_Bound]):
+    """Configuration class for sum_val.
+
+    Rolling Sum of a series.
+
+    Args:
+      data: Input series used for sum calculation.
+      period: The lookback window size (default: 30).
+
+    Returns:
+      pd.Series: Rolling sum values.
+
+    Configuration:
+        period (int)
+    """
+
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for sum_val.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _sum_val_Bound: ...
 
 class sum_val:
-  Type = _sum_val_Bound
-  Config = _sum_val_Config
-  ConfigDict = _sum_val_ConfigDict
-  period: ClassVar[int]
-  def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
-  ) -> pd.Series: ...
+    Type = _sum_val_Bound
+    Config = _sum_val_Config
+    ConfigDict = _sum_val_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...) -> pd.Series: ...
