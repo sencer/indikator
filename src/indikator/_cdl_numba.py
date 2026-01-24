@@ -701,3 +701,150 @@ def detect_matching_low_numba(
         out[i] = 100
 
   return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_spinning_top_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Spinning Top (Indecision)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    
+    if rng < 1e-9: continue
+    
+    upper_shadow = high[i] - max(open_[i], close[i])
+    lower_shadow = min(open_[i], close[i]) - low[i]
+    
+    is_small_body = body < (rng * 0.3)
+    has_upper = upper_shadow > body 
+    has_lower = lower_shadow > body
+    
+    if is_small_body & has_upper & has_lower:
+        out[i] = 100 if close[i] >= open_[i] else -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_rickshaw_man_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Rickshaw Man (Doji with long shadows)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    
+    is_doji = body <= (rng * 0.1)
+    
+    midpoint = (high[i] + low[i]) * 0.5
+    body_mid = (open_[i] + close[i]) * 0.5
+    near_mid = abs(body_mid - midpoint) < (rng * 0.1)
+    
+    if is_doji & near_mid & (rng > 0):
+        out[i] = 100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_high_wave_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect High Wave (Extreme Indecision)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    
+    upper_shadow = high[i] - max(open_[i], close[i])
+    lower_shadow = min(open_[i], close[i]) - low[i]
+    
+    is_small_body = body < (rng * 0.2)
+    long_upper = upper_shadow > (rng * 0.3)
+    long_lower = lower_shadow > (rng * 0.3)
+    
+    if is_small_body & long_upper & long_lower:
+        out[i] = 100 if close[i] >= open_[i] else -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_long_legged_doji_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Long Legged Doji."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    body = abs(close[i] - open_[i])
+    rng = high[i] - low[i]
+    
+    is_doji = body <= (rng * 0.1)
+    
+    if is_doji & (rng > body * 5):
+        out[i] = 100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_tristar_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Tristar Pattern."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    b1 = abs(close[i-2] - open_[i-2])
+    r1 = high[i-2] - low[i-2]
+    d1 = b1 <= (r1 * 0.1)
+    
+    b2 = abs(close[i-1] - open_[i-1])
+    r2 = high[i-1] - low[i-1]
+    d2 = b2 <= (r2 * 0.1)
+    
+    b3 = abs(close[i] - open_[i])
+    r3 = high[i] - low[i]
+    d3 = b3 <= (r3 * 0.1)
+    
+    if not (d1 & d2 & d3): continue
+    
+    mid1 = (open_[i-2] + close[i-2])*0.5
+    mid2 = (open_[i-1] + close[i-1])*0.5
+    mid3 = (open_[i] + close[i])*0.5
+    
+    is_top = (mid2 > mid1) & (mid2 > mid3)
+    is_bot = (mid2 < mid1) & (mid2 < mid3)
+    
+    if is_top: out[i] = -100
+    if is_bot: out[i] = 100
+
+  return out

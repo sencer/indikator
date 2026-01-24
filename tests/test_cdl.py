@@ -29,13 +29,18 @@ from indikator.cdl import (
   cdl_hammer,
   cdl_hanging_man,
   cdl_harami,
+  cdl_high_wave,
   cdl_inverted_hammer,
   cdl_kicking,
+  cdl_long_legged_doji,
   cdl_marubozu,
   cdl_matching_low,
   cdl_morning_star,
   cdl_piercing,
+  cdl_rickshaw_man,
   cdl_shooting_star,
+  cdl_spinning_top,
+  cdl_tristar,
 )
 
 
@@ -519,3 +524,57 @@ def test_cdl_matching_low_matches_talib():
   
   result = cdl_matching_low(open_, high, low, close)
   assert result.iloc[50] == 100
+
+
+def test_cdl_spinning_top_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 100.5 # Small body
+  high.iloc[i] = 103.0 # Long upper
+  low.iloc[i] = 97.0 # Long lower
+  
+  result = cdl_spinning_top(open_, high, low, close)
+  assert result.iloc[50] != 0
+
+
+def test_cdl_tristar_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  # Bearish Tristar (Top)
+  i = 50
+  # 1. Doji
+  open_.iloc[i-2] = 100.0; close.iloc[i-2] = 100.0; high.iloc[i-2]=101; low.iloc[i-2]=99
+  # 2. Doji Higher (Star)
+  open_.iloc[i-1] = 102.0; close.iloc[i-1] = 102.0; high.iloc[i-1]=103; low.iloc[i-1]=101
+  # 3. Doji Lower
+  open_.iloc[i] = 100.0; close.iloc[i] = 100.0; high.iloc[i]=101; low.iloc[i]=99
+  
+  result = cdl_tristar(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_high_wave_matches_talib():
+  # Very long shadows, short body
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  open_.iloc[i] = 100.0
+  # Small body (0.2 range)
+  close.iloc[i] = 100.2
+  # Long shadows
+  high.iloc[i] = 105.0
+  low.iloc[i] = 95.0
+  
+  result = cdl_high_wave(open_, high, low, close)
+  assert result.iloc[50] != 0

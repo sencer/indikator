@@ -40,8 +40,14 @@ from indikator._cdl_numba import (
   detect_three_white_soldiers_numba,
   detect_dark_cloud_cover_numba,
   detect_kicking_numba,
+  detect_kicking_numba,
   detect_matching_low_numba,
   detect_piercing_numba,
+  detect_high_wave_numba,
+  detect_long_legged_doji_numba,
+  detect_rickshaw_man_numba,
+  detect_spinning_top_numba,
+  detect_tristar_numba,
 )
 
 
@@ -443,6 +449,99 @@ def cdl_matching_low(
   o, h, l, c = _alloc_ohlc(open_, high, low, close)
   result = detect_matching_low_numba(o, h, l, c)
   return pd.Series(result, index=open_.index, name="cdl_matching_low")
+
+
+@configurable
+@validate
+def cdl_spinning_top(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Spinning Top pattern.
+
+  Returns:
+  - 100: Bullish/Neutral Spinning Top
+  - -100: Bearish/Neutral Spinning Top
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_spinning_top_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_spinning_top")
+
+
+@configurable
+@validate
+def cdl_rickshaw_man(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Rickshaw Man pattern.
+
+  Returns:
+  - 100: Detected
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_rickshaw_man_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_rickshaw_man")
+
+
+@configurable
+@validate
+def cdl_high_wave(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect High Wave pattern.
+
+  Returns:
+  - 100: Bullish High Wave
+  - -100: Bearish High Wave
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_high_wave_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_high_wave")
+
+
+@configurable
+@validate
+def cdl_long_legged_doji(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Long Legged Doji pattern.
+
+  Returns:
+  - 100: Detected
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_long_legged_doji_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_long_legged_doji")
+
+
+@configurable
+@validate
+def cdl_tristar(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Tristar pattern.
+
+  Returns:
+  - 100: Bullish Tristar
+  - -100: Bearish Tristar
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_tristar_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_tristar")
 
 
 def _alloc_ohlc(open_, high, low, close):
