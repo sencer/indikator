@@ -5,6 +5,7 @@ Cumulative volume-weighted indicator using CLV.
 
 from __future__ import annotations
 
+
 from typing import TYPE_CHECKING
 
 from numba import jit  # type: ignore[import-untyped]
@@ -26,19 +27,6 @@ def compute_ad_numba(
   """Numba JIT-compiled A/D Line calculation.
 
   A/D = cumsum(CLV * Volume)
-  CLV = ((Close - Low) - (High - Close)) / (High - Low)
-       = (2*Close - High - Low) / (High - Low)
-
-  Measures buying/selling pressure accumulation.
-
-  Args:
-    high: High prices
-    low: Low prices
-    close: Close prices
-    volume: Volume
-
-  Returns:
-    Array of cumulative A/D values
   """
   n = len(close)
   ad = np.empty(n, dtype=np.float64)
@@ -46,17 +34,13 @@ def compute_ad_numba(
   cumulative = 0.0
 
   for i in range(n):
-    hl_range = high[i] - low[i]
-
-    if hl_range > EPSILON:
-      # CLV = (2*close - high - low) / (high - low)
-      clv = (2.0 * close[i] - high[i] - low[i]) / hl_range
+    hl = high[i] - low[i]
+    if hl > EPSILON:
+      clv = (2.0 * close[i] - high[i] - low[i]) / hl
     else:
       clv = 0.0
-
-    # Money Flow Volume
-    mfv = clv * volume[i]
-    cumulative += mfv
+    
+    cumulative += clv * volume[i]
     ad[i] = cumulative
 
   return ad

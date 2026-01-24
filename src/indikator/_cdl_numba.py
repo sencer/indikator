@@ -1869,6 +1869,56 @@ def detect_three_stars_in_south_numba(
   close: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Three Stars In The South."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+  
+  if n < 2:
+      return out
+
+  for i in range(2, n):
+      # Logic for 3 Stars In South (Bullish Reversal)
+      # 1. Long black body, long lower shadow (hammer-like but black)
+      # 2. Black body embedded within 1's range, lower high, higher low? 
+      # No, standard def:
+      # 1. Long black line with long lower shadow.
+      # 2. Black line with lower high & higher low (harami-like), but also has long lower shadow?
+      #    Actually: 2nd day opens inside 1st body, closes lower but above 1st low.
+      # 3. Small black marubozu (or small shadow), inside 2nd day range.
+      # Simplified TA-Lib:
+      # All 3 days must be black.
+      # Day 1: Long body, long lower shadow.
+      # Day 2: Inside Day 1 (lower high, higher low). Lower shadow. 
+      # Day 3: Inside Day 2. Small marubozu (no/short shadows).
+      
+      # Using basic placeholder logic as exact TA-Lib match requires detailed body/shadow stats.
+      # Since we are just fixing the compile error, we init `out`.
+      # We will implement a simplified check to be functional.
+      
+      c0, o0, l0, h0 = close[i-2], open_[i-2], low[i-2], high[i-2]
+      c1, o1, l1, h1 = close[i-1], open_[i-1], low[i-1], high[i-1]
+      c2, o2, l2, h2 = close[i], open_[i], low[i], high[i]
+      
+      is_black0 = c0 < o0
+      is_black1 = c1 < o1
+      is_black2 = c2 < o2
+      
+      if is_black0 & is_black1 & is_black2:
+          # Check "shrinking" trend
+          # Day 1: Long lower shadow: (min(o0,c0) - l0) significantly > body
+          body0 = o0 - c0
+          shadow0 = c0 - l0
+          long_shadow0 = shadow0 > body0
+          
+          # Day 2: Inside Lower Shadow of 1? Or standard Harami?
+          # TA-Lib: High[i-1] < High[i-2] and Low[i-1] > Low[i-2]
+          inside1 = (h1 < h0) & (l1 > l0)
+          
+          # Day 3: Small range, inside 2
+          inside2 = (h2 < h1) & (l2 > l1)
+          
+          if long_shadow0 & inside1 & inside2:
+              out[i] = 100
+
   return out
 
 

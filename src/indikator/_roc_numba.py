@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit, prange  # type: ignore[import-untyped]
+from numba import jit  # type: ignore[import-untyped]
 import numpy as np
 
 if TYPE_CHECKING:
@@ -19,7 +19,10 @@ def compute_roc_numba(
   prices: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled ROC calculation (Parallel)."""
+  """Numba JIT-compiled ROC calculation (Sequential).
+
+  ROC = ((Price - Price_n_periods_ago) / Price_n_periods_ago) * 100
+  """
   n = len(prices)
   out = np.empty(n, dtype=np.float64)
 
@@ -30,11 +33,10 @@ def compute_roc_numba(
   # NaN for warmup
   out[:period] = np.nan
 
-  # Parallel computation
   for i in range(period, n):
-    prev_price = prices[i - period]
-    if abs(prev_price) > 1e-12:
-      out[i] = ((prices[i] - prev_price) / prev_price) * 100.0
+    prev = prices[i - period]
+    if prev != 0.0:
+      out[i] = ((prices[i] - prev) / prev) * 100.0
     else:
       out[i] = 0.0
 
@@ -46,7 +48,7 @@ def compute_rocp_numba(
   prices: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled ROCP calculation (Parallel)."""
+  """Numba JIT-compiled ROCP calculation (Sequential)."""
   n = len(prices)
   out = np.empty(n, dtype=np.float64)
 
@@ -57,9 +59,9 @@ def compute_rocp_numba(
   out[:period] = np.nan
 
   for i in range(period, n):
-    prev_price = prices[i - period]
-    if abs(prev_price) > 1e-12:
-      out[i] = (prices[i] - prev_price) / prev_price
+    prev = prices[i - period]
+    if prev != 0.0:
+      out[i] = (prices[i] - prev) / prev
     else:
       out[i] = 0.0
 
@@ -71,7 +73,7 @@ def compute_rocr_numba(
   prices: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled ROCR calculation (Parallel)."""
+  """Numba JIT-compiled ROCR calculation (Sequential)."""
   n = len(prices)
   out = np.empty(n, dtype=np.float64)
 
@@ -82,9 +84,9 @@ def compute_rocr_numba(
   out[:period] = np.nan
 
   for i in range(period, n):
-    prev_price = prices[i - period]
-    if abs(prev_price) > 1e-12:
-      out[i] = prices[i] / prev_price
+    prev = prices[i - period]
+    if prev != 0.0:
+      out[i] = prices[i] / prev
     else:
       out[i] = 0.0
 
@@ -96,7 +98,7 @@ def compute_rocr100_numba(
   prices: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled ROCR100 calculation (Parallel)."""
+  """Numba JIT-compiled ROCR100 calculation (Sequential)."""
   n = len(prices)
   out = np.empty(n, dtype=np.float64)
 
@@ -107,9 +109,9 @@ def compute_rocr100_numba(
   out[:period] = np.nan
 
   for i in range(period, n):
-    prev_price = prices[i - period]
-    if abs(prev_price) > 1e-12:
-      out[i] = (prices[i] / prev_price) * 100.0
+    prev = prices[i - period]
+    if prev != 0.0:
+      out[i] = (prices[i] / prev) * 100.0
     else:
       out[i] = 0.0
 

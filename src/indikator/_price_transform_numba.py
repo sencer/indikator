@@ -21,7 +21,7 @@ def compute_typprice_numba(
   n = len(high)
   out = np.empty(n, dtype=np.float64)
   for i in range(n):
-    out[i] = (high[i] + low[i] + close[i]) / 3.0
+    out[i] = (high[i] + low[i] + close[i]) * 0.3333333333333333
   return out
 
 
@@ -34,7 +34,7 @@ def compute_medprice_numba(
   n = len(high)
   out = np.empty(n, dtype=np.float64)
   for i in range(n):
-    out[i] = (high[i] + low[i]) / 2.0
+    out[i] = (high[i] + low[i]) * 0.5
   return out
 
 
@@ -48,7 +48,7 @@ def compute_wclprice_numba(
   n = len(high)
   out = np.empty(n, dtype=np.float64)
   for i in range(n):
-    out[i] = (high[i] + low[i] + 2.0 * close[i]) / 4.0
+    out[i] = (high[i] + low[i] + 2.0 * close[i]) * 0.25
   return out
 
 
@@ -63,5 +63,5 @@ def compute_avgprice_numba(
   n = len(high)
   out = np.empty(n, dtype=np.float64)
   for i in range(n):
-    out[i] = (open_[i] + high[i] + low[i] + close[i]) / 4.0
+    out[i] = (open_[i] + high[i] + low[i] + close[i]) * 0.25
   return out

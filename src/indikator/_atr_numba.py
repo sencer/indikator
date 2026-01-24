@@ -15,7 +15,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
 def compute_true_range_numba(
   highs: NDArray[np.float64],
   lows: NDArray[np.float64],
@@ -29,14 +29,6 @@ def compute_true_range_numba(
   3. |Current low - previous close|
 
   For the first bar, true range equals high - low since there's no previous close.
-
-  Args:
-    highs: Array of high prices
-    lows: Array of low prices
-    closes: Array of close prices
-
-  Returns:
-    Array of true range values
   """
   n = len(highs)
   tr = np.empty(n, dtype=np.float64)
@@ -55,8 +47,10 @@ def compute_true_range_numba(
     lc = abs(lows[i] - closes[i - 1])
 
     curr_max = hl
-    curr_max = max(curr_max, hc)
-    curr_max = max(curr_max, lc)
+    if hc > curr_max:
+        curr_max = hc
+    if lc > curr_max:
+        curr_max = lc
 
     tr[i] = curr_max
 
@@ -92,8 +86,8 @@ def compute_true_range_numba_2d(
     lc = abs(l - prev_c)
 
     curr_max = hl
-    curr_max = max(curr_max, hc)
-    curr_max = max(curr_max, lc)
+    if hc > curr_max: curr_max = hc
+    if lc > curr_max: curr_max = lc
 
     tr[i] = curr_max
 
@@ -111,22 +105,9 @@ def compute_atr_numba(
 
   Uses Wilder's smoothing method (similar to EMA but with different smoothing factor):
   ATR = (ATR_previous * (window - 1) + TR_current) / window
-
-  For the initial ATR, uses simple moving average of first 'window' true ranges.
-  First valid output is at index `window` (matching TA-lib behavior).
-
-  Args:
-    high: Array of high prices
-    low: Array of low prices
-    close: Array of close prices
-    window: Smoothing period (typically 14)
-
-  Returns:
-    Array of ATR values (NaN for initial bars where window not satisfied)
   """
   n = len(high)
 
-  # Need at least window+1 bars for first valid ATR at index window
   if n <= window:
     return np.full(n, np.nan)
 
@@ -134,7 +115,6 @@ def compute_atr_numba(
   atr[:window] = np.nan
 
   # Calculate initial SMA of first window TRs (indices 1 to window)
-  # TR[0] is H-L (ignored by TA-Lib algorithm?), TR[1..window] use previous close
   sum_tr = 0.0
 
   for i in range(1, window + 1):
@@ -144,7 +124,7 @@ def compute_atr_numba(
     tr = max(hl, hc, lc)
     sum_tr += tr
 
-  # First ATR at index window is SMA of TRs 1..window (window values)
+  # First ATR at index window
   atr[window] = sum_tr / window
 
   # Use Wilder's smoothing for subsequent values
