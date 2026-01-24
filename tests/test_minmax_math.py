@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import pytest
 import talib
-from indikator.minmax import min_val, max_val, min_index, max_index, sum_val
+
+from indikator.minmax import max_index, max_val, min_index, min_val, sum_val
 
 
 @pytest.mark.parametrize("period", [5, 14, 30])

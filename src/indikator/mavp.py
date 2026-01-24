@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, cast
 
-import numpy as np
-import pandas as pd
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,6 +11,8 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
+import numpy as np
+import pandas as pd
 
 from indikator._mavp_numba import compute_mavp_sma_numba
 

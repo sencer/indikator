@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
-from indikator._mfi_numba import compute_mfi_numba
+from indikator._momentum_numba import compute_mfi_numba
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray

@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 
 from indikator._adx_numba import compute_adx_numba, compute_adx_numba_pure
 from indikator._results import (
-  ADXRResult,
   ADXResult,
+  ADXRResult,
   ADXSingleResult,
   DXResult,
   MinusDIResult,

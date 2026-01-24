@@ -8,7 +8,7 @@ from datawarden import (
   Validated,
   validate,
 )
-from nonfig import Hyper, configurable
+from nonfig import configurable
 import numpy as np
 import pandas as pd
 

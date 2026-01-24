@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-import numpy as np
-import pandas as pd
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,11 +11,13 @@ from datawarden import (
   validate,
 )
 from nonfig import configurable
+import numpy as np
+import pandas as pd
 
 from indikator._cycle_numba import (
-  compute_ht_master_numba,
   compute_ht_dcperiod_numba,
   compute_ht_dcphase_numba,
+  compute_ht_master_numba,
   compute_ht_phasor_numba,
   compute_ht_sine_numba,
 )

@@ -3,8 +3,6 @@
 Measures the rate of change in price over a specified period.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -14,9 +12,6 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._mom_numba import compute_mom_numba
 from indikator._results import MOMResult

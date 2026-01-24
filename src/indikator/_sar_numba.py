@@ -82,12 +82,11 @@ def compute_sar_numba(
         sar_value = min(sar_value, low[i - 1], low[i - 2])
       else:
         sar_value = min(sar_value, low[i - 1])
+    # In downtrend, SAR cannot be below prior two highs
+    elif i > 2:
+      sar_value = max(sar_value, high[i - 1], high[i - 2])
     else:
-      # In downtrend, SAR cannot be below prior two highs
-      if i > 2:
-        sar_value = max(sar_value, high[i - 1], high[i - 2])
-      else:
-        sar_value = max(sar_value, high[i - 1])
+      sar_value = max(sar_value, high[i - 1])
 
     # Check for reversal
     if is_long:

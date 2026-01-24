@@ -5,15 +5,12 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from __future__ import annotations
 
-from typing import ClassVar
-from typing import Protocol
-from typing import TypedDict
-from typing import override
-
-from nonfig import MakeableModel as _NCMakeableModel
+from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
+from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
 from indikator._results import MIDPRICEResult
 
 class _midprice_Bound(Protocol):

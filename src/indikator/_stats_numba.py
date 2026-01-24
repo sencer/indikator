@@ -59,8 +59,7 @@ def compute_stddev_numba(
 
     variance = m2 / period
     # Handle numerical issues
-    if variance < 0.0:
-      variance = 0.0
+    variance = max(variance, 0.0)
     out[i] = np.sqrt(variance) * nbdev
 
   return out
@@ -111,8 +110,7 @@ def compute_var_numba(
     )
 
     variance = m2 / period
-    if variance < 0.0:
-      variance = 0.0
+    variance = max(variance, 0.0)
     out[i] = variance * nbdev
 
   return out

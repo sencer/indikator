@@ -19,7 +19,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
-from indikator._cci_numba import compute_cci_numba
+from indikator._momentum_numba import compute_cci_numba
 from indikator._results import CCIResult
 
 

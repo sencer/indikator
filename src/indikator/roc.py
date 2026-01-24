@@ -18,12 +18,12 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
-from indikator._results import ROCResult, ROCRResult, ROCR100Result, ROCPResult
+from indikator._results import ROCPResult, ROCR100Result, ROCResult, ROCRResult
 from indikator._roc_numba import (
   compute_roc_numba,
   compute_rocp_numba,
-  compute_rocr_numba,
   compute_rocr100_numba,
+  compute_rocr_numba,
 )
 
 

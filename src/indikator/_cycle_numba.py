@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import math
+from typing import TYPE_CHECKING
 
 from numba import jit  # type: ignore[import-untyped]
 import numpy as np
@@ -132,10 +132,8 @@ def compute_ht_master_numba(
         elif temp_period < 0.67 * prev_period:
           temp_period = 0.67 * prev_period
 
-      if temp_period < 6.0:
-        temp_period = 6.0
-      if temp_period > 50.0:
-        temp_period = 50.0
+      temp_period = max(temp_period, 6.0)
+      temp_period = min(temp_period, 50.0)
 
       if prev_period == 0.0:
         period = temp_period

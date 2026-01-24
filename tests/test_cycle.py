@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import pytest
 import talib
+
 from indikator.cycle import ht_dcperiod, ht_dcphase, ht_phasor, ht_sine, ht_trendmode
 
 

@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
-
-import numpy as np
-import pandas as pd
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,9 +9,8 @@ from datawarden import (
   validate,
 )
 from nonfig import configurable
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+import numpy as np
+import pandas as pd
 
 
 @configurable

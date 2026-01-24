@@ -55,10 +55,8 @@ def compute_true_range_numba(
     lc = abs(lows[i] - closes[i - 1])
 
     curr_max = hl
-    if hc > curr_max:
-      curr_max = hc
-    if lc > curr_max:
-      curr_max = lc
+    curr_max = max(curr_max, hc)
+    curr_max = max(curr_max, lc)
 
     tr[i] = curr_max
 
@@ -94,10 +92,8 @@ def compute_true_range_numba_2d(
     lc = abs(l - prev_c)
 
     curr_max = hl
-    if hc > curr_max:
-      curr_max = hc
-    if lc > curr_max:
-      curr_max = lc
+    curr_max = max(curr_max, hc)
+    curr_max = max(curr_max, lc)
 
     tr[i] = curr_max
 

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import pytest
 import talib
+
 from indikator.mavp import mavp
 
 

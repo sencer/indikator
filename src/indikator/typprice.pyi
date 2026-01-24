@@ -5,14 +5,12 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from __future__ import annotations
 
-from typing import Protocol
-from typing import TypedDict
-from typing import override
-
-from nonfig import MakeableModel as _NCMakeableModel
+from typing import Protocol, TypedDict
 
 from datawarden import Finite, NotEmpty, Validated
+from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
 from indikator._results import TYPPRICEResult
 
 class _typprice_Bound(Protocol):

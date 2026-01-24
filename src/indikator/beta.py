@@ -21,11 +21,10 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._correlation_numba import (
-  compute_beta_numba,
   compute_beta_fused_rocp_numba,
+  compute_beta_numba,
 )
 from indikator._results import BETAResult
-from indikator._roc_numba import compute_rocp_numba
 
 
 @configurable

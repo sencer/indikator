@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit  # type: ignore[import-untyped]
 import numpy as np
 
 if TYPE_CHECKING:

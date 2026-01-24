@@ -3,15 +3,12 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import ClassVar
-from typing import Protocol
-from typing import TypedDict
-from typing import override
-
-from nonfig import MakeableModel as _NCMakeableModel
+from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Datetime, Finite, Index, NotEmpty, Validated
+from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
+
 from indikator._results import ZScoreIntradayResult, ZScoreResult
 
 class _zscore_Bound(Protocol):

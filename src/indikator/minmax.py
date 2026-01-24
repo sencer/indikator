@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, cast
+from typing import TYPE_CHECKING, cast
 
+from datawarden import (
+  Finite,
+  NotEmpty,
+  Validated,
+  validate,
+)
+from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
-from numba import jit
 
 from indikator._rolling_numba import (
   compute_max_numba,
@@ -15,13 +21,6 @@ from indikator._rolling_numba import (
   compute_minindex_numba,
   compute_sum_numba,
 )
-from datawarden import (
-  Finite,
-  NotEmpty,
-  Validated,
-  validate,
-)
-from nonfig import Ge, Hyper, configurable
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
