@@ -42,17 +42,22 @@ def ppo(
     PPOResult
   """
   if matype == 1:
-    fast_ma = ema(data, period=fast_period).to_pandas()
-    slow_ma = ema(data, period=slow_period).to_pandas()
+    fast_ma = ema(data, period=fast_period).ema
+    slow_ma = ema(data, period=slow_period).ema
   else:
     # Default to SMA
-    fast_ma = sma(data, period=fast_period).to_pandas()
-    slow_ma = sma(data, period=slow_period).to_pandas()
+    fast_ma = sma(data, period=fast_period).sma
+    slow_ma = sma(data, period=slow_period).sma
 
   # Avoid div by zero?
   # If slow_ma is 0, result is likely NaN or Inf.
   # Pandas handles division by zero by returning Inf or NaN.
-  ppo_values = (fast_ma - slow_ma) / slow_ma * 100.0
-  ppo_np = cast("NDArray[np.float64]", ppo_values.to_numpy(dtype=float, copy=False))
+  # Numpy handles it by returning Inf or likely complaining if we don't watch out.
+  # But assuming float inputs, it returns inf/nan.
+  # We can silence warnings or let it be.
+  with np.errstate(divide="ignore", invalid="ignore"):
+    ppo_values = (fast_ma - slow_ma) / slow_ma * 100.0
+
+  ppo_np = cast("NDArray[np.float64]", ppo_values)
 
   return PPOResult(index=data.index, ppo=ppo_np)

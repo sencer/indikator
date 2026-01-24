@@ -45,14 +45,14 @@ def apo(
   # If matype=0, use SMA. If 1, use EMA.
 
   if matype == 1:
-    fast_ma = ema(data, period=fast_period).to_pandas()
-    slow_ma = ema(data, period=slow_period).to_pandas()
+    fast_ma = ema(data, period=fast_period).ema
+    slow_ma = ema(data, period=slow_period).ema
   else:
     # Default to SMA
-    fast_ma = sma(data, period=fast_period).to_pandas()
-    slow_ma = sma(data, period=slow_period).to_pandas()
+    fast_ma = sma(data, period=fast_period).sma
+    slow_ma = sma(data, period=slow_period).sma
 
   apo_values = fast_ma - slow_ma
-  apo_np = cast("NDArray[np.float64]", apo_values.to_numpy(dtype=float, copy=False))
+  apo_np = cast("NDArray[np.float64]", apo_values)
 
   return APOResult(index=data.index, apo=apo_np)
