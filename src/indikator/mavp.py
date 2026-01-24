@@ -40,7 +40,7 @@ def mavp(
              Values are clamped between minperiod and maxperiod.
     minperiod: Minimum period allowed (default: 2).
     maxperiod: Maximum period allowed (default: 30).
-    matype: Moving Average Type (0=SMA). Currently only 0 is supported.
+    matype: Moving Average Type (0=SMA, 1=EMA, 2=WMA).
 
   Returns:
     pd.Series: MAVP values.
@@ -59,13 +59,14 @@ def mavp(
     raise ValueError("data and periods must have the same length")
 
   # Dispatch based on matype
-  # Currently only supporting SMA (0)
-  if matype != 0:
-    # Warn or fallback? TA-Lib behavior is usually to support multiple.
-    # For now, we only implement optimized SMA.
-    # Explicitly mention only SMA is supported in docs.
-    pass
-
-  result = compute_mavp_sma_numba(input_arr, periods_arr, minperiod, maxperiod)
+  if matype == 0:
+      result = compute_mavp_sma_numba(input_arr, periods_arr, minperiod, maxperiod)
+  else:
+      # For other matypes, we need specialized kernels or a general approach.
+      # EMA with variable period is complex as alpha varies.
+      # TA-Lib supports them. For parity, we should support them.
+      # We'll implement a general variable period MA kernel for recursive types.
+      from indikator._mavp_numba import compute_mavp_general_numba
+      result = compute_mavp_general_numba(input_arr, periods_arr, minperiod, maxperiod, matype)
 
   return pd.Series(result, index=data.index, name="mavp")
