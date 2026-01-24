@@ -1884,27 +1884,28 @@ def detect_xsidegap3methods_numba(
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(2, n):
+    o0, h0, l0, c0 = open_[i-2], high[i-2], low[i-2], close[i-2]
+    o1, h1, l1, c1 = open_[i-1], high[i-1], low[i-1], close[i-1]
+    o2, h2, l2, c2 = open_[i], high[i], low[i], close[i]
+
     # Upside Gap Three Methods (Bullish)
-    # 1. Long white body
-    # 2. Long white body with gap up
-    # 3. Black body that opens inside body of 2 and closes inside body of 1
-    bull1 = close[i-2] > open_[i-2]
-    bull2 = close[i-1] > open_[i-1]
-    bear3 = close[i] < open_[i]
+    bull1 = c0 > o0
+    bull2 = c1 > o1
+    bear3 = c2 < o2
+    gap_up = o1 > c0
+    fill_up = (o2 < c1) & (o2 > o1) & (c2 < o1) & (c2 > o0)
     
-    if bull1 & bull2 & bear3:
-        gap = open_[i-1] > close[i-2]
-        fill = (open_[i] < close[i-1]) & (open_[i] > open_[i-1]) & (close[i] < open_[i-1]) & (close[i] > open_[i-2])
-        if gap & fill: out[i] = 100
-        
+    is_bull = bull1 & bull2 & bear3 & gap_up & fill_up
+    
     # Downside Gap Three Methods (Bearish)
-    bear1 = close[i-2] < open_[i-2]
-    bear2 = close[i-1] < open_[i-1]
-    bull3 = close[i] > open_[i]
+    bear1 = c0 < o0
+    bear2 = c1 < o1
+    bull3 = c2 > o2
+    gap_down = o1 < c0
+    fill_down = (o2 > c1) & (o2 < o1) & (c2 > o1) & (c2 < o0)
+
+    is_bear = bear1 & bear2 & bull3 & gap_down & fill_down
     
-    if bear1 & bear2 & bull3:
-        gap_down = open_[i-1] < close[i-2]
-        fill_down = (open_[i] > close[i-1]) & (open_[i] < open_[i-1]) & (close[i] > open_[i-1]) & (close[i] < open_[i-2])
-        if gap_down & fill_down: out[i] = -100
+    out[i] = (is_bull * 100) - (is_bear * 100)
 
   return out
