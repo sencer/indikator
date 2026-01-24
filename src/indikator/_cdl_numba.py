@@ -409,3 +409,163 @@ def detect_evening_star_numba(
         out[i] = -100
 
   return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_three_black_crows_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Three Black Crows (Branchless)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(3, n):
+    is_bear1 = close[i-2] < open_[i-2]
+    is_bear2 = close[i-1] < open_[i-1]
+    is_bear3 = close[i] < open_[i]
+
+    lower_close1 = close[i-1] < close[i-2]
+    lower_close2 = close[i] < close[i-1]
+
+    open_in_body1 = (open_[i-1] < open_[i-2]) & (open_[i-1] > close[i-2])
+    open_in_body2 = (open_[i] < open_[i-1]) & (open_[i] > close[i-1])
+
+    if is_bear1 & is_bear2 & is_bear3 & lower_close1 & lower_close2 & open_in_body1 & open_in_body2:
+      out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_three_white_soldiers_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Three White Soldiers (Branchless)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(3, n):
+    is_bull1 = close[i-2] > open_[i-2]
+    is_bull2 = close[i-1] > open_[i-1]
+    is_bull3 = close[i] > open_[i]
+
+    higher_close1 = close[i-1] > close[i-2]
+    higher_close2 = close[i] > close[i-1]
+
+    open_in_body1 = (open_[i-1] > open_[i-2]) & (open_[i-1] < close[i-2])
+    open_in_body2 = (open_[i] > open_[i-1]) & (open_[i] < close[i-1])
+
+    if is_bull1 & is_bull2 & is_bull3 & higher_close1 & higher_close2 & open_in_body1 & open_in_body2:
+      out[i] = 100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_three_inside_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Three Inside Up/Down (Branchless)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    o1, c1 = open_[i-2], close[i-2]
+    o2, c2 = open_[i-1], close[i-1]
+    o3, c3 = open_[i], close[i]
+    
+    top1, bot1 = max(o1, c1), min(o1, c1)
+    top2, bot2 = max(o2, c2), min(o2, c2)
+    
+    is_harami = (top2 < top1) & (bot2 > bot1)
+    
+    if not is_harami: continue
+        
+    is_bull1 = c1 > o1
+    is_bear1 = c1 < o1
+    is_bull3 = c3 > o3
+    is_bear3 = c3 < o3
+    
+    is_inside_up = is_bear1 & (c2 > o2) & is_bull3 & (c3 > c2)
+    is_inside_down = is_bull1 & (c2 < o2) & is_bear3 & (c3 < c2)
+    
+    out[i] = (is_inside_up * 100) - (is_inside_down * 100)
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_three_outside_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Three Outside Up/Down."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    o1, c1 = open_[i-2], close[i-2]
+    o2, c2 = open_[i-1], close[i-1]
+    c3 = close[i]
+    
+    is_bear1 = c1 < o1
+    is_bull2 = c2 > o2
+    engulfs_up = (c2 > o1) & (o2 < c1)
+    confirm_up = c3 > c2
+    
+    is_bull1 = c1 > o1
+    is_bear2 = c2 < o2
+    engulfs_down = (c2 < o1) & (o2 > c1)
+    confirm_down = c3 < c2
+    
+    is_up = is_bear1 & is_bull2 & engulfs_up & confirm_up
+    is_down = is_bull1 & is_bear2 & engulfs_down & confirm_down
+    
+    out[i] = (is_up * 100) - (is_down * 100)
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_three_line_strike_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Three Line Strike (Branchless)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(4, n):
+    c1, o1 = close[i-3], open_[i-3]
+    c2, o2 = close[i-2], open_[i-2]
+    c3, o3 = close[i-1], open_[i-1]
+    c4, o4 = close[i], open_[i]
+    
+    is_3_bears = (c1 < o1) & (c2 < o2) & (c3 < o3)
+    is_stairs_down = (c2 < c1) & (c3 < c2)
+    is_bull_strike = (c4 > o4) & (c4 > o1)
+    
+    strike_up = is_3_bears & is_stairs_down & is_bull_strike
+    
+    is_3_bulls = (c1 > o1) & (c2 > o2) & (c3 > o3)
+    is_stairs_up = (c2 > c1) & (c3 > c2)
+    is_bear_strike = (c4 < o4) & (c4 < o1)
+    
+    strike_down = is_3_bulls & is_stairs_up & is_bear_strike
+    
+    out[i] = (strike_up * 100) - (strike_down * 100)
+
+  return out

@@ -3,6 +3,25 @@ import pandas as pd
 import talib
 
 from indikator.cdl import (
+  cdl_3black_crows,
+  cdl_3inside,
+  cdl_3line_strike,
+  cdl_3outside,
+  cdl_3white_soldiers,
+  cdl_doji,
+  cdl_engulfing,
+  cdl_evening_star,
+  cdl_hammer,
+  cdl_hanging_man,
+  cdl_harami,
+  cdl_inverted_hammer,
+  cdl_marubozu,
+  cdl_morning_star,
+  cdl_3black_crows,
+  cdl_3inside,
+  cdl_3line_strike,
+  cdl_3outside,
+  cdl_3white_soldiers,
   cdl_doji,
   cdl_engulfing,
   cdl_evening_star,
@@ -287,3 +306,125 @@ def test_cdl_evening_star_matches_talib():
   
   result = cdl_evening_star(open_, high, low, close)
   assert result.iloc[50] == -100
+
+
+def test_cdl_3black_crows_matches_talib():
+  open_ = pd.Series(np.linspace(100, 80, 100), name="open") + np.random.randn(100)
+  close = open_ - 1.0 # General downtrend
+  high = open_ + 0.1
+  low = close - 0.1
+  
+  i = 50
+  # Crow 1
+  open_.iloc[i-2] = 100.0
+  close.iloc[i-2] = 98.0
+  # Crow 2 (Opens inside 1, closes lower)
+  open_.iloc[i-1] = 99.0
+  close.iloc[i-1] = 97.0
+  # Crow 3 (Opens inside 2, closes lower)
+  open_.iloc[i] = 98.0
+  close.iloc[i] = 96.0
+  
+  result = cdl_3black_crows(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_3white_soldiers_matches_talib():
+  open_ = pd.Series(np.linspace(80, 100, 100), name="open")
+  close = open_ + 1.0
+  high = close + 0.1
+  low = open_ - 0.1
+  
+  i = 50
+  # Soldier 1
+  open_.iloc[i-2] = 100.0
+  close.iloc[i-2] = 102.0
+  # Soldier 2
+  open_.iloc[i-1] = 101.0
+  close.iloc[i-1] = 103.0
+  # Soldier 3
+  open_.iloc[i] = 102.0
+  close.iloc[i] = 104.0
+  
+  result = cdl_3white_soldiers(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_3inside_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Inside Up: Bear -> Harami (Bull) -> Bull confirmation
+  # 1. Bear
+  open_.iloc[i-2] = 105.0
+  close.iloc[i-2] = 100.0
+  high.iloc[i-2] = 105.1
+  low.iloc[i-2] = 99.9
+  
+  # 2. Bull (Inside)
+  open_.iloc[i-1] = 101.0
+  close.iloc[i-1] = 102.0
+  high.iloc[i-1] = 102.1
+  low.iloc[i-1] = 100.9
+  
+  # 3. Bull (Confirm, Close > C2)
+  open_.iloc[i] = 102.0
+  close.iloc[i] = 106.0
+  high.iloc[i] = 106.1
+  low.iloc[i] = 101.9
+  
+  result = cdl_3inside(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_3outside_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Outside Up: Bear -> Bull Engulfing -> Bull confirmation
+  # 1. Bear
+  open_.iloc[i-2] = 102.0
+  close.iloc[i-2] = 101.0
+  
+  # 2. Bull Engulfing
+  open_.iloc[i-1] = 100.5
+  close.iloc[i-1] = 102.5 # Engulfs 101..102 range
+  
+  # 3. Bull Confirm
+  open_.iloc[i] = 102.5
+  close.iloc[i] = 104.0
+  
+  result = cdl_3outside(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_3line_strike_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # Bullish Strike: 3 Bears -> 1 Giant Bull
+  # 1. Bear
+  open_.iloc[i-3] = 100.0
+  close.iloc[i-3] = 99.0
+  # 2. Bear
+  open_.iloc[i-2] = 99.0
+  close.iloc[i-2] = 98.0
+  # 3. Bear
+  open_.iloc[i-1] = 98.0
+  close.iloc[i-1] = 97.0
+  
+  # 4. Strike (Bull engulfs start)
+  open_.iloc[i] = 96.0
+  close.iloc[i] = 101.0 # Above 100
+  
+  result = cdl_3line_strike(open_, high, low, close)
+  assert result.iloc[50] == 100

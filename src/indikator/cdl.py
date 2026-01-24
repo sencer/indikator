@@ -33,6 +33,11 @@ from indikator._cdl_numba import (
   detect_marubozu_numba,
   detect_morning_star_numba,
   detect_shooting_star_numba,
+  detect_three_black_crows_numba,
+  detect_three_inside_numba,
+  detect_three_line_strike_numba,
+  detect_three_outside_numba,
+  detect_three_white_soldiers_numba,
 )
 
 
@@ -263,3 +268,107 @@ def cdl_evening_star(
 
   result = detect_evening_star_numba(o, h, l, c)
   return pd.Series(result, index=open_.index, name="cdl_evening_star")
+
+
+@configurable
+@validate
+def cdl_3black_crows(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Three Black Crows pattern.
+
+  Returns:
+  - -100: Bearish Three Black Crows
+  - 0: None
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_black_crows_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_3black_crows")
+
+
+@configurable
+@validate
+def cdl_3white_soldiers(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Three White Soldiers pattern.
+
+  Returns:
+  - 100: Bullish Three White Soldiers
+  - 0: None
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_white_soldiers_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_3white_soldiers")
+
+
+@configurable
+@validate
+def cdl_3inside(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Three Inside Up/Down pattern.
+
+  Returns:
+  - 100: Three Inside Up (Bullish)
+  - -100: Three Inside Down (Bearish)
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_inside_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_3inside")
+
+
+@configurable
+@validate
+def cdl_3outside(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Three Outside Up/Down pattern.
+
+  Returns:
+  - 100: Three Outside Up (Bullish)
+  - -100: Three Outside Down (Bearish)
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_outside_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_3outside")
+
+
+@configurable
+@validate
+def cdl_3line_strike(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Three Line Strike pattern.
+
+  Returns:
+  - 100: Bullish Strike
+  - -100: Bearish Strike
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_line_strike_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_3line_strike")
+
+
+def _alloc_ohlc(open_, high, low, close):
+  # Helper to reduce boilerplate
+  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False)) # pyright: ignore
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False)) # pyright: ignore
+  l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False)) # pyright: ignore
+  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False)) # pyright: ignore
+  return o, h, l, c
