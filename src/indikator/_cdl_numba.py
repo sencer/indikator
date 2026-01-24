@@ -566,6 +566,138 @@ def detect_three_line_strike_numba(
     
     strike_down = is_3_bulls & is_stairs_up & is_bear_strike
     
+
     out[i] = (strike_up * 100) - (strike_down * 100)
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_piercing_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Piercing Pattern (Bullish Reversal)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    is_bear1 = c1 < o1
+    body1 = o1 - c1
+    
+    o2, c2 = open_[i], close[i]
+    is_bull2 = c2 > o2
+    
+    gap_down = o2 < low[i-1] 
+    
+    midpoint1 = c1 + (body1 * 0.5)
+    closes_high_enough = c2 > midpoint1
+    closes_within_open = c2 < o1
+    
+    if is_bear1 & is_bull2 & gap_down & closes_high_enough & closes_within_open:
+      out[i] = 100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_dark_cloud_cover_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Dark Cloud Cover (Bearish Reversal)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    is_bull1 = c1 > o1
+    body1 = c1 - o1
+    
+    o2, c2 = open_[i], close[i]
+    is_bear2 = c2 < o2
+    
+    gap_up = o2 > high[i-1]
+    
+    midpoint1 = o1 + (body1 * 0.5)
+    produces_cover = c2 < midpoint1
+    stays_within = c2 > o1
+    
+    if is_bull1 & is_bear2 & gap_up & produces_cover & stays_within:
+      out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_kicking_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Kicking Pattern."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    o1, c1 = open_[i-1], close[i-1]
+    o2, c2 = open_[i], close[i]
+    
+    body1 = abs(c1 - o1)
+    rng1 = high[i-1] - low[i-1]
+    is_maru1 = body1 > (rng1 * 0.9)
+    
+    body2 = abs(c2 - o2)
+    rng2 = high[i] - low[i]
+    is_maru2 = body2 > (rng2 * 0.9)
+    
+    if not (is_maru1 & is_maru2): continue
+        
+    is_bear1 = c1 < o1
+    is_bull2 = c2 > o2
+    gap_up = o2 > o1
+    
+    if is_bear1 & is_bull2 & gap_up:
+        out[i] = 100
+        continue
+        
+    is_bull1 = c1 > o1
+    is_bear2 = c2 < o2
+    gap_down = o2 < o1
+    
+    if is_bull1 & is_bear2 & gap_down:
+        out[i] = -100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_matching_low_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Matching Low (Bullish Reversal)."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    c1, o1 = close[i-1], open_[i-1]
+    c2, o2 = close[i], open_[i]
+    
+    is_bear1 = c1 < o1
+    is_bear2 = c2 < o2
+    
+    same_close = abs(c1 - c2) < 1e-5
+    
+    if is_bear1 & is_bear2 & same_close:
+        out[i] = 100
 
   return out

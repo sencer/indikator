@@ -38,6 +38,10 @@ from indikator._cdl_numba import (
   detect_three_line_strike_numba,
   detect_three_outside_numba,
   detect_three_white_soldiers_numba,
+  detect_dark_cloud_cover_numba,
+  detect_kicking_numba,
+  detect_matching_low_numba,
+  detect_piercing_numba,
 )
 
 
@@ -363,6 +367,82 @@ def cdl_3line_strike(
   o, h, l, c = _alloc_ohlc(open_, high, low, close)
   result = detect_three_line_strike_numba(o, h, l, c)
   return pd.Series(result, index=open_.index, name="cdl_3line_strike")
+
+
+@configurable
+@validate
+def cdl_piercing(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Piercing Pattern.
+
+  Returns:
+  - 100: Bullish Piercing
+  - 0: None
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_piercing_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_piercing")
+
+
+@configurable
+@validate
+def cdl_dark_cloud_cover(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Dark Cloud Cover Pattern.
+
+  Returns:
+  - -100: Bearish Dark Cloud Cover
+  - 0: None
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_dark_cloud_cover_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_dark_cloud_cover")
+
+
+@configurable
+@validate
+def cdl_kicking(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Kicking Pattern.
+
+  Returns:
+  - 100: Bullish Kicking
+  - -100: Bearish Kicking
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_kicking_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_kicking")
+
+
+@configurable
+@validate
+def cdl_matching_low(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Matching Low Pattern.
+
+  Returns:
+  - 100: Bullish Matching Low
+  - 0: None
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_matching_low_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_matching_low")
 
 
 def _alloc_ohlc(open_, high, low, close):

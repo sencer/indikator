@@ -22,6 +22,7 @@ from indikator.cdl import (
   cdl_3line_strike,
   cdl_3outside,
   cdl_3white_soldiers,
+  cdl_dark_cloud_cover,
   cdl_doji,
   cdl_engulfing,
   cdl_evening_star,
@@ -29,8 +30,11 @@ from indikator.cdl import (
   cdl_hanging_man,
   cdl_harami,
   cdl_inverted_hammer,
+  cdl_kicking,
   cdl_marubozu,
+  cdl_matching_low,
   cdl_morning_star,
+  cdl_piercing,
   cdl_shooting_star,
 )
 
@@ -427,4 +431,91 @@ def test_cdl_3line_strike_matches_talib():
   close.iloc[i] = 101.0 # Above 100
   
   result = cdl_3line_strike(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_piercing_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Long Bear
+  open_.iloc[i-1] = 105.0
+  close.iloc[i-1] = 100.0
+  low.iloc[i-1] = 99.8
+  
+  # 2. Bull opening low (Piecing)
+  open_.iloc[i] = 99.0 # Gap down from Low
+  close.iloc[i] = 103.0 # > 50% of body (102.5)
+  high.iloc[i] = 103.2
+  low.iloc[i] = 98.8
+  
+  result = cdl_piercing(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_dark_cloud_cover_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Long Bull
+  open_.iloc[i-1] = 100.0
+  close.iloc[i-1] = 105.0
+  high.iloc[i-1] = 105.2
+  
+  # 2. Bear opening high (Gap up from High)
+  open_.iloc[i] = 106.0 
+  close.iloc[i] = 102.0 # < 50% of body (102.5)
+  high.iloc[i] = 106.2
+  low.iloc[i] = 101.8
+  
+  result = cdl_dark_cloud_cover(open_, high, low, close)
+  assert result.iloc[50] == -100
+
+
+def test_cdl_kicking_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  # Bullish Kicking: Bear -> Gap Up -> Bull (Marubozus)
+  i = 50
+  # 1. Bear Maru
+  open_.iloc[i-1] = 105.0
+  close.iloc[i-1] = 100.0
+  high.iloc[i-1] = 105.0
+  low.iloc[i-1] = 100.0
+  
+  # 2. Bull Maru (Gap Up)
+  open_.iloc[i] = 106.0
+  close.iloc[i] = 110.0
+  high.iloc[i] = 110.0
+  low.iloc[i] = 106.0
+  
+  result = cdl_kicking(open_, high, low, close)
+  assert result.iloc[50] == 100
+
+
+def test_cdl_matching_low_matches_talib():
+  open_ = pd.Series(np.ones(100) * 100.0, name="open")
+  close = open_.copy()
+  high = open_.copy()
+  low = open_.copy()
+  
+  i = 50
+  # 1. Bear
+  open_.iloc[i-1] = 105.0
+  close.iloc[i-1] = 100.0
+  
+  # 2. Bear with same close
+  open_.iloc[i] = 103.0
+  close.iloc[i] = 100.0 # Match
+  
+  result = cdl_matching_low(open_, high, low, close)
   assert result.iloc[50] == 100
