@@ -23,19 +23,28 @@ def compute_mama_numba(
   Matches TA-Lib MAMA/FAMA.
   """
   n = len(data)
-  out_mama = np.full(n, np.nan, dtype=np.float64)
-  out_fama = np.full(n, np.nan, dtype=np.float64)
+  out_mama = np.empty(n, dtype=np.float64)
+  out_fama = np.empty(n, dtype=np.float64)
 
   if n < 32:
+    out_mama[:] = np.nan
+    out_fama[:] = np.nan
     return out_mama, out_fama
 
-  # Scalar History
-  smooth = np.zeros(n, dtype=np.float64)
-  detrender = np.zeros(n, dtype=np.float64)
-  i1 = np.zeros(n, dtype=np.float64)
-  q1 = np.zeros(n, dtype=np.float64)
-  jI = np.zeros(n, dtype=np.float64)
-  jQ = np.zeros(n, dtype=np.float64)
+  # Scalar History Variables
+  # smooth: WMA requires current + 3 prev
+  # Hilbert requires smooth[i..i-6]
+  s0, s1, s2, s3, s4, s5, s6 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+  # detrender: used at i and i-3
+  d0, d1, d2, d3 = 0.0, 0.0, 0.0, 0.0
+  # raw re/im used at i and i-1
+  i1, q1 = 0.0, 0.0
+  i1_prev, q1_prev = 0.0, 0.0
+  # smoothed re/im
+  ji, jq = 0.0, 0.0
+  
+  # data window for WMA
+  x0, x1, x2, x3 = 0.0, 0.0, 0.0, 0.0
   
   period = 0.0
   prev_period = 0.0
@@ -49,35 +58,45 @@ def compute_mama_numba(
   fama = 0.0
 
   for i in range(n):
-    # 1. Smooth
-    if i >= 3:
-      smooth[i] = (4.0 * data[i] + 3.0 * data[i-1] + 2.0 * data[i-2] + data[i-3]) * 0.1
-    else:
-      smooth[i] = data[i]
+    # 1. Update data window
+    x3, x2, x1 = x2, x1, x0
+    x0 = data[i]
 
-    # 2. Detrender
+    # 2. Smooth (4-bar WMA)
+    curr_smooth = (4.0 * x0 + 3.0 * x1 + 2.0 * x2 + x3) * 0.1 if i >= 3 else x0
+    
+    # Update smooth history
+    s6, s5, s4, s3, s2, s1 = s5, s4, s3, s2, s1, s0
+    s0 = curr_smooth
+
+    # 3. Detrender (Hilbert Transform)
+    curr_detrender = 0.0
     if i >= 6:
       adj = 0.075 * prev_period + 0.54
-      detrender[i] = (0.0962 * smooth[i] + 0.5769 * smooth[i-2] - 0.5769 * smooth[i-4] - 0.0962 * smooth[i-6]) * adj
+      curr_detrender = (0.0962 * s0 + 0.5769 * s2 - 0.5769 * s4 - 0.0962 * s6) * adj
     
-    # 3. I1/Q1
-    q1[i] = detrender[i]
-    if i >= 3:
-      i1[i] = detrender[i-3]
+    # Update detrender history
+    d3, d2, d1 = d2, d1, d0
+    d0 = curr_detrender
+    
+    # 4. InPhase (I1) / Quadrature (Q1)
+    i1_prev, q1_prev = i1, q1
+    q1 = d0
+    i1 = d3 if i >= 3 else 0.0
       
-    # 4. Advance Re/Im
+    # 5. Advance Re/Im (Homodyne Discriminator)
     if i >= 1:
-      raw_re = i1[i] * i1[i-1] + q1[i] * q1[i-1]
-      raw_im = i1[i] * q1[i-1] - q1[i] * i1[i-1]
-      jI[i] = 0.2 * raw_re + 0.8 * jI[i-1]
-      jQ[i] = 0.2 * raw_im + 0.8 * jQ[i-1]
+      raw_re = i1 * i1_prev + q1 * q1_prev
+      raw_im = i1 * q1_prev - q1 * i1_prev
+      
+      ji = 0.2 * raw_re + 0.8 * ji
+      jq = 0.2 * raw_im + 0.8 * jq
       
       # Period
-      p_rad = math.atan2(jQ[i], jI[i])
+      p_rad = math.atan2(jq, ji)
+      temp_period = 0.0
       if abs(p_rad) > 1e-12:
         temp_period = 360.0 / (p_rad * rad2deg)
-      else:
-        temp_period = 0.0
       
       temp_period = abs(temp_period) * 0.82
       if prev_period > 0:
@@ -88,10 +107,10 @@ def compute_mama_numba(
       smooth_period = 0.33 * period + 0.67 * prev_smooth_period
       prev_period, prev_smooth_period = period, smooth_period
       
-      # 5. Phase
+      # 6. Phase
       # Compute Phase Angle
-      if abs(i1[i]) > 1e-12:
-          phase_angle = math.atan(q1[i] / i1[i]) * rad2deg
+      if abs(i1) > 1e-12:
+          phase_angle = math.atan(q1 / i1) * rad2deg
       else:
           phase_angle = 90.0
       
@@ -114,12 +133,17 @@ def compute_mama_numba(
       if i < 32:
           mama = data[i]
           fama = data[i]
+          out_mama[i] = np.nan
+          out_fama[i] = np.nan
       else:
-          mama = alpha * data[i] + (1.0 - alpha) * mama
+          mama = alpha * x0 + (1.0 - alpha) * mama
           fama = 0.5 * alpha * mama + (1.0 - 0.5 * alpha) * fama
+          out_mama[i] = mama
+          out_fama[i] = fama
       
-      out_mama[i] = mama
-      out_fama[i] = fama
       dc_phase = phase_angle
+    else:
+      out_mama[i] = np.nan
+      out_fama[i] = np.nan
 
   return out_mama, out_fama
