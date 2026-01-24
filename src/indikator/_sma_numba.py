@@ -35,10 +35,15 @@ def compute_sma_numba(
     Array of SMA values (NaN for initial bars where period not satisfied)
   """
   n = len(prices)
-  sma = np.full(n, np.nan)
-
   if n < period:
-    return sma
+    return np.full(n, np.nan)
+
+  sma = np.empty(n)
+
+  # Fill initial segment with NaN
+  # Parallelizing this fill is overkill for small period
+  for i in range(period - 1):
+    sma[i] = np.nan
 
   # Parallel execution using chunks
   # Numba handles prange by splitting the range into chunks for threads.

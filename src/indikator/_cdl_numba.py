@@ -1967,52 +1967,65 @@ def detect_three_stars_in_south_numba(
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
-  if n < 2:
+  if n < 3:
     return out
 
+  # Rolling state variables
+  # i-2 (Day 0)
+  o0 = open_[0]
+  c0 = close[0]
+  # i-1 (Day 1)
+  o1 = open_[1]
+  h1 = high[1]
+  l1 = low[1]
+  c1 = close[1]
+  # i (Day 2) -> loaded in loop
+
+  # We also need Day 0 High/Low for validation?
+  # The original code accessed h0, l0.
+  h0 = high[0]
+  l0 = low[0]
+
   for i in range(2, n):
-    # Logic for 3 Stars In South (Bullish Reversal)
-    # 1. Long black body, long lower shadow (hammer-like but black)
-    # 2. Black body embedded within 1's range, lower high, higher low?
-    # No, standard def:
-    # 1. Long black line with long lower shadow.
-    # 2. Black line with lower high & higher low (harami-like), but also has long lower shadow?
-    #    Actually: 2nd day opens inside 1st body, closes lower but above 1st low.
-    # 3. Small black marubozu (or small shadow), inside 2nd day range.
-    # Simplified TA-Lib:
-    # All 3 days must be black.
-    # Day 1: Long body, long lower shadow.
-    # Day 2: Inside Day 1 (lower high, higher low). Lower shadow.
-    # Day 3: Inside Day 2. Small marubozu (no/short shadows).
+    # Load current (Day 2)
+    o2 = open_[i]
+    h2 = high[i]
+    l2 = low[i]
+    c2 = close[i]
 
-    # Using basic placeholder logic as exact TA-Lib match requires detailed body/shadow stats.
-    # Since we are just fixing the compile error, we init `out`.
-    # We will implement a simplified check to be functional.
+    # Check Day 0 (i-2) Black
+    if c0 < o0:
+      # Check Day 1 (i-1) Black
+      if c1 < o1:
+        # Check Day 2 (i) Black
+        if c2 < o2:
+            # All 3 black. Now detailed logic.
+            
+            # Day 0: Long lower shadow
+            # logic: shadow > body
+            body0 = o0 - c0
+            shadow0 = c0 - l0
+            
+            if shadow0 > body0:
+                # Day 1: Inside Day 0's range? (Harami-like)
+                # Logic: High < Prev High AND Low > Prev Low
+                if (h1 < h0) and (l1 > l0):
+                    # Day 2: Inside Day 1? Small Marubozu?
+                    # Logic: High < Prev High AND Low > Prev Low
+                    # And "Small Marubozu" means small range/shadows.
+                    # Simplified: Small body, small shadows.
+                    # Or just "Inside Day 1".
+                    if (h2 < h1) and (l2 > l1):
+                         # Check strict "Small Marubozu" for Day 2?
+                         # Usually means Close ~= Low for black cdl.
+                         # And small range.
+                         # But let's stick to the previous implementation's simplified logic:
+                         # "inside2 = (h2 < h1) & (l2 > l1)"
+                         out[i] = 100
 
-    c0, o0, l0, h0 = close[i - 2], open_[i - 2], low[i - 2], high[i - 2]
-    c1, o1, l1, h1 = close[i - 1], open_[i - 1], low[i - 1], high[i - 1]
-    c2, o2, l2, h2 = close[i], open_[i], low[i], high[i]
-
-    is_black0 = c0 < o0
-    is_black1 = c1 < o1
-    is_black2 = c2 < o2
-
-    if is_black0 & is_black1 & is_black2:
-      # Check "shrinking" trend
-      # Day 1: Long lower shadow: (min(o0,c0) - l0) significantly > body
-      body0 = o0 - c0
-      shadow0 = c0 - l0
-      long_shadow0 = shadow0 > body0
-
-      # Day 2: Inside Lower Shadow of 1? Or standard Harami?
-      # TA-Lib: High[i-1] < High[i-2] and Low[i-1] > Low[i-2]
-      inside1 = (h1 < h0) & (l1 > l0)
-
-      # Day 3: Small range, inside 2
-      inside2 = (h2 < h1) & (l2 > l1)
-
-      if long_shadow0 & inside1 & inside2:
-        out[i] = 100
+    # Shift state
+    o0, h0, l0, c0 = o1, h1, l1, c1
+    o1, h1, l1, c1 = o2, h2, l2, c2
 
   return out
 
