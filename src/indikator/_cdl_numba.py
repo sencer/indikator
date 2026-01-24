@@ -1869,6 +1869,42 @@ def detect_three_stars_in_south_numba(
   close: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Three Stars In The South."""
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_xsidegap3methods_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Upside/Downside Gap Three Methods."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    # Upside Gap Three Methods (Bullish)
+    # 1. Long white body
+    # 2. Long white body with gap up
+    # 3. Black body that opens inside body of 2 and closes inside body of 1
+    bull1 = close[i-2] > open_[i-2]
+    bull2 = close[i-1] > open_[i-1]
+    bear3 = close[i] < open_[i]
+    
+    if bull1 & bull2 & bear3:
+        gap = open_[i-1] > close[i-2]
+        fill = (open_[i] < close[i-1]) & (open_[i] > open_[i-1]) & (close[i] < open_[i-1]) & (close[i] > open_[i-2])
+        if gap & fill: out[i] = 100
+        
+    # Downside Gap Three Methods (Bearish)
+    bear1 = close[i-2] < open_[i-2]
+    bear2 = close[i-1] < open_[i-1]
+    bull3 = close[i] > open_[i]
+    
+    if bear1 & bear2 & bull3:
+        gap_down = open_[i-1] < close[i-2]
+        fill_down = (open_[i] > close[i-1]) & (open_[i] < open_[i-1]) & (close[i] > open_[i-1]) & (close[i] < open_[i-2])
+        if gap_down & fill_down: out[i] = -100
+
   return out

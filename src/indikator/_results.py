@@ -727,3 +727,14 @@ class CORRELResult(NamedTuple):
 
   def to_pandas(self) -> pd.Series:
     return pd.Series(self.correl, index=self.index, name="correl", copy=False)
+
+
+class MAMAResult(NamedTuple):
+  index: pd.Index
+  mama: NDArray[np.float64]
+  fama: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.DataFrame:
+    return pd.DataFrame(
+      {"mama": self.mama, "fama": self.fama}, index=self.index, copy=False
+    )

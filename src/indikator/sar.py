@@ -19,7 +19,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._results import SARResult
-from indikator._sar_numba import compute_sar_numba
+from indikator._sar_numba import compute_sar_numba, compute_sarext_numba
 
 
 @configurable
@@ -73,5 +73,57 @@ def sar(
   )
 
   sar_values = compute_sar_numba(h, l, acceleration, acceleration, maximum)
+
+  return SARResult(index=high.index, sar=sar_values)
+
+
+@configurable
+@validate
+def sarext(
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  start_value: Hyper[float] = 0.0,
+  offset_on_reversal: Hyper[float] = 0.0,
+  acceleration_init_long: Hyper[float] = 0.02,
+  acceleration_long: Hyper[float] = 0.02,
+  acceleration_max_long: Hyper[float] = 0.2,
+  acceleration_init_short: Hyper[float] = 0.02,
+  acceleration_short: Hyper[float] = 0.02,
+  acceleration_max_short: Hyper[float] = 0.2,
+) -> SARResult:
+  """Calculate Parabolic SAR Extended (SAREXT).
+
+  More configurable version of the standard Parabolic SAR.
+
+  Args:
+    high: High prices.
+    low: Low prices.
+    start_value: Start value (default 0.0).
+    offset_on_reversal: Offset on reversal (default 0.0).
+    acceleration_init_long: Initial acceleration for long (default 0.02).
+    acceleration_long: Acceleration increment for long (default 0.02).
+    acceleration_max_long: Maximum acceleration for long (default 0.2).
+    acceleration_init_short: Initial acceleration for short (default 0.02).
+    acceleration_short: Acceleration increment for short (default 0.02).
+    acceleration_max_short: Maximum acceleration for short (default 0.2).
+
+  Returns:
+    SARResult(index, sar)
+  """
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
+  l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+
+  sar_values = compute_sarext_numba(
+    h,
+    l,
+    start_value,
+    offset_on_reversal,
+    acceleration_init_long,
+    acceleration_long,
+    acceleration_max_long,
+    acceleration_init_short,
+    acceleration_short,
+    acceleration_max_short,
+  )
 
   return SARResult(index=high.index, sar=sar_values)

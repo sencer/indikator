@@ -387,3 +387,123 @@ def compute_sum_numba(
     out[i] = current_sum
 
   return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_minmax_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+  """Calculate rolling MIN and MAX simultaneously."""
+  n = len(data)
+  out_min = np.full(n, np.nan, dtype=np.float64)
+  out_max = np.full(n, np.nan, dtype=np.float64)
+
+  if n < period:
+    return out_min, out_max
+
+  # Initialize
+  l_idx = 0
+  l_val = data[0]
+  h_idx = 0
+  h_val = data[0]
+  for k in range(1, period):
+    if data[k] <= l_val:
+      l_val = data[k]
+      l_idx = k
+    if data[k] >= h_val:
+      h_val = data[k]
+      h_idx = k
+  out_min[period - 1] = l_val
+  out_max[period - 1] = h_val
+
+  # Lazy rescan
+  for i in range(period, n):
+    trailing = i - period + 1
+
+    if l_idx < trailing:
+      l_idx = trailing
+      l_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] <= l_val:
+          l_val = data[k]
+          l_idx = k
+    elif data[i] <= l_val:
+      l_val = data[i]
+      l_idx = i
+
+    if h_idx < trailing:
+      h_idx = trailing
+      h_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] >= h_val:
+          h_val = data[k]
+          h_idx = k
+    elif data[i] >= h_val:
+      h_val = data[i]
+      h_idx = i
+
+    out_min[i] = l_val
+    out_max[i] = h_val
+
+  return out_min, out_max
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def compute_minmaxindex_numba(
+  data: NDArray[np.float64],
+  period: int,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+  """Calculate rolling MININDEX and MAXINDEX simultaneously."""
+  n = len(data)
+  out_min = np.full(n, np.nan, dtype=np.float64)
+  out_max = np.full(n, np.nan, dtype=np.float64)
+
+  if n < period:
+    return out_min, out_max
+
+  # Initialize
+  l_idx = 0
+  l_val = data[0]
+  h_idx = 0
+  h_val = data[0]
+  for k in range(1, period):
+    if data[k] <= l_val:
+      l_val = data[k]
+      l_idx = k
+    if data[k] >= h_val:
+      h_val = data[k]
+      h_idx = k
+  out_min[period - 1] = float(l_idx)
+  out_max[period - 1] = float(h_idx)
+
+  # Lazy rescan
+  for i in range(period, n):
+    trailing = i - period + 1
+
+    if l_idx < trailing:
+      l_idx = trailing
+      l_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] <= l_val:
+          l_val = data[k]
+          l_idx = k
+    elif data[i] <= l_val:
+      l_val = data[i]
+      l_idx = i
+
+    if h_idx < trailing:
+      h_idx = trailing
+      h_val = data[trailing]
+      for k in range(trailing + 1, i + 1):
+        if data[k] >= h_val:
+          h_val = data[k]
+          h_idx = k
+    elif data[i] >= h_val:
+      h_val = data[i]
+      h_idx = i
+
+    out_min[i] = float(l_idx)
+    out_max[i] = float(h_idx)
+
+  return out_min, out_max

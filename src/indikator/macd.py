@@ -16,11 +16,33 @@ from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
-
 from indikator._macd_numba import compute_macd_numba
 from indikator._results import MACDResult
+
+
+def _get_ma_func(matype: int):
+    from indikator.sma import sma
+    from indikator.ema import ema
+    from indikator.wma import wma
+    from indikator.dema import dema
+    from indikator.tema import tema
+    from indikator.trima import trima
+    from indikator.kama import kama
+    from indikator.t3 import t3
+    from indikator.mesa import mama
+
+    mapping = {
+        0: lambda d, p: sma(d, p).sma,
+        1: lambda d, p: ema(d, p).ema,
+        2: lambda d, p: wma(d, p).wma,
+        3: lambda d, p: dema(d, p).dema,
+        4: lambda d, p: tema(d, p).tema,
+        5: lambda d, p: trima(d, p).trima,
+        6: lambda d, p: kama(d, p).kama,
+        7: lambda d, p: mama(d).mama, # Period ignored for MAMA
+        8: lambda d, p: t3(d, p).t3,
+    }
+    return mapping.get(matype, mapping[1]) # Default EMA
 
 
 @configurable
@@ -87,3 +109,61 @@ def macd(
   return MACDResult(
     index=data.index, macd=macd_line, signal=signal_line, histogram=histogram
   )
+
+
+@configurable
+@validate
+def macdext(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  fast_period: Hyper[int, Ge[2]] = 12,
+  fast_matype: Hyper[int, Ge[0]] = 0,
+  slow_period: Hyper[int, Ge[2]] = 26,
+  slow_matype: Hyper[int, Ge[0]] = 0,
+  signal_period: Hyper[int, Ge[2]] = 9,
+  signal_matype: Hyper[int, Ge[0]] = 0,
+) -> MACDResult:
+  """Calculate MACD with full control over MA types.
+
+  Args:
+    data: Input Series.
+    fast_period: Fast period (default: 12)
+    fast_matype: Fast MA type (default: 0 - SMA)
+    slow_period: Slow period (default: 26)
+    slow_matype: Slow MA type (default: 0 - SMA)
+    signal_period: Signal period (default: 9)
+    signal_matype: Signal MA type (default: 0 - SMA)
+
+  Returns:
+    MACDResult(index, macd, signal, histogram)
+  """
+  fast_func = _get_ma_func(fast_matype)
+  slow_func = _get_ma_func(slow_matype)
+  signal_func = _get_ma_func(signal_matype)
+
+  f_ma = fast_func(data, fast_period)
+  s_ma = slow_func(data, slow_period)
+
+  macd_line = f_ma - s_ma
+  
+  # Wrap macd_line in Series for signal calculation
+  macd_series = pd.Series(macd_line, index=data.index)
+  signal_line = signal_func(macd_series, signal_period)
+  
+  histogram = macd_line - signal_line
+
+  return MACDResult(
+    index=data.index, macd=macd_line, signal=signal_line, histogram=histogram
+  )
+
+
+@configurable
+@validate
+def macdfix(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  signal_period: Hyper[int, Ge[2]] = 9,
+) -> MACDResult:
+  """Calculate MACD with fixed periods (12, 26).
+
+  Matches TA-Lib MACDFIX.
+  """
+  return macd(data, fast_period=12, slow_period=26, signal_period=signal_period)

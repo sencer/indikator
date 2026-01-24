@@ -21,7 +21,11 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 from indikator._results import VWAPAnchoredResult, VWAPResult
-from indikator._vwap_numba import compute_anchored_vwap_numba, compute_vwap_numba
+from indikator._vwap_numba import (
+  compute_anchored_vwap_numba,
+  compute_vwap_numba,
+  compute_vwap_parallel_numba,
+)
 
 
 @configurable
@@ -105,7 +109,17 @@ def vwap(
   )
 
   # Calculate VWAP using Numba-optimized function
-  vwap_values = compute_vwap_numba(high_arr, low_arr, close_arr, vol_arr, reset_mask)
+  # If we have multiple sessions, use the parallel version for speedup
+  reset_indices = np.where(reset_mask)[0].astype(np.int64)
+
+  if len(reset_indices) > 5:  # Threshold for parallel gain
+    vwap_values = compute_vwap_parallel_numba(
+      high_arr, low_arr, close_arr, vol_arr, reset_indices
+    )
+  else:
+    vwap_values = compute_vwap_numba(
+      high_arr, low_arr, close_arr, vol_arr, reset_mask
+    )
 
   return VWAPResult(index=high.index, vwap=vwap_values)
 

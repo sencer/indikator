@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit  # type: ignore[import-untyped]
+from numba import jit, prange  # type: ignore[import-untyped]
 import numpy as np
 
 if TYPE_CHECKING:
@@ -66,6 +66,41 @@ def compute_vwap_numba(
     else:
       vwap[i] = tp  # Fallback to typical price
 
+  return vwap
+
+
+@jit(nopython=True, cache=True, nogil=True, parallel=True, fastmath=True)
+def compute_vwap_parallel_numba(
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+  volumes: NDArray[np.float64],
+  reset_indices: NDArray[np.int64],
+) -> NDArray[np.float64]:
+  """Parallel VWAP calculation by session blocks.
+  
+  Args:
+      reset_indices: Array of indices where a new session starts.
+  """
+  n = len(high)
+  vwap = np.zeros(n, dtype=np.float64)
+  num_sessions = len(reset_indices)
+  
+  for s in prange(num_sessions):
+      start_idx = reset_indices[s]
+      end_idx = reset_indices[s+1] if s < num_sessions - 1 else n
+      
+      cum_pv = 0.0
+      cum_v = 0.0
+      for i in range(start_idx, end_idx):
+          tp = (high[i] + low[i] + close[i]) / 3.0
+          cum_pv += tp * volumes[i]
+          cum_v += volumes[i]
+          if cum_v > 1e-12:
+              vwap[i] = cum_pv / cum_v
+          else:
+              vwap[i] = tp
+              
   return vwap
 
 

@@ -19,6 +19,8 @@ from indikator._rolling_numba import (
   compute_maxindex_numba,
   compute_min_numba,
   compute_minindex_numba,
+  compute_minmax_numba,
+  compute_minmaxindex_numba,
   compute_sum_numba,
 )
 
@@ -153,3 +155,53 @@ def sum_val(
   result = compute_sum_numba(input_arr, period)
 
   return pd.Series(result, index=data.index, name="sum")
+
+
+@configurable
+@validate
+def minmax(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[2]] = 30,
+) -> tuple[pd.Series, pd.Series]:
+  """Rolling Minimum and Maximum of a series.
+
+  Returns:
+    tuple[pd.Series, pd.Series]: (min, max) series.
+  """
+  input_arr = cast(
+    "NDArray[np.float64]",
+    data.to_numpy(dtype=np.float64, copy=False), # pyright: ignore
+  )
+
+  m, x = compute_minmax_numba(input_arr, period)
+
+  return (
+    pd.Series(m, index=data.index, name="min"),
+    pd.Series(x, index=data.index, name="max"),
+  )
+
+
+@configurable
+@validate
+def minmaxindex(
+  data: Validated[pd.Series, Finite, NotEmpty],
+  period: Hyper[int, Ge[2]] = 30,
+) -> tuple[pd.Series, pd.Series]:
+  """Rolling Minimum and Maximum index of a series.
+
+  Returns indices (0-based) relative to start of series.
+
+  Returns:
+    tuple[pd.Series, pd.Series]: (min_index, max_index) series.
+  """
+  input_arr = cast(
+    "NDArray[np.float64]",
+    data.to_numpy(dtype=np.float64, copy=False), # pyright: ignore
+  )
+
+  mi, xi = compute_minmaxindex_numba(input_arr, period)
+
+  return (
+    pd.Series(mi, index=data.index, name="min_index"),
+    pd.Series(xi, index=data.index, name="max_index"),
+  )

@@ -20,6 +20,7 @@ from indikator._cycle_numba import (
   compute_ht_master_numba,
   compute_ht_phasor_numba,
   compute_ht_sine_numba,
+  compute_ht_trendline_numba,
 )
 
 if TYPE_CHECKING:
@@ -152,3 +153,27 @@ def ht_trendmode(
   _, _, _, _, trend = compute_ht_master_numba(input_arr)
 
   return pd.Series(trend, index=data.index, name="ht_trendmode")
+
+
+@configurable
+@validate
+def ht_trendline(
+  data: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Hilbert Transform - Trendline.
+
+  Args:
+    data: Input price series.
+
+  Returns:
+    pd.Series: Trendline.
+  """
+  input_arr = cast(
+    "NDArray[np.float64]",
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
+
+  # Optimized kernel
+  tl = compute_ht_trendline_numba(input_arr)
+
+  return pd.Series(tl, index=data.index, name="ht_trendline")

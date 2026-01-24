@@ -14,6 +14,8 @@ from indikator.adx import (
   plus_di,
   plus_dm,
 )
+from indikator.ma import ma
+from indikator.mesa import mama
 from indikator.apo import apo
 from indikator.aroon import aroon, aroonosc
 from indikator.atr import atr, atr_intraday, trange
@@ -83,6 +85,7 @@ from indikator.cdl import (
   cdl_tristar,
   cdl_unique_3river,
   cdl_upside_gap_two_crows,
+  cdl_xsidegap3methods,
 )
 from indikator.churn_factor import churn_factor
 from indikator.cmo import cmo
@@ -92,6 +95,7 @@ from indikator.cycle import (
   ht_dcphase,
   ht_phasor,
   ht_sine,
+  ht_trendline,
   ht_trendmode,
 )
 from indikator.dema import dema
@@ -105,7 +109,7 @@ from indikator.linearreg import (
   linearreg_slope,
   tsf,
 )
-from indikator.macd import macd
+from indikator.macd import macd, macdext, macdfix
 from indikator.math_transform import (
   acos,
   asin,
@@ -133,6 +137,8 @@ from indikator.minmax import (
   max_val,
   min_index,
   min_val,
+  minmax,
+  minmaxindex,
   sum_val,
 )
 from indikator.mom import mom
@@ -144,7 +150,7 @@ from indikator.ppo import ppo
 from indikator.roc import roc, rocp, rocr, rocr100
 from indikator.rsi import rsi
 from indikator.rvol import rvol, rvol_intraday
-from indikator.sar import sar
+from indikator.sar import sar, sarext
 from indikator.sector_correlation import sector_correlation
 from indikator.slope import slope
 from indikator.sma import sma
@@ -244,6 +250,7 @@ __all__ = [
   "cdl_tristar",
   "cdl_unique_3river",
   "cdl_upside_gap_two_crows",
+  "cdl_xsidegap3methods",
   "ceil",
   "churn_factor",
   "cmo",
@@ -259,6 +266,7 @@ __all__ = [
   "ht_dcphase",
   "ht_phasor",
   "ht_sine",
+  "ht_trendline",
   "ht_trendmode",
   "kama",
   "legs",
@@ -268,7 +276,11 @@ __all__ = [
   "linearreg_slope",
   "ln",
   "log10",
+  "ma",
   "macd",
+  "macdext",
+  "macdfix",
+  "mama",
   "mavp",
   "max_index",
   "max_val",
@@ -278,6 +290,8 @@ __all__ = [
   "midprice",
   "min_index",
   "min_val",
+  "minmax",
+  "minmaxindex",
   "minus_di",
   "minus_dm",
   "mom",
@@ -296,6 +310,7 @@ __all__ = [
   "rvol",
   "rvol_intraday",
   "sar",
+  "sarext",
   "sector_correlation",
   "sin",
   "sinh",

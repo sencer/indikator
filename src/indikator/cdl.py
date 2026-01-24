@@ -84,6 +84,7 @@ from indikator._cdl_numba import (
   detect_evening_doji_star_numba,
   detect_kicking_by_length_numba,
   detect_three_stars_in_south_numba,
+  detect_xsidegap3methods_numba,
 )
 
 
@@ -1105,6 +1106,25 @@ def cdl_3stars_in_south(
   o, h, l, c = _alloc_ohlc(open_, high, low, close)
   result = detect_three_stars_in_south_numba(o, h, l, c)
   return pd.Series(result, index=open_.index, name="cdl_3stars_in_south")
+
+
+@configurable
+@validate
+def cdl_xsidegap3methods(
+  open_: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series, Finite, NotEmpty],
+  low: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series, Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Upside/Downside Gap Three Methods.
+
+  Returns:
+  - 100: Bullish
+  - -100: Bearish
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_xsidegap3methods_numba(o, h, l, c)
+  return pd.Series(result, index=open_.index, name="cdl_xsidegap3methods")
 
 
 def _alloc_ohlc(open_, high, low, close):
