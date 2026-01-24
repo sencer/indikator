@@ -98,7 +98,7 @@ class _atr_intraday_Bound(Protocol):
     """Bound function with hyperparameters as attributes."""
     @property
     def min_samples(self) -> int: ...
-    def __call__(self, data: Validated[pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty], lookback_days: int | None = ...) -> ATRIntradayResult: ...
+    def __call__(self, data: Validated[pd.DataFrame, Columns(['high', 'low', 'close']), Finite, Index(Datetime), NotEmpty], lookback_days: int | None = ...) -> ATRIntradayResult: ...
 
 class _atr_intraday_ConfigDict(TypedDict, total=False):
     """Configuration dictionary for atr_intraday.
@@ -172,7 +172,7 @@ class atr_intraday:
     Config = _atr_intraday_Config
     ConfigDict = _atr_intraday_ConfigDict
     min_samples: ClassVar[int]
-    def __new__(cls, data: Validated[pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty], lookback_days: int | None = ..., min_samples: int = ...) -> ATRIntradayResult: ...
+    def __new__(cls, data: Validated[pd.DataFrame, Columns(['high', 'low', 'close']), Finite, Index(Datetime), NotEmpty], lookback_days: int | None = ..., min_samples: int = ...) -> ATRIntradayResult: ...
 
 class _trange_Bound(Protocol):
     """Bound function with hyperparameters as attributes."""

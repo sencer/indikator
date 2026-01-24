@@ -37,7 +37,6 @@ def detect_doji_numba(
 
     # Branchless logic:
     # (rng > 0) & (body <= rng * 0.1)
-    # Cast boolean to int (0 or 1) then multiply by 100
     mask = (rng > 0) & (body <= (rng * 0.1))
     out[i] = mask * 100
 
@@ -60,37 +59,23 @@ def detect_hammer_numba(
     c = close[i]
     h = high[i]
     l = low[i]
-
-    # Primitives (Branchless min/max)
+    
     body_top = o if o > c else c
     body_bot = o if o < c else c
-
     real_body = body_top - body_bot
     upper_shadow = h - body_top
     lower_shadow = body_bot - l
     rng = h - l
-
-    # Zero range check handled by logic or tiny epsilon?
-    # Branchless way: condition & (rng > 0)
-
+    
     body_val = real_body if real_body > 0 else 1e-9
-
-    # Conditions (Boolean)
-    # 1. Long lower shadow (>= 2 * body)
+    
+    # Hammer: Long lower shadow, small upper shadow, small body
     c1 = lower_shadow >= (2.0 * body_val)
-
-    # 2. Small upper shadow (<= 10% of range) to allow minor wick
     c2 = upper_shadow <= (0.1 * rng)
-
-    # 3. Small body (<= 30% of range)
-    c3 = real_body < (0.3 * rng)
-
-    # 4. Range valid
+    c3 = real_body < (0.3 * rng) # Liberal body check
     c4 = rng > 0
-
-    # Fuse
+    
     is_hammer = c1 & c2 & c3 & c4
-
     out[i] = is_hammer * 100
 
   return out
@@ -103,11 +88,7 @@ def detect_engulfing_numba(
   low: NDArray[np.float64],
   close: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Engulfing pattern (Branchless).
-
-  Evaluates both Bullish and Bearish conditions using bitwise logic
-  and combines them: out = (is_bull * 100) - (is_bear * 100).
-  """
+  """Detect Engulfing pattern (Branchless)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
@@ -117,21 +98,12 @@ def detect_engulfing_numba(
     cc = close[i]
     co = open_[i]
 
-    # Bullish Components
-    # Prev Red: po > pc
-    # Curr Green: cc > co
-    # Engulf: co <= pc AND cc >= po
+    # Bullish: Prev Red, Curr Green, Engulfs
     is_bull = (po > pc) & (cc > co) & (co <= pc) & (cc >= po)
-
-    # Bearish Components
-    # Prev Green: pc > po
-    # Curr Red: co < cc ?? No, co > cc (Red)
-    # Engulf: co >= pc AND cc <= po
+    
+    # Bearish: Prev Green, Curr Red, Engulfs
     is_bear = (pc > po) & (co > cc) & (co >= pc) & (cc <= po)
-
-    # Combine (True=1, False=0)
-    # If both true (impossible per logic), they cancel?
-    # Can't be both Prev Red and Prev Green.
+    
     out[i] = (is_bull * 100) - (is_bear * 100)
 
   return out
@@ -154,32 +126,286 @@ def detect_harami_numba(
     cc = close[i]
     co = open_[i]
 
-    # Bounds
     prev_top = po if po > pc else pc
     prev_bot = po if po < pc else pc
-
     curr_top = co if co > cc else cc
     curr_bot = co if co < cc else cc
-
-    # Inside Bar Condition
+    
     is_inside = (curr_top < prev_top) & (curr_bot > prev_bot)
-
-    # Direction
-    # Bullish Harami: Prev is Bearish (pc < po)
-    # Bearish Harami: Prev is Bullish (pc > po)
-    # We assign 100 if Prev Bearish, -100 if Prev Bullish.
-
-    # Using branchless sign logic
-    # val = (is_prev_bear * 100) - (is_prev_bull * 100)
-    # Only apply if is_inside is True.
-
+    
+    # Bullish Harami: Prev is Bearish (Red)
     is_prev_bear = pc < po
-    is_prev_bull = pc >= po  # or just > ?
-
-    # Logic:
-    # out = is_inside * ( (is_prev_bear * 100) + (is_prev_bull * -100) )
-
+    # Bearish Harami: Prev is Bullish (Green)
+    is_prev_bull = pc >= po 
+    
     val = (is_prev_bear * 100) - (is_prev_bull * 100)
     out[i] = is_inside * val
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_shooting_star_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Shooting Star (Branchless).
+  
+  Bearish reversal. Inverse of Hammer.
+  - Small body near bottom.
+  - Long upper shadow (>= 2 * body).
+  - Short lower shadow.
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    o, c, h, l = open_[i], close[i], high[i], low[i]
+    
+    body_top = o if o > c else c
+    body_bot = o if o < c else c
+    real_body = body_top - body_bot
+    upper_shadow = h - body_top
+    lower_shadow = body_bot - l
+    rng = h - l
+    
+    body_val = real_body if real_body > 0 else 1e-9
+    
+    # Criteria
+    c1 = upper_shadow >= (2.0 * body_val)
+    c2 = lower_shadow <= (0.1 * rng) # Small lower shadow
+    c3 = real_body < (0.3 * rng)
+    c4 = rng > 0
+    
+    # Gap up validation? TA-Lib Shooting Star often checks if body gaps up from previous.
+    # Simplified here: just shape.
+    
+    is_star = c1 & c2 & c3 & c4
+    out[i] = is_star * -100 # Bearish
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_inverted_hammer_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Inverted Hammer (Branchless).
+  
+  Bullish reversal. Same shape as Shooting Star, but found in downtrend.
+  For pure pattern recognition, we return 100 if shape matches.
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    o, c, h, l = open_[i], close[i], high[i], low[i]
+    
+    body_top = o if o > c else c
+    body_bot = o if o < c else c
+    real_body = body_top - body_bot
+    upper_shadow = h - body_top
+    lower_shadow = body_bot - l
+    rng = h - l
+    
+    body_val = real_body if real_body > 0 else 1e-9
+    
+    c1 = upper_shadow >= (2.0 * body_val)
+    c2 = lower_shadow <= (0.1 * rng)
+    c3 = real_body < (0.3 * rng)
+    c4 = rng > 0
+    
+    is_inv_hammer = c1 & c2 & c3 & c4
+    out[i] = is_inv_hammer * 100 # Bullish
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_hanging_man_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Hanging Man (Branchless).
+  
+  Bearish reversal. Same shape as Hammer.
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    o, c, h, l = open_[i], close[i], high[i], low[i]
+    
+    body_top = o if o > c else c
+    body_bot = o if o < c else c
+    real_body = body_top - body_bot
+    upper_shadow = h - body_top
+    lower_shadow = body_bot - l
+    rng = h - l
+    
+    body_val = real_body if real_body > 0 else 1e-9
+    
+    c1 = lower_shadow >= (2.0 * body_val)
+    c2 = upper_shadow <= (0.1 * rng)
+    c3 = real_body < (0.3 * rng)
+    c4 = rng > 0
+    
+    is_hanging = c1 & c2 & c3 & c4
+    out[i] = is_hanging * -100 # Bearish
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_marubozu_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Marubozu (Branchless).
+  
+  Long body, very small shadows (<= 5% of body or range).
+  Bullish (White) Marubozu: Close > Open (100)
+  Bearish (Black) Marubozu: Open > Close (-100)
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(n):
+    o, c, h, l = open_[i], close[i], high[i], low[i]
+    
+    body = abs(c - o)
+    rng = h - l
+    
+    # Avoid zero body or range issues
+    if body < 1e-9:
+        continue
+    
+    body_top = o if o > c else c
+    body_bot = o if o < c else c
+    
+    upper_shadow = h - body_top
+    lower_shadow = body_bot - l
+    
+    # Shadows must be tiny (e.g. < 5% of body)
+    c1 = upper_shadow < (0.05 * body)
+    c2 = lower_shadow < (0.05 * body)
+    c3 = body > (0.5 * rng) # Body dominates range
+    
+    is_marubozu = c1 & c2 & c3
+    
+    # Direction
+    is_bull = c > o
+    val = (is_bull * 100) - ((1 - is_bull) * 100) # 100 if bull, -100 if bear
+    
+    out[i] = is_marubozu * val
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_morning_star_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Morning Star (3-candle Bullish Reversal).
+  
+  1. Long Bearish candle
+  2. Small candle (gap down) - Star
+  3. Long Bullish candle (closes well inside first body)
+  
+  Returns: 100 (Bullish)
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    # Candle 1 (i-2): Long Bearish
+    c1 = close[i-2]
+    o1 = open_[i-2]
+    body1 = abs(c1 - o1)
+    is_bear1 = c1 < o1
+    is_long1 = body1 > (high[i-2] - low[i-2]) * 0.6 # Body > 60% range
+    
+    # Candle 2 (i-1): Small Body, Gap Down
+    c2 = close[i-1]
+    o2 = open_[i-1]
+    body2 = abs(c2 - o2)
+    is_small2 = body2 < body1 * 0.3 # Significantly smaller
+    # Gap Down: Body 2 below Body 1
+    body1_bot = c1 # Bearish, so Close is bottom
+    body2_top = max(o2, c2)
+    is_gap_down = body2_top < body1_bot
+    
+    # Candle 3 (i): Long Bullish
+    c3 = close[i]
+    o3 = open_[i]
+    is_bull3 = c3 > o3
+    # Closes inside body of Candle 1 (above midpoint usually)
+    midpoint1 = (o1 + c1) * 0.5
+    closes_inside = c3 > midpoint1
+    
+    if is_bear1 & is_long1 & is_small2 & is_gap_down & is_bull3 & closes_inside:
+        out[i] = 100
+
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_evening_star_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Evening Star (3-candle Bearish Reversal).
+  
+  1. Long Bullish candle
+  2. Small candle (gap up)
+  3. Long Bearish candle (closes well inside first body)
+  
+  Returns: -100 (Bearish)
+  """
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(2, n):
+    # Candle 1 (i-2): Long Bullish
+    c1 = close[i-2]
+    o1 = open_[i-2]
+    body1 = abs(c1 - o1)
+    is_bull1 = c1 > o1
+    is_long1 = body1 > (high[i-2] - low[i-2]) * 0.6
+    
+    # Candle 2 (i-1): Small Body, Gap Up
+    c2 = close[i-1]
+    o2 = open_[i-1]
+    body2 = abs(c2 - o2)
+    is_small2 = body2 < body1 * 0.3
+    # Gap Up: Body 2 above Body 1
+    body1_top = c1
+    body2_bot = min(o2, c2)
+    is_gap_up = body2_bot > body1_top
+    
+    # Candle 3 (i): Long Bearish
+    c3 = close[i]
+    o3 = open_[i]
+    is_bear3 = c3 < o3
+    # Closes inside body of Candle 1 (below midpoint)
+    midpoint1 = (o1 + c1) * 0.5
+    closes_inside = c3 < midpoint1
+    
+    if is_bull1 & is_long1 & is_small2 & is_gap_up & is_bear3 & closes_inside:
+        out[i] = -100
 
   return out
