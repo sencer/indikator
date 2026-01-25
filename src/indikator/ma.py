@@ -1,9 +1,4 @@
-"""Universal Moving Average wrapper.
-
-Matches TA-Lib MA function which selects MA type by integer.
-"""
-
-from __future__ import annotations
+"""Universal Moving Average wrapper."""
 
 from typing import TYPE_CHECKING
 
@@ -42,7 +37,7 @@ def ma(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
   matype: Hyper[int, Ge[0]] = 0,
-) -> MAResult:
+) -> "MAResult":
   """Universal Moving Average wrapper.
 
   Args:

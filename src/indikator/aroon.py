@@ -19,7 +19,7 @@ import pandas as pd
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
-from indikator._aroon_numba import compute_aroon_numba
+from indikator._aroon_numba import compute_aroon_numba, compute_aroonosc_numba
 from indikator._results import AROONOSCResult, AROONResult
 
 
@@ -124,6 +124,6 @@ def aroonosc(
     low.to_numpy(dtype=np.float64, copy=False),
   )
 
-  _, _, osc = compute_aroon_numba(high_vals, low_vals, period)
+  osc = compute_aroonosc_numba(high_vals, low_vals, period)
 
   return AROONOSCResult(index=high.index, aroonosc=osc)

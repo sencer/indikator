@@ -6,7 +6,7 @@ This module consolidates kernels for:
 - CMO: Chande Momentum Oscillator
 - MFI: Money Flow Index
 
-All implementations use O(1) or optimized O(n) rolling window algorithms where possible.
+All implementations use Parallel Chunked strategy or optimized O(n) rolling algorithms.
 """
 
 from __future__ import annotations
@@ -20,8 +20,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 # Constants
-MIN_WINDOW_SIZE = 2
-EPSILON = 1e-10  # Minimum denominator value
+EPSILON = 1e-10
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
@@ -31,27 +30,18 @@ def compute_willr_numba(
   close: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Numba JIT-compiled Williams %R using parallel chunked lazy rescan.
-
-  This algorithm splits the data into chunks to utilize multi-core processing
-  while maintaining the O(N) efficiency of the lazy rescan algorithm.
-  """
+  """Williams %R using Parallel Chunked Lazy Rescan."""
   n = len(close)
-  willr = np.full(n, np.nan, dtype=np.float64)
+  out = np.empty(n, dtype=np.float64)
 
   if n < period:
-    return willr
+    out[:] = np.nan
+    return out
 
-  # Use parallel chunks logic
-  # Start valid index: period - 1
-  # Items before period-1 are NaN (already initialized)
-  start_v = period - 1
-  total_len = n - start_v
-
+  # Adaptive parallelism
+  total_len = n - period + 1
   num_chunks = 16
-
-  # Adaptive parallelism: avoid overhead for small arrays
-  if total_len < 1024:
+  if total_len < 2048:
     num_chunks = 1
 
   chunk_size = total_len // num_chunks
@@ -59,72 +49,58 @@ def compute_willr_numba(
     chunk_size = total_len
     num_chunks = 1
 
+  warmup_idx = period - 1
+  out[:warmup_idx] = np.nan
+
   for c in prange(num_chunks + 1):
-    idx_start = start_v + c * chunk_size
-    idx_end = start_v + (c + 1) * chunk_size
-
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
     if c == num_chunks:
-      idx_end = n
-
-    if idx_start >= n:
+      end_v = n
+    if start_v >= n:
       continue
 
-    # Init trackers for this chunk
-    h_idx = -1
-    l_idx = -1
-    h_val = -np.inf
-    l_val = np.inf
-
-    # Initialize window min/max at start of chunk
-    # Pre-scan the full window ending at idx_start to establish state
-    start_lookback = idx_start - period + 1
-    for k in range(start_lookback, idx_start + 1):
+    # Initial scan for the chunk [start_v - period + 1, start_v]
+    h_val, l_val = -np.inf, np.inf
+    h_idx, l_idx = -1, -1
+    for k in range(start_v - period + 1, start_v + 1):
       if high[k] >= h_val:
-        h_val = high[k]
-        h_idx = k
+        h_val, h_idx = high[k], k
       if low[k] <= l_val:
-        l_val = low[k]
-        l_idx = k
+        l_val, l_idx = low[k], k
 
-    # Process chunk
-    for i in range(idx_start, idx_end):
-      trailing = i - period + 1
+    # Initial calculation
+    div = h_val - l_val
+    out[start_v] = -100.0 * (h_val - close[start_v]) / div if div > EPSILON else 0.0
 
-      # High update
-      if h_idx < trailing:
-        # Max is out of window, must rescan
-        h_idx = trailing
-        h_val = high[trailing]
-        for k in range(trailing + 1, i + 1):
+    # Rolling loop for chunk
+    for i in range(start_v + 1, end_v):
+      trailing_idx = i - period + 1
+
+      # Lazy rescan for max
+      if h_idx < trailing_idx:
+        h_val = high[trailing_idx]
+        h_idx = trailing_idx
+        for k in range(trailing_idx + 1, i + 1):
           if high[k] >= h_val:
-            h_val = high[k]
-            h_idx = k
+            h_val, h_idx = high[k], k
       elif high[i] >= h_val:
-        # New high is higher than current max
-        h_val = high[i]
-        h_idx = i
+        h_val, h_idx = high[i], i
 
-      # Low update
-      if l_idx < trailing:
-        # Min is out of window, must rescan
-        l_idx = trailing
-        l_val = low[trailing]
-        for k in range(trailing + 1, i + 1):
+      # Lazy rescan for min
+      if l_idx < trailing_idx:
+        l_val = low[trailing_idx]
+        l_idx = trailing_idx
+        for k in range(trailing_idx + 1, i + 1):
           if low[k] <= l_val:
-            l_val = low[k]
-            l_idx = k
+            l_val, l_idx = low[k], k
       elif low[i] <= l_val:
-        # New low is lower than current min
-        l_val = low[i]
-        l_idx = i
+        l_val, l_idx = low[i], i
 
       div = h_val - l_val
-      if div > EPSILON:
-        willr[i] = -100.0 * (h_val - close[i]) / div
-      else:
-        willr[i] = 0.0
+      out[i] = -100.0 * (h_val - close[i]) / div if div > EPSILON else 0.0
 
-  return willr
+  return out
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
@@ -135,28 +111,18 @@ def compute_cci_numba(
   period: int,
   constant: float = 0.015,
 ) -> NDArray[np.float64]:
-  """Compute Commodity Channel Index (CCI) - Parallel implementation.
-
-  CCI = (TP - SMA_TP) / (0.015 * MeanDeviation)
-  """
+  """Compute Commodity Channel Index (CCI) - Parallel Chunked."""
   n = len(close)
-  out = np.full(n, np.nan, dtype=np.float64)
+  out = np.empty(n, dtype=np.float64)
 
   if n < period:
+    out[:] = np.nan
     return out
 
-  # Precompute TP
-  tp = np.empty(n, dtype=np.float64)
-  # Standard loop usually vectorized well, explicit parallel loop is safer
-  # prange for simple TP calculation
-  for i in prange(n):
-    tp[i] = (high[i] + low[i] + close[i]) * 0.3333333333333333
-
-  start_v = period - 1
-  total_len = n - start_v
-
+  # Adaptive parallelism
+  total_len = n - period + 1
   num_chunks = 16
-  if total_len < 1024:
+  if total_len < 2048:
     num_chunks = 1
 
   chunk_size = total_len // num_chunks
@@ -165,73 +131,51 @@ def compute_cci_numba(
     num_chunks = 1
 
   inv_period = 1.0 / period
+  warmup_idx = period - 1
+  out[:warmup_idx] = np.nan
 
-  # Parallel Loop
   for c in prange(num_chunks + 1):
-    idx_start = start_v + c * chunk_size
-    idx_end = start_v + (c + 1) * chunk_size
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
     if c == num_chunks:
-      idx_end = n
-    if idx_start >= n:
+      end_v = n
+    if start_v >= n:
       continue
 
-    # Initialize rolling state for this chunk
-    # 1. Sum of TP for SMA
-    # 2. MeanDev calculation requires iteration anyway
+    # Initial sum and MAD for this chunk
+    curr_sum = 0.0
+    for k in range(start_v - period + 1, start_v + 1):
+      curr_sum += (high[k] + low[k] + close[k]) / 3.0
 
-    # Calculate initial sum for the window ending at idx_start (inclusive)
-    current_sum = 0.0
-    for k in range(idx_start - period + 1, idx_start + 1):
-      current_sum += tp[k]
+    # MAD loop for the first element in chunk
+    curr_sma = curr_sum * inv_period
+    sum_abs_diff = 0.0
+    for k in range(start_v - period + 1, start_v + 1):
+      tp_k = (high[k] + low[k] + close[k]) / 3.0
+      sum_abs_diff += abs(tp_k - curr_sma)
 
-    # Pre-calculate first value at idx_start?
-    # Or loop from idx_start?
-    # Standard: calculate for idx_start inside loop, but means we need sum[idx_start-1]...
-    # Better: Calculate complete initial state for window ending at idx_start *before* loop starts?
-    # Actually, idx_start is the *first index we compute*.
-    # So we need Sum of [idx_start-period+1 : idx_start] to compute output[idx_start].
-    # But wait, rolling sum usually adds `entering` and subtracts `leaving`.
-    # At `idx_start`, entering is tp[idx_start].
+    mean_dev = sum_abs_diff * inv_period
+    tp_curr = (high[start_v] + low[start_v] + close[start_v]) / 3.0
+    if mean_dev > EPSILON:
+      out[start_v] = (tp_curr - curr_sma) / (constant * mean_dev)
+    else:
+      out[start_v] = 0.0
 
-    # Let's adjust:
-    # We initialize `current_sum` to sum(tp[idx_start-period : idx_start]) -> window ending at idx_start-1?
-    # No, let's just initialize for the *start state* of the loop iteration.
-
-    # Initialize sum up to idx_start-1
-    # i ranges from idx_start to idx_end
-
-    # Sum for window ending at idx_start-1:
-    # range: [idx_start - period, idx_start - 1]
-
-    running_sum = 0.0
-    for k in range(idx_start - period, idx_start):  # Exclusive of idx_start
-      running_sum += tp[k]
-
-    for i in range(idx_start, idx_end):
-      entering = tp[i]
-      leaving = tp[i - period]
-
-      running_sum = running_sum + entering - leaving
-
-      sma = running_sum * inv_period
-
-      # Mean Deviation Loop
-      # Sum of abs(tp[j] - sma)
-      # This inner loop is O(Period).
-      # Total efficiency O(N * Period).
-      # Vectorization helps here.
+    # Rolling loop for the rest of the chunk
+    for i in range(start_v + 1, end_v):
+      tp_prev = (high[i - period] + low[i - period] + close[i - period]) / 3.0
+      tp_i = (high[i] + low[i] + close[i]) / 3.0
+      curr_sum = curr_sum + tp_i - tp_prev
+      curr_sma = curr_sum * inv_period
 
       sum_abs_diff = 0.0
-      window_start = i - period + 1
-      for k in range(window_start, i + 1):
-        diff = tp[k] - sma
-        # abs() is intrinsic
-        sum_abs_diff += abs(diff)
+      for k in range(i - period + 1, i + 1):
+        tp_k = (high[k] + low[k] + close[k]) / 3.0
+        sum_abs_diff += abs(tp_k - curr_sma)
 
       mean_dev = sum_abs_diff * inv_period
-
       if mean_dev > EPSILON:
-        out[i] = (entering - sma) / (constant * mean_dev)
+        out[i] = (tp_i - curr_sma) / (constant * mean_dev)
       else:
         out[i] = 0.0
 
@@ -240,21 +184,19 @@ def compute_cci_numba(
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
 def compute_cmo_numba(data: NDArray[np.float64], period: int) -> NDArray[np.float64]:
-  """Compute Chande Momentum Oscillator (CMO).
-
-  Uses Wilder's Smoothing, which is recursive and hard to parallelize efficiently.
-  Keeping standard optimized sequential implementation.
-  """
+  """Compute Chande Momentum Oscillator (CMO) using Wilder's Smoothing."""
   n = len(data)
-  out = np.full(n, np.nan, dtype=np.float64)
+  out = np.empty(n, dtype=np.float64)
 
   if n <= period:
+    out[:] = np.nan
     return out
+
+  out[:period] = np.nan
 
   sum_gains = 0.0
   sum_losses = 0.0
 
-  # 1. Warmup sum (first period)
   for i in range(1, period + 1):
     diff = data[i] - data[i - 1]
     if diff > 0:
@@ -262,38 +204,22 @@ def compute_cmo_numba(data: NDArray[np.float64], period: int) -> NDArray[np.floa
     elif diff < 0:
       sum_losses += -diff
 
-  # First Avg values (Simple Average for startup)
   avg_gain = sum_gains / period
   avg_loss = sum_losses / period
 
   total = avg_gain + avg_loss
-  if total != 0.0:
-    out[period] = 100.0 * (avg_gain - avg_loss) / total
-  else:
-    out[period] = 0.0
-
-  # 2. Rolling update (Wilder's Smoothing)
-  # Avg_t = (Avg_{t-1} * (period-1) + Val_t) / period
-
-  prev_avg_gain = avg_gain
-  prev_avg_loss = avg_loss
+  out[period] = 100.0 * (avg_gain - avg_loss) / total if total != 0 else 0.0
 
   for i in range(period + 1, n):
     diff = data[i] - data[i - 1]
     curr_gain = diff if diff > 0 else 0.0
     curr_loss = -diff if diff < 0 else 0.0
 
-    avg_gain = (prev_avg_gain * (period - 1) + curr_gain) / period
-    avg_loss = (prev_avg_loss * (period - 1) + curr_loss) / period
+    avg_gain = (avg_gain * (period - 1) + curr_gain) / period
+    avg_loss = (avg_loss * (period - 1) + curr_loss) / period
 
     total = avg_gain + avg_loss
-    if total != 0.0:
-      out[i] = 100.0 * (avg_gain - avg_loss) / total
-    else:
-      out[i] = 0.0
-
-    prev_avg_gain = avg_gain
-    prev_avg_loss = avg_loss
+    out[i] = 100.0 * (avg_gain - avg_loss) / total if total != 0 else 0.0
 
   return out
 
@@ -306,42 +232,16 @@ def compute_mfi_numba(
   volume: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Compute Money Flow Index (MFI) - Parallel implementation.
-
-  MFI requires rolling sum of Positive Flow and Negative Flow.
-  """
+  """Compute Money Flow Index (MFI) - Parallel Chunked with Fusion."""
   n = len(close)
-  out = np.full(n, np.nan, dtype=np.float64)
+  out = np.empty(n, dtype=np.float64)
 
   if n <= period:
+    out[:] = np.nan
     return out
 
-  # Precompute TP
-  tp = np.empty(n, dtype=np.float64)
-  for i in prange(n):
-    tp[i] = (high[i] + low[i] + close[i]) * 0.3333333333333333
-
-  # Precompute Flows
-  # Positive Flow at i: TP[i] * Vol[i] if TP[i] > TP[i-1] else 0
-  # Negative Flow at i: TP[i] * Vol[i] if TP[i] < TP[i-1] else 0
-  pos_flow = np.zeros(n, dtype=np.float64)
-  neg_flow = np.zeros(n, dtype=np.float64)
-
-  # Parallel precompute of flows
-  for i in prange(1, n):
-    curr_tp = tp[i]
-    prev_tp = tp[i - 1]
-    mf = curr_tp * volume[i]
-
-    if curr_tp > prev_tp:
-      pos_flow[i] = mf
-    elif curr_tp < prev_tp:
-      neg_flow[i] = mf
-
-  # Parallel Rolling Sums
-  start_v = period
-  total_len = n - start_v
-
+  # Adaptive parallelism
+  total_len = n - period
   num_chunks = 16
   if total_len < 2048:
     num_chunks = 1
@@ -351,55 +251,54 @@ def compute_mfi_numba(
     chunk_size = total_len
     num_chunks = 1
 
+  out[:period] = np.nan
+
   for c in prange(num_chunks + 1):
-    idx_start = start_v + c * chunk_size
-    idx_end = start_v + (c + 1) * chunk_size
+    start_v = period + c * chunk_size
+    end_v = period + (c + 1) * chunk_size
     if c == num_chunks:
-      idx_end = n
-    if idx_start >= n:
+      end_v = n
+    if start_v >= n:
       continue
 
-    # Initialize sums for chunk start
-    # Sum range [idx_start - period + 1 : idx_start + 1] (inclusive of end?)
-    # Sum window of length period ending at idx_start.
-    # Indices: idx_start-period+1 to idx_start
-
-    # But wait, MFI logic:
-    # First output at index 'period'. Sums from i=1 to period.
-    # Window length 'period'.
-
+    # Initial MF sums for this chunk
     curr_pos = 0.0
     curr_neg = 0.0
 
-    # Initialize state just before idx_start loop
-    # We need sums for window ending at idx_start-1
-    for k in range(idx_start - period + 1, idx_start):  # Up to idx_start-1
-      curr_pos += pos_flow[k]
-      curr_neg += neg_flow[k]
+    for k in range(start_v - period + 1, start_v + 1):
+      tp_k = (high[k] + low[k] + close[k]) / 3.0
+      tp_prev = (high[k - 1] + low[k - 1] + close[k - 1]) / 3.0
+      mf = tp_k * volume[k]
+      if tp_k > tp_prev:
+        curr_pos += mf
+      elif tp_k < tp_prev:
+        curr_neg += mf
 
-    # Loop
-    for i in range(idx_start, idx_end):
-      # Add new
-      curr_pos += pos_flow[i]
-      curr_neg += neg_flow[i]
+    total = curr_pos + curr_neg
+    out[start_v] = 100.0 * curr_pos / total if total > EPSILON else 0.0
 
-      # Remove old (index i - period)
-      # Flow array at [i-period]
-      # Because flow[0] is 0 anyway (no prev), 0 indexing is safe if period >= 1.
-      old_idx = i - period
-      curr_pos -= pos_flow[old_idx]
-      curr_neg -= neg_flow[old_idx]
+    # Rolling loop for the rest of the chunk
+    for i in range(start_v + 1, end_v):
+      tp_i = (high[i] + low[i] + close[i]) / 3.0
+      tp_prev_i = (high[i - 1] + low[i - 1] + close[i - 1]) / 3.0
+      mf_i = tp_i * volume[i]
+      if tp_i > tp_prev_i:
+        curr_pos += mf_i
+      elif tp_i < tp_prev_i:
+        curr_neg += mf_i
 
-      # FP correction
-      if curr_pos < 0:
-        curr_pos = 0.0
-      if curr_neg < 0:
-        curr_neg = 0.0
+      idx_trail = i - period
+      tp_trail = (high[idx_trail] + low[idx_trail] + close[idx_trail]) / 3.0
+      tp_prev_trail = (
+        high[idx_trail - 1] + low[idx_trail - 1] + close[idx_trail - 1]
+      ) / 3.0
+      mf_trail = tp_trail * volume[idx_trail]
+      if tp_trail > tp_prev_trail:
+        curr_pos -= mf_trail
+      elif tp_trail < tp_prev_trail:
+        curr_neg -= mf_trail
 
       total = curr_pos + curr_neg
-      if total > EPSILON:
-        out[i] = 100.0 * curr_pos / total
-      else:
-        out[i] = 0.0  # Or 50?
+      out[i] = 100.0 * curr_pos / total if total > EPSILON else 0.0
 
   return out

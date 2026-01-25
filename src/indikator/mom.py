@@ -1,7 +1,6 @@
-"""Momentum (MOM) indicator module.
+"""Momentum (MOM) indicator module."""
 
-Measures the rate of change in price over a specified period.
-"""
+from typing import TYPE_CHECKING, cast
 
 from datawarden import (
   Finite,
@@ -12,6 +11,9 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
+
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
 
 from indikator._mom_numba import compute_mom_numba
 from indikator._results import MOMResult
@@ -58,16 +60,12 @@ def mom(
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
     >>> result = mom(prices, period=3)
   """
-  # Optimization: Access .values directly.
-  # Validation ensures Finite/Numeric data, so strict casting checks can be relaxed for speed.
-  # If data is int, np.subtract(..., out=float_arr) handles it correctly.
-  values = data.values
-
-  # Ensure we have a numpy array (e.g. if Series was wrapping something else, though unlikely)
-  # and if it's object type (rare given validation), let numpy handle it in computation or fail fast.
-  if not isinstance(values, np.ndarray):
-    values = data.to_numpy(dtype=np.float64, copy=False)
+  # Convert to numpy for Numba
+  values = cast(
+    "NDArray[np.float64]",
+    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+  )
 
   mom_values = compute_mom_numba(values, period)
 
-  return MOMResult(data.index, mom_values)
+  return MOMResult(index=data.index, mom=mom_values)

@@ -1,7 +1,5 @@
 """MACD (Moving Average Convergence Divergence) indicator module."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
@@ -25,7 +23,7 @@ from indikator._results import MACDResult
 
 def _get_ma_func(
   matype: int,
-) -> Callable[[pd.Series, int], NDArray[np.float64]]:
+) -> "Callable[[pd.Series, int], NDArray[np.float64]]":
   from indikator.dema import dema  # noqa: PLC0415
   from indikator.ema import ema  # noqa: PLC0415
   from indikator.kama import kama  # noqa: PLC0415

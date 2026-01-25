@@ -6,7 +6,7 @@ Includes IndicatorResult protocol for type checking.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, NamedTuple
 
 import pandas as pd
 
@@ -15,15 +15,14 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@runtime_checkable
-class IndicatorResult(Protocol):
-  """Protocol for all indicator results."""
+class IndicatorResult:
+  """Base class for all indicator results."""
 
   index: pd.Index
 
   def to_pandas(self) -> pd.Series | pd.DataFrame:
     """Convert result to Pandas object (Series or DataFrame)."""
-    ...
+    raise NotImplementedError
 
 
 class EMAResult(NamedTuple):
