@@ -1,22 +1,15 @@
 """Numba-optimized Stochastic Oscillator calculation.
 
 This module contains JIT-compiled functions for Stochastic calculation.
-Uses monotonic deque for raw calculation followed by sequential SMA smoothing.
+Uses Parallel Chunked Lazy Rescan for optimal performance.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit  # type: ignore[import-untyped]
+from numba import jit, prange  # type: ignore[import-untyped]
 import numpy as np
-
-from indikator._deque_numba import (
-  deque_expire,
-  deque_front,
-  deque_push_max,
-  deque_push_min,
-)
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
@@ -24,7 +17,7 @@ if TYPE_CHECKING:
 EPSILON = 1e-10
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_stoch_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
@@ -33,66 +26,145 @@ def compute_stoch_numba(
   k_slowing: int,
   d_period: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-  """Numba JIT-compiled Stochastic Oscillator (Sequential Optimized)."""
+  """Numba JIT-compiled Stochastic Oscillator (Parallel Chunked)."""
   n = len(close)
 
+  stoch_k = np.empty(n, dtype=np.float64)
+  stoch_d = np.empty(n, dtype=np.float64)
+
   if n < k_period:
-    return np.full(n, np.nan), np.full(n, np.nan)
+    stoch_k[:] = np.nan
+    stoch_d[:] = np.nan
+    return stoch_k, stoch_d
 
-  # 1. Raw Stochastic K
-  raw_stoch = np.full(n, np.nan, dtype=np.float64)
+  # 1. Raw Stoch with Parallel Chunked Lazy Rescan
+  raw_stoch = np.empty(n, dtype=np.float64)
+  raw_stoch[:] = np.nan
 
-  # Allocate deque buffers
-  capacity = k_period + 2
-  dq_high = np.zeros(capacity, dtype=np.int64)
-  dq_low = np.zeros(capacity, dtype=np.int64)
-  h_head, h_tail = 0, 0
-  l_head, l_tail = 0, 0
+  start_v = k_period - 1
+  total_len = n - start_v
 
-  for i in range(n):
-    min_idx = i - k_period + 1
-    h_head = deque_expire(dq_high, h_head, h_tail, capacity, min_idx)
-    h_head, h_tail = deque_push_max(dq_high, h_head, h_tail, capacity, high, i)
-    l_head = deque_expire(dq_low, l_head, l_tail, capacity, min_idx)
-    l_head, l_tail = deque_push_min(dq_low, l_head, l_tail, capacity, low, i)
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-    if i >= k_period - 1:
-      hh = high[deque_front(dq_high, h_head, capacity)]
-      ll = low[deque_front(dq_low, l_head, capacity)]
-      div = hh - ll
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
+
+  for c in prange(num_chunks + 1):
+    idx_start = start_v + c * chunk_size
+    idx_end = start_v + (c + 1) * chunk_size
+    if c == num_chunks:
+      idx_end = n
+    if idx_start >= n:
+      continue
+
+    # Initial scan for the chunk
+    h_idx, l_idx = -1, -1
+    h_val, l_val = -np.inf, np.inf
+    scan_start = idx_start - k_period + 1
+    for k in range(scan_start, idx_start + 1):
+      if high[k] >= h_val:
+        h_val, h_idx = high[k], k
+      if low[k] <= l_val:
+        l_val, l_idx = low[k], k
+
+    for i in range(idx_start, idx_end):
+      trailing = i - k_period + 1
+
+      if h_idx < trailing:
+        h_idx, h_val = trailing, high[trailing]
+        for k in range(trailing + 1, i + 1):
+          if high[k] >= h_val:
+            h_val, h_idx = high[k], k
+      elif high[i] >= h_val:
+        h_val, h_idx = high[i], i
+
+      if l_idx < trailing:
+        l_idx, l_val = trailing, low[trailing]
+        for k in range(trailing + 1, i + 1):
+          if low[k] <= l_val:
+            l_val = low[k]
+            l_idx = k
+      elif low[i] <= l_val:
+        l_val, l_idx = low[i], i
+
+      div = h_val - l_val
       if div > EPSILON:
-        raw_stoch[i] = 100.0 * (close[i] - ll) / div
+        raw_stoch[i] = 100.0 * (close[i] - l_val) / div
       else:
         raw_stoch[i] = 50.0
 
-  # 2. %K = SMA(raw_stoch, k_slowing)
-  stoch_k = np.full(n, np.nan, dtype=np.float64)
-  start_k = k_period - 1 + k_slowing - 1
-  if n > start_k:
-    current_sum = 0.0
-    for i in range(k_period - 1, k_period - 1 + k_slowing):
-      current_sum += raw_stoch[i]
+  # 2. %K = SMA(raw_stoch, k_slowing) - Parallel Chunked
+  stoch_k[:] = np.nan
+  start_k_calc = k_period - 1 + k_slowing - 1
+
+  if n > start_k_calc:
+    len_k = n - start_k_calc
+    num_chunks_k = 16
+    if len_k < 4096:
+      num_chunks_k = 1
+
+    chunk_size_k = len_k // num_chunks_k
+    if chunk_size_k < 1:
+      chunk_size_k = len_k
+      num_chunks_k = 1
 
     inv_k = 1.0 / k_slowing
-    stoch_k[start_k] = current_sum * inv_k
 
-    for i in range(start_k + 1, n):
-      current_sum = current_sum + raw_stoch[i] - raw_stoch[i - k_slowing]
-      stoch_k[i] = current_sum * inv_k
+    for c in prange(num_chunks_k + 1):
+      idx_start = start_k_calc + c * chunk_size_k
+      idx_end = start_k_calc + (c + 1) * chunk_size_k
+      if c == num_chunks_k:
+        idx_end = n
+      if idx_start >= n:
+        continue
 
-  # 3. %D = SMA(stoch_k, d_period)
-  stoch_d = np.full(n, np.nan, dtype=np.float64)
-  start_d = start_k + d_period - 1
-  if n > start_d:
-    current_sum = 0.0
-    for i in range(start_k, start_k + d_period):
-      current_sum += stoch_k[i]
+      curr_sum = 0.0
+      for k in range(idx_start - k_slowing + 1, idx_start + 1):
+        curr_sum += raw_stoch[k]
+
+      stoch_k[idx_start] = curr_sum * inv_k
+
+      for i in range(idx_start + 1, idx_end):
+        curr_sum = curr_sum + raw_stoch[i] - raw_stoch[i - k_slowing]
+        stoch_k[i] = curr_sum * inv_k
+
+  # 3. %D = SMA(stoch_k, d_period) - Parallel Chunked
+  stoch_d[:] = np.nan
+  start_d_calc = start_k_calc + d_period - 1
+
+  if n > start_d_calc:
+    len_d = n - start_d_calc
+    num_chunks_d = 16
+    if len_d < 4096:
+      num_chunks_d = 1
+
+    chunk_size_d = len_d // num_chunks_d
+    if chunk_size_d < 1:
+      chunk_size_d = len_d
+      num_chunks_d = 1
 
     inv_d = 1.0 / d_period
-    stoch_d[start_d] = current_sum * inv_d
 
-    for i in range(start_d + 1, n):
-      current_sum = current_sum + stoch_k[i] - stoch_k[i - d_period]
-      stoch_d[i] = current_sum * inv_d
+    for c in prange(num_chunks_d + 1):
+      idx_start = start_d_calc + c * chunk_size_d
+      idx_end = start_d_calc + (c + 1) * chunk_size_d
+      if c == num_chunks_d:
+        idx_end = n
+      if idx_start >= n:
+        continue
+
+      curr_sum = 0.0
+      for k in range(idx_start - d_period + 1, idx_start + 1):
+        curr_sum += stoch_k[k]
+
+      stoch_d[idx_start] = curr_sum * inv_d
+
+      for i in range(idx_start + 1, idx_end):
+        curr_sum = curr_sum + stoch_k[i] - stoch_k[i - d_period]
+        stoch_d[i] = curr_sum * inv_d
 
   return stoch_k, stoch_d
