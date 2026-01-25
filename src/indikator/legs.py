@@ -19,6 +19,7 @@ import pandas as pd
 
 from indikator._legs_numba import compute_zigzag_numba
 from indikator._results import ZigzagLegsResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -67,9 +68,9 @@ def legs(
   # We use valid data but need to ensure types for Numba
   # Convert to numpy arrays for Numba
   # Use high/low for standard Zigzag
-  high_arr = high.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  low_arr = low.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  close_arr = close.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   percentage_mode = method == "percentage"
 

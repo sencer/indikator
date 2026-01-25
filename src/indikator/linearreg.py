@@ -10,8 +10,6 @@ This module provides Numba-optimized implementations of:
 All implementations use O(1) rolling updates for optimal performance.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -19,11 +17,7 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import (
   LINEARREGAngleResult,
@@ -39,6 +33,7 @@ from indikator._slope_numba import (
   compute_slope_numba,
   compute_tsf_numba,
 )
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -59,10 +54,7 @@ def linearreg(
   Returns:
     LINEARREGResult(index, linearreg)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   result = compute_linearreg_numba(values, period)
 
@@ -87,10 +79,7 @@ def linearreg_intercept(
   Returns:
     LINEARREGInterceptResult(index, linearreg_intercept)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   result = compute_linearreg_intercept_numba(values, period)
 
@@ -115,10 +104,7 @@ def linearreg_angle(
   Returns:
     LINEARREGAngleResult(index, linearreg_angle)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   result = compute_linearreg_angle_numba(values, period)
 
@@ -145,10 +131,7 @@ def linearreg_slope(
   Returns:
     LINEARREGSlopeResult(index, linearreg_slope)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   result = compute_slope_numba(values, period)
 
@@ -175,10 +158,7 @@ def tsf(
   Returns:
     TSFResult(index, tsf)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   result = compute_tsf_numba(values, period)
 

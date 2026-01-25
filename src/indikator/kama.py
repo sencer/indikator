@@ -3,8 +3,6 @@
 KAMA adapts its responsiveness based on market efficiency.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._kama_numba import compute_kama_numba
 from indikator._results import KAMAResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -63,10 +58,7 @@ def kama(
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
     >>> result = kama(prices, period=10)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   kama_values = compute_kama_numba(values, period, fast_period, slow_period)
 

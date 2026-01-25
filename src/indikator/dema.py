@@ -4,8 +4,6 @@ DEMA reduces lag compared to traditional EMA by using a combination
 of single and double-smoothed EMAs.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._dema_numba import compute_dema_numba
 from indikator._results import DEMAResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -57,10 +52,7 @@ def dema(
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
     >>> result = dema(prices, period=5)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   dema_values = compute_dema_numba(values, period)
 

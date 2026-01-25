@@ -18,6 +18,7 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
 from indikator._results import IntradaySeriesResult, IntradayStatsResult
+from indikator.utils import to_numpy
 
 # Optimized aggregation functions (use these for best performance)
 AggFunc = Literal["mean", "std", "median", "min", "max"]
@@ -87,7 +88,7 @@ def intraday_aggregate(
 
   return IntradaySeriesResult(
     data_index=data.index,
-    values=agg_values.to_numpy(dtype=float),  # pyright: ignore[reportUnknownMemberType]
+    values=to_numpy(agg_values),
     name="intraday_aggregate",
   )
 
@@ -126,6 +127,6 @@ def intraday_stats(
 
   return IntradayStatsResult(
     data_index=data.index,
-    mean=mean_values.to_numpy(dtype=float),  # pyright: ignore[reportUnknownMemberType]
-    std=std_values.to_numpy(dtype=float),  # pyright: ignore[reportUnknownMemberType]
+    mean=to_numpy(mean_values),
+    std=to_numpy(std_values),
   )

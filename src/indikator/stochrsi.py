@@ -3,8 +3,6 @@
 Applies Stochastic formula to RSI for more sensitive momentum readings.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import StochRSIResult
 from indikator._stochrsi_numba import compute_stochrsi_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -65,10 +60,7 @@ def stochrsi(
     >>> prices = pd.Series([...])
     >>> result = stochrsi(prices, rsi_period=14, stoch_period=14)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   k_values, d_values = compute_stochrsi_numba(
     values, rsi_period, stoch_period, k_period, d_period

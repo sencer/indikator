@@ -10,10 +10,10 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._results import SectorCorrelationResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -50,7 +50,7 @@ def sector_correlation(
   corr_series = stock_data.rolling(window=period).corr(sector_data)
 
   # Extract array
-  corr_arr = corr_series.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  corr_arr = to_numpy(corr_series)
 
   # Handle potential NaNs not from window (e.g. misalignment) - kept as NaN
 

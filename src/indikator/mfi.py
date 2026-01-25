@@ -4,8 +4,6 @@ This module provides MFI calculation, a momentum indicator that uses both
 price and volume to measure buying and selling pressure.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,16 +11,12 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Gt, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
 from indikator._momentum_numba import compute_mfi_numba
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
-
 from indikator._results import MFIResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -72,22 +66,10 @@ def mfi(  # noqa: PLR0913, PLR0917
     MFIResult(index, mfi)
   """
   # Convert to numpy for Numba
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  vol_arr = cast(
-    "NDArray[np.float64]",
-    volume.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
+  vol_arr = to_numpy(volume)
 
   # Calculate MFI using Numba-optimized function
   # Note: compute_mfi_numba calculates Typical Price internally

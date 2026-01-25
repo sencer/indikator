@@ -1,7 +1,5 @@
 """Rolling Minimum and Maximum indicators."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -9,7 +7,6 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._rolling_numba import (
@@ -21,9 +18,7 @@ from indikator._rolling_numba import (
   compute_minmaxindex_numba,
   compute_sum_numba,
 )
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -41,10 +36,7 @@ def min_val(
   Returns:
     pd.Series: Rolling minimum values.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   result = compute_min_numba(input_arr, period)
 
@@ -66,10 +58,7 @@ def max_val(
   Returns:
     pd.Series: Rolling maximum values.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   result = compute_max_numba(input_arr, period)
 
@@ -93,10 +82,7 @@ def min_index(
   Returns:
     pd.Series: Rolling index of minimum values.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   result = compute_minindex_numba(input_arr, period)
 
@@ -120,10 +106,7 @@ def max_index(
   Returns:
     pd.Series: Rolling index of maximum values.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   result = compute_maxindex_numba(input_arr, period)
 
@@ -145,10 +128,7 @@ def sum_val(
   Returns:
     pd.Series: Rolling sum values.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   result = compute_sum_numba(input_arr, period)
 
@@ -166,10 +146,7 @@ def minmax(
   Returns:
     tuple[pd.Series, pd.Series]: (min, max) series.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore
-  )
+  input_arr = to_numpy(data)
 
   m, x = compute_minmax_numba(input_arr, period)
 
@@ -192,10 +169,7 @@ def minmaxindex(
   Returns:
     tuple[pd.Series, pd.Series]: (min_index, max_index) series.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore
-  )
+  input_arr = to_numpy(data)
 
   mi, xi = compute_minmaxindex_numba(input_arr, period)
 

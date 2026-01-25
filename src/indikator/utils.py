@@ -4,9 +4,16 @@ from __future__ import annotations
 
 from typing import TypeVar
 
+import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 
 T = TypeVar("T", pd.Series, pd.DataFrame)
+
+
+def to_numpy(data: pd.Series[float]) -> NDArray[np.float64]:
+  """Convert Series to numpy array with float64 type."""
+  return data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
 
 def trim_nans[T: (pd.Series, pd.DataFrame)](data: T) -> T:

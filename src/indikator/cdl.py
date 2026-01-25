@@ -7,8 +7,6 @@ Returns integer series:
 - 0: No pattern
 """
 
-from typing import cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -83,6 +81,7 @@ from indikator._cdl_numba import (
   detect_upside_gap_two_crows_numba,
   detect_xsidegap3methods_numba,
 )
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -97,10 +96,10 @@ def cdl_doji(
 
   Returns 100 if detected, 0 otherwise.
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_doji_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_doji")
@@ -118,10 +117,10 @@ def cdl_hammer(
 
   Returns 100 (Bullish) if detected, 0 otherwise.
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_hammer_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_hammer")
@@ -142,10 +141,10 @@ def cdl_engulfing(
   - -100: Bearish Engulfing
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_engulfing_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_engulfing")
@@ -166,10 +165,10 @@ def cdl_harami(
   - -100: Bearish Harami
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_harami_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_harami")
@@ -189,10 +188,10 @@ def cdl_shooting_star(
   - -100: Bearish Shooting Star
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_shooting_star_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_shooting_star")
@@ -212,10 +211,10 @@ def cdl_inverted_hammer(
   - 100: Bullish Inverted Hammer
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_inverted_hammer_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_inverted_hammer")
@@ -235,10 +234,10 @@ def cdl_hanging_man(
   - -100: Bearish Hanging Man
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_hanging_man_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_hanging_man")
@@ -259,10 +258,10 @@ def cdl_marubozu(
   - -100: Bearish (Black) Marubozu
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_marubozu_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_marubozu")
@@ -282,10 +281,10 @@ def cdl_morning_star(
   - 100: Bullish Morning Star
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_morning_star_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_morning_star")
@@ -305,10 +304,10 @@ def cdl_evening_star(
   - -100: Bearish Evening Star
   - 0: None
   """
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
 
   result = detect_evening_star_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_evening_star")
@@ -1130,8 +1129,8 @@ def _alloc_ohlc(
   NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]
 ]:
   # Helper to reduce boilerplate
-  o = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore
+  o = to_numpy(open_)
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
   return o, h, low_arr, c

@@ -3,8 +3,6 @@
 Trend-following indicator that provides potential stop and reverse points.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Gt, Hyper, Le, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import SARResult
 from indikator._sar_numba import compute_sar_numba, compute_sarext_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -63,14 +58,8 @@ def sar(
   Example:
     >>> result = sar(high, low, acceleration=0.02, maximum=0.2)
   """
-  h = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_np = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  h = to_numpy(high)
+  low_np = to_numpy(low)
 
   sar_values = compute_sar_numba(h, low_np, acceleration, acceleration, maximum)
 
@@ -110,8 +99,8 @@ def sarext(  # noqa: PLR0913, PLR0917
   Returns:
     SARResult(index, sar)
   """
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  h = to_numpy(high)
+  low_np = to_numpy(low)
 
   sar_values = compute_sarext_numba(
     h,

@@ -1,15 +1,10 @@
-from typing import TYPE_CHECKING, cast
-
 from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import configurable
-import numpy as np
 import pandas as pd
 
 from indikator._bop_numba import compute_bop_numba
 from indikator._results import BOPResult
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -33,10 +28,10 @@ def bop(
   Returns:
       BOPResult: Balance of Power values
   """
-  open_np = cast("NDArray[np.float64]", open_.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  high_np = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_np = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  open_np = to_numpy(open_)
+  high_np = to_numpy(high)
+  low_np = to_numpy(low)
+  close_np = to_numpy(close)
 
   result = compute_bop_numba(open_np, high_np, low_np, close_np)
 

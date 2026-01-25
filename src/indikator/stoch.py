@@ -4,8 +4,6 @@ This module provides Stochastic calculation, a momentum indicator comparing
 closing price to its price range over a given time period.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import StochResult
 from indikator._stoch_numba import compute_stoch_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -35,63 +30,55 @@ def stoch(  # noqa: PLR0913, PLR0917
 ) -> StochResult:
   """Calculate Stochastic Oscillator.
 
-  The Stochastic Oscillator is a momentum indicator comparing closing price
-  to its price range over a given time period.
+    The Stochastic Oscillator is a momentum indicator comparing closing price
+    to its price range over a given time period.
 
-  Formula:
-  %K = 100 * SMA((Close - Lowest Low) / (Highest High - Lowest Low), k_slowing)
-  %D = SMA(%K, d_period)
+    Formula:
+    %K = 100 * SMA((Close - Lowest Low) / (Highest High - Lowest Low), k_slowing)
+    %D = SMA(%K, d_period)
 
-  Interpretation:
-  - %K > 80: Overbought
-  - %K < 20: Oversold
-  - %K crossing %D: Signal (bullish if crossing up, bearish if crossing down)
-  - Divergence: Price making new high but stochastic doesn't = bearish
+    Interpretation:
+    - %K > 80: Overbought
+    - %K < 20: Oversold
+    - %K crossing %D: Signal (bullish if crossing up, bearish if crossing down)
+    - Divergence: Price making new high but stochastic doesn't = bearish
 
-  Common strategies:
-  - Buy when %K crosses above %D below 20
-  - Sell when %K crosses below %D above 80
+    Common strategies:
+    - Buy when %K crosses above %D below 20
+    - Sell when %K crosses below %D above 80
 
-  Features:
-  - Numba-optimized for performance
-  - Standard Fast Stochastic with slowing
-  - Returns both %K and %D lines
+    Features:
+    - Numba-optimized for performance
+    - Standard Fast Stochastic with slowing
+    - Returns both %K and %D lines
 
-  Args:
-    high: High prices Series.
-    low: Low prices Series.
-    close: Close prices Series.
-    k_period: Period for highest high / lowest low (default: 14)
-    k_slowing: Slowing period for %K (default: 3)
-    d_period: Period for %D smoothing (default: 3)
+    Args:
+      high: High prices Series.
+      low: Low prices Series.
+      close: Close prices Series.
+      k_period: Period for highest high / lowest low (default: 14)
+      k_slowing: Slowing period for %K (default: 3)
+      d_period: Period for %D smoothing (default: 3)
 
-  Returns:
-    DataFrame with 'stoch_k' and 'stoch_d' columns
+    Returns:
+      DataFrame with 'stoch_k' and 'stoch_d' columns
 
-  Raises:
-    ValueError: If data contains NaN/Inf
+    Raises:
+      ValueError: If data contains NaN/Inf
 
-  Example:
-    >>> import pandas as pd
-    >>> high = pd.Series([105, 107, 106, 108, 110])
-    >>> low = pd.Series([100, 102, 101, 103, 105])
-    >>> close = pd.Series([102, 105, 104, 106, 108])
-    >>> result = stoch(high, low, close)
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> high = pd.Series([105, 107, 106, 108, 110])
+      >>> low = pd.Series([100, 102, 101, 103, 105])
+      >>> close = pd.Series([102, 105, 104, 106, 108])
+      >>> result = stoch(high, low, close)
   """
   # Convert to numpy for Numba
   # Use to_numpy with copy=False to avoid copying if already float64 and compatible
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   # Calculate Stochastic using Numba-optimized function
   stoch_k, stoch_d = compute_stoch_numba(

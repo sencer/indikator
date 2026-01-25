@@ -3,8 +3,6 @@
 WMA gives more weight to recent prices, with linearly increasing weights.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import WMAResult
 from indikator._wma_numba import compute_wma_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -56,10 +51,7 @@ def wma(
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
     >>> result = wma(prices, period=5)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   wma_values = compute_wma_numba(values, period)
 

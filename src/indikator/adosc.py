@@ -3,8 +3,6 @@
 Measures momentum of A/D line using fast and slow EMAs.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._ad_numba import compute_adosc_numba
 from indikator._results import ADOSCResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -63,22 +58,10 @@ def adosc(  # noqa: PLR0913, PLR0917
   Example:
     >>> result = adosc(high, low, close, volume, fast_period=3, slow_period=10)
   """
-  h = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  c = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  v = cast(
-    "NDArray[np.float64]",
-    volume.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  h = to_numpy(high)
+  low_arr = to_numpy(low)
+  c = to_numpy(close)
+  v = to_numpy(volume)
 
   adosc_values = compute_adosc_numba(h, low_arr, c, v, fast_period, slow_period)
 

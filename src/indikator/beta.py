@@ -5,8 +5,6 @@ This module provides Numba-optimized implementations of:
 - beta: Beta on 1-period returns (matches TA-Lib)
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -14,17 +12,14 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._correlation_numba import (
   compute_beta_fused_rocp_numba,
   compute_beta_numba,
 )
 from indikator._results import BETAResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -52,14 +47,8 @@ def beta_statistical(
   Returns:
     BETAResult(index, beta)
   """
-  x_arr = cast(
-    "NDArray[np.float64]",
-    x.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  y_arr = cast(
-    "NDArray[np.float64]",
-    y.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  x_arr = to_numpy(x)
+  y_arr = to_numpy(y)
 
   result = compute_beta_numba(x_arr, y_arr, period)
 
@@ -92,14 +81,8 @@ def beta(
   Returns:
     BETAResult(index, beta)
   """
-  x_arr = cast(
-    "NDArray[np.float64]",
-    x.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  y_arr = cast(
-    "NDArray[np.float64]",
-    y.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  x_arr = to_numpy(x)
+  y_arr = to_numpy(y)
 
   # Use fused kernel for optimal performance
   result = compute_beta_fused_rocp_numba(x_arr, y_arr, period)

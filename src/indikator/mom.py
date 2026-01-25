@@ -1,7 +1,5 @@
 """Momentum (MOM) indicator module."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -9,14 +7,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._mom_numba import compute_mom_numba
 from indikator._results import MOMResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -61,10 +56,7 @@ def mom(
     >>> result = mom(prices, period=3)
   """
   # Convert to numpy for Numba
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   mom_values = compute_mom_numba(values, period)
 

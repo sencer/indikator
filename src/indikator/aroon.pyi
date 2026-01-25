@@ -35,44 +35,45 @@ class _aroon_Config(_NCMakeableModel[_aroon_Bound]):
 
   Calculate AROON indicator.
 
-  AROON measures trend strength by tracking how many periods since
-  the highest high and lowest low occurred. It helps identify trend
-  changes and strength.
+    AROON measures trend strength by tracking how many periods since
+    the highest high and lowest low occurred. It helps identify trend
+    changes and strength.
 
-  Formulas:
-  Aroon Up = 100 * (period - periods_since_high) / period
-  Aroon Down = 100 * (period - periods_since_low) / period
-  Aroon Oscillator = Aroon Up - Aroon Down
+    Formulas:
+    Aroon Up = 100 * (period - periods_since_high) / period
+    Aroon Down = 100 * (period - periods_since_low) / period
+    Aroon Oscillator = Aroon Up - Aroon Down
 
-  Interpretation:
-  - Aroon Up > 70 and Aroon Down < 30: Strong uptrend
-  - Aroon Down > 70 and Aroon Up < 30: Strong downtrend
-  - Both low: Consolidation
-  - Crossovers: Trend change signals
-  - Aroon Osc > 0: Bullish, < 0: Bearish
+    Interpretation:
+    - Aroon Up > 70 and Aroon Down < 30: Strong uptrend
+    - Aroon Down > 70 and Aroon Up < 30: Strong downtrend
+    - Both low: Consolidation
+    - Crossovers: Trend change signals
+    - Aroon Osc > 0: Bullish, < 0: Bearish
 
-  Features:
-  - Numba-optimized for performance
-  - Returns Up, Down, and Oscillator values
-  - Range: 0 to 100 for Up/Down, -100 to +100 for Oscillator
+    Features:
+    - Numba-optimized for performance
+    - Returns Up, Down, and Oscillator values
+    - Range: 0 to 100 for Up/Down, -100 to +100 for Oscillator
 
-  Args:
-    high: High prices Series
-    low: Low prices Series
-    period: Lookback period (default: 25)
+    Args:
+      high: High prices Series
+      low: Low prices Series
+      period: Lookback period (default: 25)
 
-  Returns:
-    DataFrame with columns: aroon_up, aroon_down, aroon_osc
+    Returns:
+      DataFrame with columns: aroon_up, aroon_down, aroon_osc
 
-  Raises:
-    ValueError: If data contains NaN/Inf
+    Raises:
+      ValueError: If data contains NaN/Inf
 
-  Example:
-    >>> import pandas as pd
-    >>> high = pd.Series([105, 106, 104, 108, 107, 109, 108, 110] * 5)
-    >>> low = pd.Series([100, 101, 99, 103, 102, 104, 103, 105] * 5)
-    >>> result = aroon(high, low, period=5)
-    >>> # Returns DataFrame with aroon_up, aroon_down, aroon_osc
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> high = pd.Series([105, 106, 104, 108, 107, 109, 108, 110] * 5)
+      >>> low = pd.Series([100, 101, 99, 103, 102, 104, 103, 105] * 5)
+      >>> result = aroon(high, low, period=5)
+      >>> # Returns DataFrame with aroon_up, aroon_down, aroon_osc
 
   Configuration:
       period (int)

@@ -4,8 +4,6 @@ This module provides EMA calculation, a trend-following indicator that
 gives more weight to recent prices.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._ema_numba import compute_ema_numba
 from indikator._results import EMAResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -63,10 +58,7 @@ def ema(
     EMAResult(index, ema_array)
   """
   # Convert to numpy for Numba
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   # Calculate EMA using Numba-optimized function
   ema_values = compute_ema_numba(values, period)

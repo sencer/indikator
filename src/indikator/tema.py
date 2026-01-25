@@ -3,8 +3,6 @@
 TEMA further reduces lag compared to DEMA by using triple-smoothed EMAs.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import TEMAResult
 from indikator._tema_numba import compute_tema_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -61,10 +56,7 @@ def tema(
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
     >>> result = tema(prices, period=5)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   tema_values = compute_tema_numba(values, period)
 

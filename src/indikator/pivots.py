@@ -14,10 +14,10 @@ from datawarden import (
   validate,
 )
 from nonfig import Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._results import PivotPointsResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -81,9 +81,10 @@ def pivots(  # noqa: PLR0915, PLR0914
   aligned = prior.reindex(high.index, method="ffill")
 
   # Convert to arrays
-  prev_high = aligned["high"].to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  prev_low = aligned["low"].to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  prev_close = aligned["close"].to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  # Convert to arrays
+  prev_high = to_numpy(aligned["high"])
+  prev_low = to_numpy(aligned["low"])
+  prev_close = to_numpy(aligned["close"])
 
   # Handle NaN at start (first day has no prior)
   # Arrays already have NaNs from shift+reindex.

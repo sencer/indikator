@@ -118,50 +118,51 @@ class _vwap_anchored_Config(_NCMakeableModel[_vwap_anchored_Bound]):
 
   Calculate Anchored VWAP from a specific point in time.
 
-  Anchored VWAP calculates VWAP starting from a specific bar forward,
-  rather than resetting at session boundaries. This is useful for:
-  - Anchoring to significant events (earnings, news, pivots)
-  - Tracking institutional positioning from specific entry points
-  - Measuring average fill price from a particular time
-  - Swing trading support/resistance from key levels
+    Anchored VWAP calculates VWAP starting from a specific bar forward,
+    rather than resetting at session boundaries. This is useful for:
+    - Anchoring to significant events (earnings, news, pivots)
+    - Tracking institutional positioning from specific entry points
+    - Measuring average fill price from a particular time
+    - Swing trading support/resistance from key levels
 
-  Common anchor points:
-  - Earnings announcements
-  - Market structure breaks (new high/low)
-  - Major news events
-  - Session open/close
-  - Previous day high/low
+    Common anchor points:
+    - Earnings announcements
+    - Market structure breaks (new high/low)
+    - Major news events
+    - Session open/close
+    - Previous day high/low
 
-  Features:
-  - Anchor by index position or datetime
-  - No session resets (continuous from anchor)
-  - Returns NaN for all bars before anchor
-  - Numba-optimized for performance
+    Features:
+    - Anchor by index position or datetime
+    - No session resets (continuous from anchor)
+    - Returns NaN for all bars before anchor
+    - Numba-optimized for performance
 
-  Args:
-    data: OHLCV DataFrame
-    anchor_index: Bar index to start VWAP calculation (0-based)
-    anchor_datetime: Datetime to start VWAP (alternative to anchor_index)
+    Args:
+      data: OHLCV DataFrame
+      anchor_index: Bar index to start VWAP calculation (0-based)
+      anchor_datetime: Datetime to start VWAP (alternative to anchor_index)
 
-  Returns:
-    DataFrame with 'vwap_anchored' and 'typical_price' columns added
+    Returns:
+      DataFrame with 'vwap_anchored' and 'typical_price' columns added
 
-  Raises:
-    ValueError: If neither or both anchor parameters provided, or anchor not found
+    Raises:
+      ValueError: If neither or both anchor parameters provided, or anchor not found
 
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01', periods=10, freq='D')
-    >>> data = pd.DataFrame({
-    ...     'high': [102, 104, 103, 106, 108, 107, 109, 108, 110, 112],
-    ...     'low': [100, 101, 100, 103, 105, 104, 106, 105, 107, 109],
-    ...     'close': [101, 103, 102, 105, 107, 106, 108, 107, 109, 111],
-    ...     'volume': [1000]*10
-    ... }, index=dates)
-    >>> # Anchor VWAP from bar 3 (representing a breakout)
-    >>> result = vwap_anchored(data, anchor_index=3)
-    >>> # Or anchor from specific date
-    >>> result = vwap_anchored(data, anchor_datetime='2024-01-04')
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> dates = pd.date_range('2024-01-01', periods=10, freq='D')
+      >>> data = pd.DataFrame({
+      ...     'high': [102, 104, 103, 106, 108, 107, 109, 108, 110, 112],
+      ...     'low': [100, 101, 100, 103, 105, 104, 106, 105, 107, 109],
+      ...     'close': [101, 103, 102, 105, 107, 106, 108, 107, 109, 111],
+      ...     'volume': [1000]*10
+      ... }, index=dates)
+      >>> # Anchor VWAP from bar 3 (representing a breakout)
+      >>> result = vwap_anchored(data, anchor_index=3)
+      >>> # Or anchor from specific date
+      >>> result = vwap_anchored(data, anchor_datetime='2024-01-04')
   """
 
   pass

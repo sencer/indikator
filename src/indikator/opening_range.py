@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from indikator._results import OpeningRangeResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -155,9 +156,9 @@ def opening_range(  # noqa: PLR0914
   breakout = np.zeros(len(close), dtype=np.int8)
 
   # Use numpy for comparisons
-  c_arr = close.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  h_arr = or_high.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  l_arr = or_low.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  c_arr = to_numpy(close)
+  h_arr = to_numpy(or_high)
+  l_arr = to_numpy(or_low)
 
   # Handle NaNs
   valid = ~np.isnan(h_arr) & ~np.isnan(l_arr)

@@ -1,10 +1,10 @@
 from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._results import T3Result
 from indikator._t3_numba import compute_t3_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -28,6 +28,6 @@ def t3(
   Returns:
     T3Result
   """
-  values = data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  values = to_numpy(data)
   result = compute_t3_numba(values, period, vfactor)
   return T3Result(data_index=data.index, t3=result)

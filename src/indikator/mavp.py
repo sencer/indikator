@@ -1,20 +1,15 @@
 """MAVP (Moving Average with Variable Period) indicator."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   NotEmpty,
   Validated,
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._mavp_numba import compute_mavp_sma_numba
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -42,14 +37,8 @@ def mavp(
   Returns:
     pd.Series: MAVP values.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  periods_arr = cast(
-    "NDArray[np.float64]",
-    periods.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
+  periods_arr = to_numpy(periods)
 
   # Ensure lengths match
   if len(input_arr) != len(periods_arr):

@@ -1,15 +1,10 @@
-from typing import TYPE_CHECKING, cast
-
 from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._results import TRIMAResult
 from indikator._trima_numba import compute_trima_numba
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -30,6 +25,6 @@ def trima(
   Returns:
     TRIMAResult
   """
-  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  values = to_numpy(data)
   result = compute_trima_numba(values, period)
   return TRIMAResult(data_index=data.index, trima=result)

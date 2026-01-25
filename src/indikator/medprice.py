@@ -3,18 +3,13 @@
 MEDPRICE = (High + Low) / 2
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._price_transform_numba import compute_medprice_numba
 from indikator._results import MEDPRICEResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -34,8 +29,8 @@ def medprice(
   Returns:
     MEDPRICEResult
   """
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  h = to_numpy(high)
+  low_np = to_numpy(low)
 
   result = compute_medprice_numba(h, low_np)
 

@@ -1,17 +1,12 @@
 """STDDEV - Standard Deviation over period."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import STDDEVResult
 from indikator._stats_numba import compute_stddev_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -31,6 +26,6 @@ def stddev(
   Returns:
     STDDEVResult
   """
-  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  values = to_numpy(data)
   result = compute_stddev_numba(values, period, nbdev)
   return STDDEVResult(data_index=data.index, stddev=result)

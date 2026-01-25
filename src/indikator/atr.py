@@ -31,6 +31,7 @@ from indikator._atr_numba import (
 from indikator._constants import DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
 from indikator._results import ATRIntradayResult, ATRResult, TRANGEResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -85,18 +86,9 @@ def atr(
     ATRResult(index, atr)
   """
   # Convert to numpy for Numba
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   # Calculate ATR using Numba-optimized function
   atr_values = compute_atr_numba(high_arr, low_arr, close_arr, period)
@@ -119,43 +111,44 @@ def atr_intraday(
 ) -> ATRIntradayResult:
   """Calculate time-of-day adjusted ATR (intraday volatility).
 
-  Compares current volatility to the historical average volatility for that
-  specific time of day. This accounts for intraday volatility patterns:
-  - Market open (9:30-10:00) typically has high volatility
-  - Lunch (12:00-13:00) typically has low volatility
-  - Market close (15:30-16:00) typically has high volatility
+    Compares current volatility to the historical average volatility for that
+    specific time of day. This accounts for intraday volatility patterns:
+    - Market open (9:30-10:00) typically has high volatility
+    - Lunch (12:00-13:00) typically has low volatility
+    - Market close (15:30-16:00) typically has high volatility
 
-  Regular ATR might show "high volatility" during market open even when it's
-  normal for that time. Intraday ATR correctly identifies "high for this time
-  of day".
+    Regular ATR might show "high volatility" during market open even when it's
+    normal for that time. Intraday ATR correctly identifies "high for this time
+    of day".
 
-  Features:
-  - Accounts for natural intraday volatility patterns
-  - Configurable lookback period (None = use all history)
-  - Requires minimum samples per time slot for reliability
-  - Returns both intraday ATR and True Range
+    Features:
+    - Accounts for natural intraday volatility patterns
+    - Configurable lookback period (None = use all history)
+    - Requires minimum samples per time slot for reliability
+    - Returns both intraday ATR and True Range
 
-  Args:
-    data: OHLCV DataFrame with DatetimeIndex and 'high', 'low', 'close' columns
-    lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum historical samples required per time slot
+    Args:
+      data: OHLCV DataFrame with DatetimeIndex and 'high', 'low', 'close' columns
+      lookback_days: Number of days to look back (None = use all history)
+      min_samples: Minimum historical samples required per time slot
 
-  Returns:
-    Series with time-of-day adjusted ATR values (NaN until min_samples met per time slot)
+    Returns:
+      Series with time-of-day adjusted ATR values (NaN until min_samples met per time slot)
 
-  Raises:
-    ValueError: If required columns missing or index is not DatetimeIndex
+    Raises:
+      ValueError: If required columns missing or index is not DatetimeIndex
 
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01 09:30', periods=100, freq='5min')
-    >>> data = pd.DataFrame({
-    ...     'high': [102]*100,
-    ...     'low': [100]*100,
-    ...     'close': [101]*100
-    ... }, index=dates)
-    >>> result = atr_intraday(data)
-    >>> # Returns DataFrame with time-of-day adjusted ATR
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> dates = pd.date_range('2024-01-01 09:30', periods=100, freq='5min')
+      >>> data = pd.DataFrame({
+      ...     'high': [102]*100,
+      ...     'low': [100]*100,
+      ...     'close': [101]*100
+      ... }, index=dates)
+      >>> result = atr_intraday(data)
+      >>> # Returns DataFrame with time-of-day adjusted ATR
   """
   # Calculate true range first
   # Optimization: Use bulk 2D access for speed since we have a DataFrame
@@ -210,18 +203,9 @@ def trange(
     TRangeResult(index, trange)
   """
   # Convert to numpy for Numba
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   # Calculate TR using Numba-optimized function
   tr_values = compute_true_range_numba(high_arr, low_arr, close_arr)

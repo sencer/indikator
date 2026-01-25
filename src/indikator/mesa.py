@@ -3,8 +3,6 @@
 Includes MAMA (MESA Adaptive Moving Average) and FAMA (Following Adaptive Moving Average).
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -12,14 +10,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Gt, Hyper, Le, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._mesa_numba import compute_mama_numba
 from indikator._results import MAMAResult
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -42,10 +37,7 @@ def mama(
   Returns:
     MAMAResult(index, mama, fama)
   """
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore
-  )
+  values = to_numpy(data)
 
   m, f = compute_mama_numba(values, fastlimit, slowlimit)
 

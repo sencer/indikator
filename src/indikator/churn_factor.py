@@ -16,6 +16,7 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
 from indikator._results import ChurnFactorResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -48,9 +49,9 @@ def churn_factor(
     ChurnFactorResult(index, churn)
   """
   # Convert to numpy
-  high_arr = high.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  low_arr = low.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  vol_arr = volume.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  vol_arr = to_numpy(volume)
 
   price_range = high_arr - low_arr
 

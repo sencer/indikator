@@ -4,8 +4,6 @@ This module provides ADX calculation, a trend strength indicator that
 measures how strong a trend is, regardless of direction.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,11 +11,7 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._adx_numba import compute_adx_numba, compute_adx_numba_pure
 from indikator._results import (
@@ -30,6 +24,7 @@ from indikator._results import (
   PlusDIResult,
   PlusDMResult,
 )
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -62,18 +57,9 @@ def adx(
     ADXSingleResult(index, adx)
   """
   # Convert to numpy for Numba
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   # Calculate ADX using pure Numba function (no DI array overhead)
   adx_values = compute_adx_numba_pure(high_arr, low_arr, close_arr, period)
@@ -114,18 +100,9 @@ def adx_with_di(
     ADXResult object with adx, plus_di, minus_di series.
   """
   # Convert to numpy for Numba
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   # Calculate ADX and DIs
   adx_values, plus_di, minus_di = compute_adx_numba(
@@ -158,9 +135,9 @@ def plus_dm(
   Returns:
     PlusDMResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
 
@@ -189,9 +166,9 @@ def minus_dm(
   Returns:
     MinusDMResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
 
@@ -220,9 +197,9 @@ def plus_di(
   Returns:
     PlusDIResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
 
@@ -252,9 +229,9 @@ def minus_di(
   Returns:
     MinusDIResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
 
@@ -284,9 +261,9 @@ def dx(
   Returns:
     DXResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   from indikator._adx_numba import compute_dx_numba  # noqa: PLC0415
 
@@ -315,9 +292,9 @@ def adxr(
   Returns:
     ADXRResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   from indikator._adx_numba import compute_adxr_numba  # noqa: PLC0415
 

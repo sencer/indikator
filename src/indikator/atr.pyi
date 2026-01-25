@@ -131,43 +131,44 @@ class _atr_intraday_Config(_NCMakeableModel[_atr_intraday_Bound]):
 
   Calculate time-of-day adjusted ATR (intraday volatility).
 
-  Compares current volatility to the historical average volatility for that
-  specific time of day. This accounts for intraday volatility patterns:
-  - Market open (9:30-10:00) typically has high volatility
-  - Lunch (12:00-13:00) typically has low volatility
-  - Market close (15:30-16:00) typically has high volatility
+    Compares current volatility to the historical average volatility for that
+    specific time of day. This accounts for intraday volatility patterns:
+    - Market open (9:30-10:00) typically has high volatility
+    - Lunch (12:00-13:00) typically has low volatility
+    - Market close (15:30-16:00) typically has high volatility
 
-  Regular ATR might show "high volatility" during market open even when it's
-  normal for that time. Intraday ATR correctly identifies "high for this time
-  of day".
+    Regular ATR might show "high volatility" during market open even when it's
+    normal for that time. Intraday ATR correctly identifies "high for this time
+    of day".
 
-  Features:
-  - Accounts for natural intraday volatility patterns
-  - Configurable lookback period (None = use all history)
-  - Requires minimum samples per time slot for reliability
-  - Returns both intraday ATR and True Range
+    Features:
+    - Accounts for natural intraday volatility patterns
+    - Configurable lookback period (None = use all history)
+    - Requires minimum samples per time slot for reliability
+    - Returns both intraday ATR and True Range
 
-  Args:
-    data: OHLCV DataFrame with DatetimeIndex and 'high', 'low', 'close' columns
-    lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum historical samples required per time slot
+    Args:
+      data: OHLCV DataFrame with DatetimeIndex and 'high', 'low', 'close' columns
+      lookback_days: Number of days to look back (None = use all history)
+      min_samples: Minimum historical samples required per time slot
 
-  Returns:
-    Series with time-of-day adjusted ATR values (NaN until min_samples met per time slot)
+    Returns:
+      Series with time-of-day adjusted ATR values (NaN until min_samples met per time slot)
 
-  Raises:
-    ValueError: If required columns missing or index is not DatetimeIndex
+    Raises:
+      ValueError: If required columns missing or index is not DatetimeIndex
 
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01 09:30', periods=100, freq='5min')
-    >>> data = pd.DataFrame({
-    ...     'high': [102]*100,
-    ...     'low': [100]*100,
-    ...     'close': [101]*100
-    ... }, index=dates)
-    >>> result = atr_intraday(data)
-    >>> # Returns DataFrame with time-of-day adjusted ATR
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> dates = pd.date_range('2024-01-01 09:30', periods=100, freq='5min')
+      >>> data = pd.DataFrame({
+      ...     'high': [102]*100,
+      ...     'low': [100]*100,
+      ...     'close': [101]*100
+      ... }, index=dates)
+      >>> result = atr_intraday(data)
+      >>> # Returns DataFrame with time-of-day adjusted ATR
 
   Configuration:
       min_samples (int)

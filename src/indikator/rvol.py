@@ -19,6 +19,7 @@ import pandas as pd
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
 from indikator._results import RVOLResult
+from indikator.utils import to_numpy
 
 __all__ = ["rvol", "rvol_intraday"]
 
@@ -55,8 +56,8 @@ def rvol(
 
   # Calculate relative volume
   # Get numpy arrays for calculation
-  vol_arr = data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
-  sma_arr = sma_volume.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  vol_arr = to_numpy(data)
+  sma_arr = to_numpy(sma_volume)
 
   rvol_values = np.ones_like(vol_arr)  # Default to 1.0
 
@@ -109,7 +110,7 @@ def rvol_intraday(
 
   # Calculate RVOL with division by zero protection
   # Calculate RVOL with division by zero protection
-  vol_arr = data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  vol_arr = to_numpy(data)
   # avg_volume_by_time is IntradaySeriesResult
   avg_arr = avg_volume_by_time.values
 

@@ -4,8 +4,6 @@ NATR expresses ATR as a percentage of the closing price for
 cross-instrument comparison.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._natr_numba import compute_natr_numba
 from indikator._results import NATRResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -61,18 +56,9 @@ def natr(
   Example:
     >>> result = natr(high, low, close, period=14)
   """
-  h = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_np = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  c = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  h = to_numpy(high)
+  low_np = to_numpy(low)
+  c = to_numpy(close)
 
   natr_values = compute_natr_numba(h, low_np, c, period)
 

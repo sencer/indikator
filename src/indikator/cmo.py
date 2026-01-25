@@ -4,8 +4,6 @@ This module provides CMO calculation, a momentum oscillator that measures
 the difference between sum of gains and losses over a period.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._momentum_numba import compute_cmo_numba
 from indikator._results import CMOResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -31,47 +26,45 @@ def cmo(
 ) -> CMOResult:
   """Calculate Chande Momentum Oscillator (CMO).
 
-  CMO measures the momentum of price changes. It oscillates between -100
-  and +100, making it useful for identifying overbought/oversold conditions.
+    CMO measures the momentum of price changes. It oscillates between -100
+    and +100, making it useful for identifying overbought/oversold conditions.
 
-  Formula:
-  CMO = 100 * (sum_gains - sum_losses) / (sum_gains + sum_losses)
+    Formula:
+    CMO = 100 * (sum_gains - sum_losses) / (sum_gains + sum_losses)
 
-  Interpretation:
-  - CMO > 50: Overbought (potential reversal down)
-  - CMO < -50: Oversold (potential reversal up)
-  - CMO = 0: Equal gains and losses
-  - Crossing zero: Momentum shift
+    Interpretation:
+    - CMO > 50: Overbought (potential reversal down)
+    - CMO < -50: Oversold (potential reversal up)
+    - CMO = 0: Equal gains and losses
+    - Crossing zero: Momentum shift
 
-  Unlike RSI which divides sum_gains by sum_losses, CMO uses their
-  difference divided by their sum, giving a true center at zero.
+    Unlike RSI which divides sum_gains by sum_losses, CMO uses their
+    difference divided by their sum, giving a true center at zero.
 
-  Features:
-  - Numba-optimized for performance
-  - O(n) sliding window algorithm
-  - Range: -100 to +100 (centered at 0)
+    Features:
+    - Numba-optimized for performance
+    - O(n) sliding window algorithm
+    - Range: -100 to +100 (centered at 0)
 
-  Args:
-    data: Input Series (typically closing prices)
-    period: Lookback period (default: 14)
+    Args:
+      data: Input Series (typically closing prices)
+      period: Lookback period (default: 14)
 
-  Returns:
-    CMOResult(index, cmo)
+    Returns:
+      CMOResult(index, cmo)
 
-  Raises:
-    ValueError: If data contains NaN/Inf
+    Raises:
+      ValueError: If data contains NaN/Inf
 
-  Example:
-    >>> import pandas as pd
-    >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109] * 3)
-    >>> result = cmo(prices, period=5).to_pandas()
-    >>> # Returns CMO values
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108, 107, 109] * 3)
+      >>> result = cmo(prices, period=5).to_pandas()
+      >>> # Returns CMO values
   """
   # Convert to numpy for Numba
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   # Calculate CMO using Numba-optimized function
   cmo_values = compute_cmo_numba(values, period)

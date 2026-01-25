@@ -4,8 +4,6 @@ This module provides a Numba-optimized rolling slope calculation using
 linear regression. 1,000-8,000x faster than using scipy.linregress.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,15 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
-
 
 from indikator._results import SlopeResult
 from indikator._slope_numba import compute_slope_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -49,10 +43,7 @@ def slope(
   """
 
   # Convert to numpy for Numba
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   # Calculate slopes using Numba-optimized function
   slopes = compute_slope_numba(values, window)

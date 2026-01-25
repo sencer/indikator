@@ -109,43 +109,44 @@ class _zscore_intraday_Config(_NCMakeableModel[_zscore_intraday_Bound]):
 
   Calculate time-of-day adjusted Z-Score.
 
-  Compares current value to the historical mean and std dev for that specific
-  time of day (e.g., 10:30 AM today vs. all previous 10:30 AM bars).
+    Compares current value to the historical mean and std dev for that specific
+    time of day (e.g., 10:30 AM today vs. all previous 10:30 AM bars).
 
-  This accounts for intraday patterns:
-  - Price tends to be volatile at market open
-  - Volume tends to be high at open/close, low at lunch
-  - Spread/volatility patterns vary by time of day
+    This accounts for intraday patterns:
+    - Price tends to be volatile at market open
+    - Volume tends to be high at open/close, low at lunch
+    - Spread/volatility patterns vary by time of day
 
-  Regular Z-score might show "high volatility" during market open even when
-  it's normal for that time. Intraday Z-score correctly identifies "high for
-  this time of day".
+    Regular Z-score might show "high volatility" during market open even when
+    it's normal for that time. Intraday Z-score correctly identifies "high for
+    this time of day".
 
-  Features:
-  - Accounts for natural intraday patterns
-  - Works with any column (price, volume, spread, etc.)
-  - Configurable lookback period
-  - Requires minimum samples per time slot for reliability
+    Features:
+    - Accounts for natural intraday patterns
+    - Works with any column (price, volume, spread, etc.)
+    - Configurable lookback period
+    - Requires minimum samples per time slot for reliability
 
-  Args:
-    data: Series with DatetimeIndex
-    lookback_days: Number of days to look back (None = use all history)
-    min_samples: Minimum observations required before calculating aggregate (NaN until met)
-    epsilon: Small value to prevent division by zero
+    Args:
+      data: Series with DatetimeIndex
+      lookback_days: Number of days to look back (None = use all history)
+      min_samples: Minimum observations required before calculating aggregate (NaN until met)
+      epsilon: Small value to prevent division by zero
 
-  Returns:
-    Series with intraday Z-Score values
+    Returns:
+      Series with intraday Z-Score values
 
-  Raises:
-    ValueError: If index is not DatetimeIndex
+    Raises:
+      ValueError: If index is not DatetimeIndex
 
-  Example:
-    >>> import pandas as pd
-    >>> dates = pd.date_range('2024-01-01 09:30', periods=10, freq='1D')
-    >>> data = pd.Series([100]*9 + [150], index=dates)
-    >>> # Same time each day, last day has spike
-    >>> result = zscore_intraday(data)
-    >>> # Will show high z-score on last day
+    Example:
+      >>> import pandas as pd
+  from indikator.utils import to_numpy
+      >>> dates = pd.date_range('2024-01-01 09:30', periods=10, freq='1D')
+      >>> data = pd.Series([100]*9 + [150], index=dates)
+      >>> # Same time each day, last day has spike
+      >>> result = zscore_intraday(data)
+      >>> # Will show high z-score on last day
 
   Configuration:
       min_samples (int)

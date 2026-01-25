@@ -4,8 +4,6 @@ This module provides a Numba-optimized implementation of rolling CORREL,
 the Pearson correlation coefficient.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._correlation_numba import compute_correl_numba
 from indikator._results import CORRELResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -50,14 +45,8 @@ def correl(
   Returns:
     CORRELResult(index, correl)
   """
-  x_arr = cast(
-    "NDArray[np.float64]",
-    x.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  y_arr = cast(
-    "NDArray[np.float64]",
-    y.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  x_arr = to_numpy(x)
+  y_arr = to_numpy(y)
 
   result = compute_correl_numba(x_arr, y_arr, period)
 

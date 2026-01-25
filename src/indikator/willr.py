@@ -4,8 +4,6 @@ This module provides Williams %R calculation, a momentum indicator that
 measures overbought/oversold levels.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -13,14 +11,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._momentum_numba import compute_willr_numba
 from indikator._results import WillRResult
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -58,18 +53,9 @@ def willr(
     WillRResult(index, willr)
   """
   # Convert to numpy for Numba
-  high_arr = cast(
-    "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  low_arr = cast(
-    "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
-  close_arr = cast(
-    "NDArray[np.float64]",
-    close.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  high_arr = to_numpy(high)
+  low_arr = to_numpy(low)
+  close_arr = to_numpy(close)
 
   # Calculate WillR using Numba-optimized function
   willr_values = compute_willr_numba(high_arr, low_arr, close_arr, period)

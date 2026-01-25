@@ -1,7 +1,5 @@
 """Cycle (Hilbert Transform) indicators."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -9,7 +7,6 @@ from datawarden import (
   validate,
 )
 from nonfig import configurable
-import numpy as np
 import pandas as pd
 
 from indikator._cycle_numba import (
@@ -20,9 +17,7 @@ from indikator._cycle_numba import (
   compute_ht_sine_numba,
   compute_ht_trendline_numba,
 )
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -38,10 +33,7 @@ def ht_dcperiod(
   Returns:
     pd.Series: Dominant Cycle Period.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   # Use specialized kernel for Period (1.10x vs TA-Lib)
   p = compute_ht_dcperiod_numba(input_arr)
@@ -62,10 +54,7 @@ def ht_dcphase(
   Returns:
     pd.Series: Dominant Cycle Phase (0 to 360 degrees).
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   # Optimized kernel
   phase = compute_ht_dcphase_numba(input_arr)
@@ -86,10 +75,7 @@ def ht_phasor(
   Returns:
     tuple[pd.Series, pd.Series]: (InPhase, Quadrature) components.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   inphase, quad = compute_ht_phasor_numba(input_arr)
 
@@ -114,10 +100,7 @@ def ht_sine(
   Returns:
     tuple[pd.Series, pd.Series]: (Sine, LeadSine).
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   # Optimized kernel computes sine/leadsine directly
   sine, lead_sine = compute_ht_sine_numba(input_arr)
@@ -141,10 +124,7 @@ def ht_trendmode(
   Returns:
     pd.Series: TrendMode (0 or 1). 1 indicates a trend is detected.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   # Master kernel still best for TrendMode as it might need all components?
   # Currently returns placeholder, so it's fine.
@@ -166,10 +146,7 @@ def ht_trendline(
   Returns:
     pd.Series: Trendline.
   """
-  input_arr = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  input_arr = to_numpy(data)
 
   # Optimized kernel
   tl = compute_ht_trendline_numba(input_arr)

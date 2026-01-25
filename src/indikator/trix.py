@@ -5,8 +5,6 @@ the percent rate of change of a triple exponentially smoothed moving
 average of prices.
 """
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -14,14 +12,11 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
 
 from indikator._results import TRIXResult
 from indikator._trix_numba import compute_trix_numba
+from indikator.utils import to_numpy
 
 
 @configurable
@@ -63,10 +58,7 @@ def trix(
     TRIXResult(index, trix)
   """
   # Convert to numpy for Numba
-  values = cast(
-    "NDArray[np.float64]",
-    data.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
-  )
+  values = to_numpy(data)
 
   # Calculate TRIX using Numba-optimized function
   trix_values = compute_trix_numba(values, period)
