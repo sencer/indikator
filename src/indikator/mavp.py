@@ -19,7 +19,7 @@ def mavp(
   periods: Validated[pd.Series[float], NotEmpty],
   minperiod: Hyper[int, Ge[2]] = 2,
   maxperiod: Hyper[int, Ge[2]] = 30,
-  matype: int = 0,
+  matype: Hyper[int] = 0,
 ) -> pd.Series:
   """Moving Average with Variable Period.
 

@@ -101,17 +101,27 @@ class vwap:
 
 class _vwap_anchored_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def anchor_index(self) -> int | None: ...
+  @property
+  def anchor_datetime(self) -> pd.Timestamp | str | None: ...
   def __call__(
     self,
     data: Validated[
       pd.DataFrame, Columns(["high", "low", "close", "volume"]), Finite, NotEmpty
     ],
-    anchor_index: int | None = ...,
-    anchor_datetime: pd.Timestamp | str | None = ...,
   ) -> VWAPAnchoredResult: ...
 
 class _vwap_anchored_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for vwap_anchored.
+
+  Configuration:
+      anchor_index (int | None)
+      anchor_datetime (pd.Timestamp | str | None)
+  """
+
+  anchor_index: int | None
+  anchor_datetime: pd.Timestamp | str | None
 
 class _vwap_anchored_Config(_NCMakeableModel[_vwap_anchored_Bound]):
   """Configuration class for vwap_anchored.
@@ -163,14 +173,36 @@ class _vwap_anchored_Config(_NCMakeableModel[_vwap_anchored_Bound]):
       >>> result = vwap_anchored(data, anchor_index=3)
       >>> # Or anchor from specific date
       >>> result = vwap_anchored(data, anchor_datetime='2024-01-04')
+
+  Configuration:
+      anchor_index (int | None)
+      anchor_datetime (pd.Timestamp | str | None)
   """
 
-  pass
+  anchor_index: int | None
+  anchor_datetime: pd.Timestamp | str | None
+  def __init__(
+    self,
+    *,
+    anchor_index: int | None = ...,
+    anchor_datetime: pd.Timestamp | str | None = ...,
+  ) -> None: ...
+  """Initialize configuration for vwap_anchored.
+
+    Configuration:
+        anchor_index (int | None)
+        anchor_datetime (pd.Timestamp | str | None)
+    """
+
+  @override
+  def make(self) -> _vwap_anchored_Bound: ...
 
 class vwap_anchored:
   Type = _vwap_anchored_Bound
   Config = _vwap_anchored_Config
   ConfigDict = _vwap_anchored_ConfigDict
+  anchor_index: ClassVar[int | None]
+  anchor_datetime: ClassVar[pd.Timestamp | str | None]
   def __new__(
     cls,
     data: Validated[

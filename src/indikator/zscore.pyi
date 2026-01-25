@@ -84,23 +84,25 @@ class zscore:
 class _zscore_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
+  def lookback_days(self) -> int | None: ...
+  @property
   def min_samples(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
   def __call__(
-    self,
-    data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
-    lookback_days: int | None = ...,
+    self, data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty]
   ) -> ZScoreIntradayResult: ...
 
 class _zscore_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for zscore_intraday.
 
   Configuration:
+      lookback_days (int | None)
       min_samples (int)
       epsilon (float)
   """
 
+  lookback_days: int | None
   min_samples: int
   epsilon: float
 
@@ -149,16 +151,25 @@ class _zscore_intraday_Config(_NCMakeableModel[_zscore_intraday_Bound]):
       >>> # Will show high z-score on last day
 
   Configuration:
+      lookback_days (int | None)
       min_samples (int)
       epsilon (float)
   """
 
+  lookback_days: int | None
   min_samples: int
   epsilon: float
-  def __init__(self, *, min_samples: int = ..., epsilon: float = ...) -> None: ...
+  def __init__(
+    self,
+    *,
+    lookback_days: int | None = ...,
+    min_samples: int = ...,
+    epsilon: float = ...,
+  ) -> None: ...
   """Initialize configuration for zscore_intraday.
 
     Configuration:
+        lookback_days (int | None)
         min_samples (int)
         epsilon (float)
     """
@@ -170,6 +181,7 @@ class zscore_intraday:
   Type = _zscore_intraday_Bound
   Config = _zscore_intraday_Config
   ConfigDict = _zscore_intraday_ConfigDict
+  lookback_days: ClassVar[int | None]
   min_samples: ClassVar[int]
   epsilon: ClassVar[float]
   def __new__(

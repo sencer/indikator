@@ -89,23 +89,25 @@ class rvol:
 class _rvol_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
+  def lookback_days(self) -> int | None: ...
+  @property
   def min_samples(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
   def __call__(
-    self,
-    data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
-    lookback_days: int | None = ...,
+    self, data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty]
   ) -> RVOLResult: ...
 
 class _rvol_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rvol_intraday.
 
   Configuration:
+      lookback_days (int | None)
       min_samples (int)
       epsilon (float)
   """
 
+  lookback_days: int | None
   min_samples: int
   epsilon: float
 
@@ -134,16 +136,25 @@ class _rvol_intraday_Config(_NCMakeableModel[_rvol_intraday_Bound]):
     RVOLResult(index, rvol)
 
   Configuration:
+      lookback_days (int | None)
       min_samples (int)
       epsilon (float)
   """
 
+  lookback_days: int | None
   min_samples: int
   epsilon: float
-  def __init__(self, *, min_samples: int = ..., epsilon: float = ...) -> None: ...
+  def __init__(
+    self,
+    *,
+    lookback_days: int | None = ...,
+    min_samples: int = ...,
+    epsilon: float = ...,
+  ) -> None: ...
   """Initialize configuration for rvol_intraday.
 
     Configuration:
+        lookback_days (int | None)
         min_samples (int)
         epsilon (float)
     """
@@ -155,6 +166,7 @@ class rvol_intraday:
   Type = _rvol_intraday_Bound
   Config = _rvol_intraday_Config
   ConfigDict = _rvol_intraday_ConfigDict
+  lookback_days: ClassVar[int | None]
   min_samples: ClassVar[int]
   epsilon: ClassVar[float]
   def __new__(

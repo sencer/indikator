@@ -108,22 +108,25 @@ class atr:
 class _atr_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
+  def lookback_days(self) -> int | None: ...
+  @property
   def min_samples(self) -> int: ...
   def __call__(
     self,
     data: Validated[
       pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty
     ],
-    lookback_days: int | None = ...,
   ) -> ATRIntradayResult: ...
 
 class _atr_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr_intraday.
 
   Configuration:
+      lookback_days (int | None)
       min_samples (int)
   """
 
+  lookback_days: int | None
   min_samples: int
 
 class _atr_intraday_Config(_NCMakeableModel[_atr_intraday_Bound]):
@@ -171,14 +174,19 @@ class _atr_intraday_Config(_NCMakeableModel[_atr_intraday_Bound]):
       >>> # Returns DataFrame with time-of-day adjusted ATR
 
   Configuration:
+      lookback_days (int | None)
       min_samples (int)
   """
 
+  lookback_days: int | None
   min_samples: int
-  def __init__(self, *, min_samples: int = ...) -> None: ...
+  def __init__(
+    self, *, lookback_days: int | None = ..., min_samples: int = ...
+  ) -> None: ...
   """Initialize configuration for atr_intraday.
 
     Configuration:
+        lookback_days (int | None)
         min_samples (int)
     """
 
@@ -189,6 +197,7 @@ class atr_intraday:
   Type = _atr_intraday_Bound
   Config = _atr_intraday_Config
   ConfigDict = _atr_intraday_ConfigDict
+  lookback_days: ClassVar[int | None]
   min_samples: ClassVar[int]
   def __new__(
     cls,

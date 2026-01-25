@@ -14,22 +14,25 @@ from indikator._results import PivotPointsResult
 class _pivots_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
+  def method(self) -> Literal["standard", "fibonacci", "woodie", "camarilla"]: ...
+  @property
   def anchor(self) -> str: ...
   def __call__(
     self,
     high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
-    method: Literal["standard", "fibonacci", "woodie", "camarilla"] = ...,
   ) -> PivotPointsResult: ...
 
 class _pivots_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for pivots.
 
   Configuration:
+      method (Literal['standard', 'fibonacci', 'woodie', 'camarilla'])
       anchor (str)
   """
 
+  method: Literal["standard", "fibonacci", "woodie", "camarilla"]
   anchor: str
 
 class _pivots_Config(_NCMakeableModel[_pivots_Bound]):
@@ -62,14 +65,22 @@ class _pivots_Config(_NCMakeableModel[_pivots_Bound]):
     PivotPointsResult(index, levels: dict)
 
   Configuration:
+      method (Literal['standard', 'fibonacci', 'woodie', 'camarilla'])
       anchor (str)
   """
 
+  method: Literal["standard", "fibonacci", "woodie", "camarilla"]
   anchor: str
-  def __init__(self, *, anchor: str = ...) -> None: ...
+  def __init__(
+    self,
+    *,
+    method: Literal["standard", "fibonacci", "woodie", "camarilla"] = ...,
+    anchor: str = ...,
+  ) -> None: ...
   """Initialize configuration for pivots.
 
     Configuration:
+        method (Literal['standard', 'fibonacci', 'woodie', 'camarilla'])
         anchor (str)
     """
 
@@ -80,6 +91,7 @@ class pivots:
   Type = _pivots_Bound
   Config = _pivots_Config
   ConfigDict = _pivots_ConfigDict
+  method: ClassVar[Literal["standard", "fibonacci", "woodie", "camarilla"]]
   anchor: ClassVar[str]
   def __new__(
     cls,

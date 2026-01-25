@@ -26,7 +26,7 @@ def pivots(  # noqa: PLR0915, PLR0914
   high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
-  method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
+  method: Hyper[Literal["standard", "fibonacci", "woodie", "camarilla"]] = "standard",
   anchor: Hyper[str] = "D",
 ) -> PivotPointsResult:
   """Calculate Pivot Points.

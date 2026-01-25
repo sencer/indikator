@@ -29,7 +29,7 @@ def legs(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   deviation: Hyper[float, Gt[0.0]] = 0.05,
-  method: Literal["percentage", "absolute"] = "percentage",
+  method: Hyper[Literal["percentage", "absolute"]] = "percentage",
 ) -> ZigzagLegsResult:
   """Calculate ZigZag legs.
 

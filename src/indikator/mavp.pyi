@@ -15,11 +15,12 @@ class _mavp_Bound(Protocol):
   def minperiod(self) -> int: ...
   @property
   def maxperiod(self) -> int: ...
+  @property
+  def matype(self) -> int: ...
   def __call__(
     self,
     data: Validated[pd.Series[float], NotEmpty],
     periods: Validated[pd.Series[float], NotEmpty],
-    matype: int = ...,
   ) -> pd.Series: ...
 
 class _mavp_ConfigDict(TypedDict, total=False):
@@ -28,10 +29,12 @@ class _mavp_ConfigDict(TypedDict, total=False):
   Configuration:
       minperiod (int)
       maxperiod (int)
+      matype (int)
   """
 
   minperiod: int
   maxperiod: int
+  matype: int
 
 class _mavp_Config(_NCMakeableModel[_mavp_Bound]):
   """Configuration class for mavp.
@@ -55,16 +58,21 @@ class _mavp_Config(_NCMakeableModel[_mavp_Bound]):
   Configuration:
       minperiod (int)
       maxperiod (int)
+      matype (int)
   """
 
   minperiod: int
   maxperiod: int
-  def __init__(self, *, minperiod: int = ..., maxperiod: int = ...) -> None: ...
+  matype: int
+  def __init__(
+    self, *, minperiod: int = ..., maxperiod: int = ..., matype: int = ...
+  ) -> None: ...
   """Initialize configuration for mavp.
 
     Configuration:
         minperiod (int)
         maxperiod (int)
+        matype (int)
     """
 
   @override
@@ -76,11 +84,12 @@ class mavp:
   ConfigDict = _mavp_ConfigDict
   minperiod: ClassVar[int]
   maxperiod: ClassVar[int]
+  matype: ClassVar[int]
   def __new__(
     cls,
     data: Validated[pd.Series[float], NotEmpty],
     periods: Validated[pd.Series[float], NotEmpty],
-    matype: int = ...,
     minperiod: int = ...,
     maxperiod: int = ...,
+    matype: int = ...,
   ) -> pd.Series: ...

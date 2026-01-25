@@ -15,12 +15,13 @@ class _cci_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
+  @property
+  def constant(self) -> float: ...
   def __call__(
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-    constant: float = ...,
   ) -> CCIResult: ...
 
 class _cci_ConfigDict(TypedDict, total=False):
@@ -28,9 +29,11 @@ class _cci_ConfigDict(TypedDict, total=False):
 
   Configuration:
       period (int)
+      constant (float)
   """
 
   period: int
+  constant: float
 
 class _cci_Config(_NCMakeableModel[_cci_Bound]):
   """Configuration class for cci.
@@ -72,14 +75,17 @@ class _cci_Config(_NCMakeableModel[_cci_Bound]):
 
   Configuration:
       period (int)
+      constant (float)
   """
 
   period: int
-  def __init__(self, *, period: int = ...) -> None: ...
+  constant: float
+  def __init__(self, *, period: int = ..., constant: float = ...) -> None: ...
   """Initialize configuration for cci.
 
     Configuration:
         period (int)
+        constant (float)
     """
 
   @override
@@ -90,11 +96,12 @@ class cci:
   Config = _cci_Config
   ConfigDict = _cci_ConfigDict
   period: ClassVar[int]
+  constant: ClassVar[float]
   def __new__(
     cls,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-    constant: float = ...,
     period: int = ...,
+    constant: float = ...,
   ) -> CCIResult: ...

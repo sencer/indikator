@@ -20,7 +20,7 @@ def apo(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
-  matype: int = 0,  # 0=SMA, 1=EMA
+  matype: Hyper[int] = 0,  # 0=SMA, 1=EMA
 ) -> APOResult:
   """Calculate Absolute Price Oscillator (APO).
 

@@ -15,12 +15,13 @@ class _legs_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def deviation(self) -> float: ...
+  @property
+  def method(self) -> Literal["percentage", "absolute"]: ...
   def __call__(
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-    method: Literal["percentage", "absolute"] = ...,
   ) -> ZigzagLegsResult: ...
 
 class _legs_ConfigDict(TypedDict, total=False):
@@ -28,9 +29,11 @@ class _legs_ConfigDict(TypedDict, total=False):
 
   Configuration:
       deviation (float)
+      method (Literal['percentage', 'absolute'])
   """
 
   deviation: float
+  method: Literal["percentage", "absolute"]
 
 class _legs_Config(_NCMakeableModel[_legs_Bound]):
   """Configuration class for legs.
@@ -71,14 +74,19 @@ class _legs_Config(_NCMakeableModel[_legs_Bound]):
 
   Configuration:
       deviation (float)
+      method (Literal['percentage', 'absolute'])
   """
 
   deviation: float
-  def __init__(self, *, deviation: float = ...) -> None: ...
+  method: Literal["percentage", "absolute"]
+  def __init__(
+    self, *, deviation: float = ..., method: Literal["percentage", "absolute"] = ...
+  ) -> None: ...
   """Initialize configuration for legs.
 
     Configuration:
         deviation (float)
+        method (Literal['percentage', 'absolute'])
     """
 
   @override
@@ -89,11 +97,12 @@ class legs:
   Config = _legs_Config
   ConfigDict = _legs_ConfigDict
   deviation: ClassVar[float]
+  method: ClassVar[Literal["percentage", "absolute"]]
   def __new__(
     cls,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-    method: Literal["percentage", "absolute"] = ...,
     deviation: float = ...,
+    method: Literal["percentage", "absolute"] = ...,
   ) -> ZigzagLegsResult: ...

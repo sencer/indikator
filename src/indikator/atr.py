@@ -106,7 +106,7 @@ def atr_intraday(
     Index(Datetime),
     NotEmpty,
   ],
-  lookback_days: int | None = None,
+  lookback_days: Hyper[int] | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
 ) -> ATRIntradayResult:
   """Calculate time-of-day adjusted ATR (intraday volatility).

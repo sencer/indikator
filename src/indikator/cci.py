@@ -25,7 +25,7 @@ def cci(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-  constant: float = 0.015,
+  constant: Hyper[float] = 0.015,
 ) -> CCIResult:
   """Calculate Commodity Channel Index (CCI).
 

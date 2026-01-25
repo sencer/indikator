@@ -74,7 +74,7 @@ def rvol(
 @validate
 def rvol_intraday(
   data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
-  lookback_days: int | None = None,
+  lookback_days: Hyper[int] | None = None,
   min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> RVOLResult:

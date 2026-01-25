@@ -122,8 +122,8 @@ def vwap_anchored(
     Finite,
     NotEmpty,
   ],
-  anchor_index: int | None = None,
-  anchor_datetime: pd.Timestamp | str | None = None,
+  anchor_index: Hyper[int] | None = None,
+  anchor_datetime: Hyper[pd.Timestamp | str] | None = None,
 ) -> VWAPAnchoredResult:
   """Calculate Anchored VWAP from a specific point in time.
 

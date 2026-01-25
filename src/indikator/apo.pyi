@@ -17,8 +17,10 @@ class _apo_Bound(Protocol):
   def fast_period(self) -> int: ...
   @property
   def slow_period(self) -> int: ...
+  @property
+  def matype(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series[float], Finite, NotEmpty], matype: int = ...
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> APOResult: ...
 
 class _apo_ConfigDict(TypedDict, total=False):
@@ -27,10 +29,12 @@ class _apo_ConfigDict(TypedDict, total=False):
   Configuration:
       fast_period (int)
       slow_period (int)
+      matype (int)
   """
 
   fast_period: int
   slow_period: int
+  matype: int
 
 class _apo_Config(_NCMakeableModel[_apo_Bound]):
   """Configuration class for apo.
@@ -51,16 +55,21 @@ class _apo_Config(_NCMakeableModel[_apo_Bound]):
   Configuration:
       fast_period (int)
       slow_period (int)
+      matype (int)
   """
 
   fast_period: int
   slow_period: int
-  def __init__(self, *, fast_period: int = ..., slow_period: int = ...) -> None: ...
+  matype: int
+  def __init__(
+    self, *, fast_period: int = ..., slow_period: int = ..., matype: int = ...
+  ) -> None: ...
   """Initialize configuration for apo.
 
     Configuration:
         fast_period (int)
         slow_period (int)
+        matype (int)
     """
 
   @override
@@ -72,10 +81,11 @@ class apo:
   ConfigDict = _apo_ConfigDict
   fast_period: ClassVar[int]
   slow_period: ClassVar[int]
+  matype: ClassVar[int]
   def __new__(
     cls,
     data: Validated[pd.Series[float], Finite, NotEmpty],
-    matype: int = ...,
     fast_period: int = ...,
     slow_period: int = ...,
+    matype: int = ...,
   ) -> APOResult: ...
