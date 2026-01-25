@@ -25,7 +25,7 @@ from indikator._tema_numba import compute_tema_numba
 @configurable
 @validate
 def tema(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> TEMAResult:
   """Calculate Triple Exponential Moving Average (TEMA).
@@ -68,4 +68,4 @@ def tema(
 
   tema_values = compute_tema_numba(values, period)
 
-  return TEMAResult(index=data.index, tema=tema_values)
+  return TEMAResult(data_index=data.index, tema=tema_values)

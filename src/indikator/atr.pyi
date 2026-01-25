@@ -17,9 +17,9 @@ class _atr_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> ATRResult: ...
 
 class _atr_ConfigDict(TypedDict, total=False):
@@ -99,9 +99,9 @@ class atr:
   period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> ATRResult: ...
 
@@ -202,9 +202,9 @@ class _trange_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> TRANGEResult: ...
 
 class _trange_ConfigDict(TypedDict, total=False):
@@ -237,7 +237,7 @@ class trange:
   ConfigDict = _trange_ConfigDict
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> TRANGEResult: ...

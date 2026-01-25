@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
@@ -15,7 +13,9 @@ class _min_val_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _min_val_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for min_val.
@@ -59,14 +59,16 @@ class min_val:
   ConfigDict = _min_val_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> pd.Series: ...
 
 class _max_val_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _max_val_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for max_val.
@@ -110,14 +112,16 @@ class max_val:
   ConfigDict = _max_val_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> pd.Series: ...
 
 class _min_index_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _min_index_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for min_index.
@@ -163,14 +167,16 @@ class min_index:
   ConfigDict = _min_index_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> pd.Series: ...
 
 class _max_index_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _max_index_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for max_index.
@@ -216,14 +222,16 @@ class max_index:
   ConfigDict = _max_index_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> pd.Series: ...
 
 class _sum_val_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _sum_val_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for sum_val.
@@ -267,7 +275,7 @@ class sum_val:
   ConfigDict = _sum_val_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> pd.Series: ...
 
 class _minmax_Bound(Protocol):
@@ -275,7 +283,7 @@ class _minmax_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _minmax_ConfigDict(TypedDict, total=False):
@@ -316,7 +324,7 @@ class minmax:
   ConfigDict = _minmax_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _minmaxindex_Bound(Protocol):
@@ -324,7 +332,7 @@ class _minmaxindex_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _minmaxindex_ConfigDict(TypedDict, total=False):
@@ -367,5 +375,5 @@ class minmaxindex:
   ConfigDict = _minmaxindex_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> tuple[pd.Series, pd.Series]: ...

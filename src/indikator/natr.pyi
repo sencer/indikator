@@ -17,9 +17,9 @@ class _natr_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> NATRResult: ...
 
 class _natr_ConfigDict(TypedDict, total=False):
@@ -86,8 +86,8 @@ class natr:
   period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> NATRResult: ...

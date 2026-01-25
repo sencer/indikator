@@ -19,7 +19,9 @@ class _kama_Bound(Protocol):
   def fast_period(self) -> int: ...
   @property
   def slow_period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> KAMAResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> KAMAResult: ...
 
 class _kama_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for kama.
@@ -102,7 +104,7 @@ class kama:
   slow_period: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
     fast_period: int = ...,
     slow_period: int = ...,

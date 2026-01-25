@@ -3,8 +3,6 @@
 WCLPRICE = (High + Low + 2*Close) / 4
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -22,9 +20,9 @@ from indikator._results import WCLPRICEResult
 @configurable
 @validate
 def wclprice(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> WCLPRICEResult:
   """Calculate Weighted Close Price.
 
@@ -38,10 +36,10 @@ def wclprice(
   Returns:
     WCLPRICEResult
   """
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   result = compute_wclprice_numba(h, low_np, c)
 
-  return WCLPRICEResult(index=high.index, wclprice=result)
+  return WCLPRICEResult(data_index=high.index, wclprice=result)

@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import Protocol, TypedDict
 
 from datawarden import Finite, NotEmpty, Validated
@@ -13,7 +11,9 @@ import pandas as pd
 
 class _ht_dcperiod_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_dcperiod_ConfigDict(TypedDict, total=False):
   pass
@@ -36,11 +36,15 @@ class ht_dcperiod:
   Type = _ht_dcperiod_Bound
   Config = _ht_dcperiod_Config
   ConfigDict = _ht_dcperiod_ConfigDict
-  def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __new__(
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_dcphase_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_dcphase_ConfigDict(TypedDict, total=False):
   pass
@@ -63,12 +67,14 @@ class ht_dcphase:
   Type = _ht_dcphase_Bound
   Config = _ht_dcphase_Config
   ConfigDict = _ht_dcphase_ConfigDict
-  def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __new__(
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_phasor_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _ht_phasor_ConfigDict(TypedDict, total=False):
@@ -93,13 +99,13 @@ class ht_phasor:
   Config = _ht_phasor_Config
   ConfigDict = _ht_phasor_ConfigDict
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty]
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _ht_sine_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _ht_sine_ConfigDict(TypedDict, total=False):
@@ -126,12 +132,14 @@ class ht_sine:
   Config = _ht_sine_Config
   ConfigDict = _ht_sine_ConfigDict
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty]
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> tuple[pd.Series, pd.Series]: ...
 
 class _ht_trendmode_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_trendmode_ConfigDict(TypedDict, total=False):
   pass
@@ -154,11 +162,15 @@ class ht_trendmode:
   Type = _ht_trendmode_Bound
   Config = _ht_trendmode_Config
   ConfigDict = _ht_trendmode_ConfigDict
-  def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __new__(
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_trendline_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...
 
 class _ht_trendline_ConfigDict(TypedDict, total=False):
   pass
@@ -181,4 +193,6 @@ class ht_trendline:
   Type = _ht_trendline_Bound
   Config = _ht_trendline_Config
   ConfigDict = _ht_trendline_ConfigDict
-  def __new__(cls, data: Validated[pd.Series, Finite, NotEmpty]) -> pd.Series: ...
+  def __new__(
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> pd.Series: ...

@@ -25,8 +25,8 @@ from indikator._sar_numba import compute_sar_numba, compute_sarext_numba
 @configurable
 @validate
 def sar(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
   acceleration: Hyper[float, Gt[0.0], Le[1.0]] = 0.02,
   maximum: Hyper[float, Gt[0.0], Le[1.0]] = 0.2,
 ) -> SARResult:
@@ -74,14 +74,14 @@ def sar(
 
   sar_values = compute_sar_numba(h, low_np, acceleration, acceleration, maximum)
 
-  return SARResult(index=high.index, sar=sar_values)
+  return SARResult(data_index=high.index, sar=sar_values)
 
 
 @configurable
 @validate
 def sarext(  # noqa: PLR0913, PLR0917
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
   start_value: Hyper[float] = 0.0,
   offset_on_reversal: Hyper[float] = 0.0,
   acceleration_init_long: Hyper[float] = 0.02,
@@ -110,8 +110,8 @@ def sarext(  # noqa: PLR0913, PLR0917
   Returns:
     SARResult(index, sar)
   """
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   sar_values = compute_sarext_numba(
     h,
@@ -126,4 +126,4 @@ def sarext(  # noqa: PLR0913, PLR0917
     acceleration_max_short,
   )
 
-  return SARResult(index=high.index, sar=sar_values)
+  return SARResult(data_index=high.index, sar=sar_values)

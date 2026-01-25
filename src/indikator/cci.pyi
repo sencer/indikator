@@ -17,9 +17,9 @@ class _cci_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     constant: float = ...,
   ) -> CCIResult: ...
 
@@ -92,9 +92,9 @@ class cci:
   period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     constant: float = ...,
     period: int = ...,
   ) -> CCIResult: ...

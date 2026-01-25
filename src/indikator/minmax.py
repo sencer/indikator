@@ -1,7 +1,5 @@
 """Rolling Minimum and Maximum indicators."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
@@ -31,7 +29,7 @@ if TYPE_CHECKING:
 @configurable
 @validate
 def min_val(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> pd.Series:
   """Rolling Minimum of a series.
@@ -56,7 +54,7 @@ def min_val(
 @configurable
 @validate
 def max_val(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> pd.Series:
   """Rolling Maximum of a series.
@@ -81,7 +79,7 @@ def max_val(
 @configurable
 @validate
 def min_index(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> pd.Series:
   """Rolling Index of Minimum value (relative to start of series).
@@ -108,7 +106,7 @@ def min_index(
 @configurable
 @validate
 def max_index(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> pd.Series:
   """Rolling Index of Maximum value (relative to start of series).
@@ -135,7 +133,7 @@ def max_index(
 @configurable
 @validate
 def sum_val(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> pd.Series:
   """Rolling Sum of a series.
@@ -160,7 +158,7 @@ def sum_val(
 @configurable
 @validate
 def minmax(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> tuple[pd.Series, pd.Series]:
   """Rolling Minimum and Maximum of a series.
@@ -184,7 +182,7 @@ def minmax(
 @configurable
 @validate
 def minmaxindex(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> tuple[pd.Series, pd.Series]:
   """Rolling Minimum and Maximum index of a series.

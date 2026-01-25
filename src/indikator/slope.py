@@ -27,7 +27,7 @@ from indikator._slope_numba import compute_slope_numba
 @configurable
 @validate
 def slope(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
 ) -> SlopeResult:
   """Calculate the slope of linear regression over a rolling window.
@@ -57,4 +57,4 @@ def slope(
   # Calculate slopes using Numba-optimized function
   slopes = compute_slope_numba(values, window)
 
-  return SlopeResult(index=data.index, slope=slopes)
+  return SlopeResult(data_index=data.index, slope=slopes)

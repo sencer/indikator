@@ -17,7 +17,9 @@ class _rsi_Bound(Protocol):
   def window(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> RSIResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> RSIResult: ...
 
 class _rsi_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rsi.
@@ -108,7 +110,7 @@ class rsi:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     window: int = ...,
     epsilon: float = ...,
   ) -> RSIResult: ...

@@ -21,8 +21,8 @@ from indikator._results import OBVResult
 @configurable
 @validate
 def obv(
-  close: Validated[pd.Series, Finite, NotEmpty],
-  volume: Validated[pd.Series, Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+  volume: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> OBVResult:
   """Calculate On Balance Volume (OBV).
 
@@ -70,4 +70,4 @@ def obv(
   obv_values = compute_obv_numba(closes, volumes)
 
   # Return only the indicator (minimal return philosophy)
-  return OBVResult(index=close.index, obv=obv_values)
+  return OBVResult(data_index=close.index, obv=obv_values)

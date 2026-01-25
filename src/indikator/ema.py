@@ -26,7 +26,7 @@ from indikator._results import EMAResult
 @configurable
 @validate
 def ema(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> EMAResult:
   """Calculate Exponential Moving Average (EMA).
@@ -71,4 +71,4 @@ def ema(
   # Calculate EMA using Numba-optimized function
   ema_values = compute_ema_numba(values, period)
 
-  return EMAResult(index=data.index, ema=ema_values)
+  return EMAResult(data_index=data.index, ema=ema_values)

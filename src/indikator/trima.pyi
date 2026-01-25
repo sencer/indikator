@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
@@ -17,7 +15,9 @@ class _trima_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> TRIMAResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> TRIMAResult: ...
 
 class _trima_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for trima.
@@ -64,5 +64,5 @@ class trima:
   ConfigDict = _trima_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> TRIMAResult: ...

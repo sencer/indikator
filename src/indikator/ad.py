@@ -25,10 +25,10 @@ from indikator._results import ADResult
 @configurable
 @validate
 def ad(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
-  volume: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+  volume: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> ADResult:
   """Calculate Accumulation/Distribution Line (AD).
 
@@ -79,4 +79,4 @@ def ad(
 
   ad_values = compute_ad_numba(h, low_arr, c, v)
 
-  return ADResult(index=close.index, ad=ad_values)
+  return ADResult(data_index=close.index, ad=ad_values)

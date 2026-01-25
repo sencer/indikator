@@ -26,9 +26,9 @@ from indikator._stoch_numba import compute_stoch_numba
 @configurable
 @validate
 def stoch(  # noqa: PLR0913, PLR0917
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   k_period: Hyper[int, Ge[2]] = 14,
   k_slowing: Hyper[int, Ge[1]] = 3,
   d_period: Hyper[int, Ge[1]] = 3,
@@ -99,7 +99,7 @@ def stoch(  # noqa: PLR0913, PLR0917
   )
 
   return StochResult(
-    index=high.index,
+    data_index=high.index,
     stoch_k=stoch_k,
     stoch_d=stoch_d,
   )
@@ -108,9 +108,9 @@ def stoch(  # noqa: PLR0913, PLR0917
 @configurable
 @validate
 def stochf(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   fastk_period: Hyper[int, Ge[2]] = 5,
   fastd_period: Hyper[int, Ge[1]] = 3,
 ) -> StochResult:

@@ -29,7 +29,7 @@ from indikator._results import BollingerBandsResult, BollingerResult
 @configurable
 @validate
 def bollinger_bands(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
   num_std: Hyper[float, Gt[0.0]] = 2.0,
 ) -> BollingerBandsResult:
@@ -77,14 +77,14 @@ def bollinger_bands(
   middle, upper, lower = compute_bollinger_basic_numba(values, window, num_std)
 
   return BollingerBandsResult(
-    index=data.index, bb_upper=upper, bb_middle=middle, bb_lower=lower
+    data_index=data.index, bb_upper=upper, bb_middle=middle, bb_lower=lower
   )
 
 
 @configurable
 @validate
 def bollinger_with_bandwidth(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
   num_std: Hyper[float, Gt[0.0]] = 2.0,
 ) -> BollingerResult:
@@ -137,7 +137,7 @@ def bollinger_with_bandwidth(
   )
 
   return BollingerResult(
-    index=data.index,
+    data_index=data.index,
     bb_middle=middle,
     bb_upper=upper,
     bb_lower=lower,

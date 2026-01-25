@@ -17,8 +17,8 @@ class _correl_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    x: Validated[pd.Series, Finite, NotEmpty],
-    y: Validated[pd.Series, Finite, NotEmpty],
+    x: Validated[pd.Series[float], Finite, NotEmpty],
+    y: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> CORRELResult: ...
 
 class _correl_ConfigDict(TypedDict, total=False):
@@ -75,7 +75,7 @@ class correl:
   period: ClassVar[int]
   def __new__(
     cls,
-    x: Validated[pd.Series, Finite, NotEmpty],
-    y: Validated[pd.Series, Finite, NotEmpty],
+    x: Validated[pd.Series[float], Finite, NotEmpty],
+    y: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> CORRELResult: ...

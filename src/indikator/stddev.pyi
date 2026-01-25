@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
@@ -19,7 +17,9 @@ class _stddev_Bound(Protocol):
   def period(self) -> int: ...
   @property
   def nbdev(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> STDDEVResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> STDDEVResult: ...
 
 class _stddev_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for stddev.
@@ -71,7 +71,7 @@ class stddev:
   nbdev: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
     nbdev: float = ...,
   ) -> STDDEVResult: ...

@@ -17,9 +17,9 @@ class _opening_range_Bound(Protocol):
   def period_minutes(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   ) -> OpeningRangeResult: ...
 
 class _opening_range_ConfigDict(TypedDict, total=False):
@@ -76,8 +76,8 @@ class opening_range:
   period_minutes: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     period_minutes: int = ...,
   ) -> OpeningRangeResult: ...

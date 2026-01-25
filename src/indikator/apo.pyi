@@ -18,7 +18,7 @@ class _apo_Bound(Protocol):
   @property
   def slow_period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty], matype: int = ...
+    self, data: Validated[pd.Series[float], Finite, NotEmpty], matype: int = ...
   ) -> APOResult: ...
 
 class _apo_ConfigDict(TypedDict, total=False):
@@ -74,7 +74,7 @@ class apo:
   slow_period: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     matype: int = ...,
     fast_period: int = ...,
     slow_period: int = ...,

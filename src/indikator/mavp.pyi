@@ -3,27 +3,35 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
+from typing import ClassVar, Protocol, TypedDict, override
 
-from typing import Annotated, Protocol, TypedDict
-
-from datawarden import Finite, NotEmpty, Validated
+from datawarden import NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
 class _mavp_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def minperiod(self) -> int: ...
+  @property
+  def maxperiod(self) -> int: ...
   def __call__(
     self,
-    data: Validated[pd.Series, Finite, NotEmpty],
-    periods: Validated[pd.Series, Finite, NotEmpty],
-    minperiod: Annotated[int, Hyper(Ge(2))] = ...,
-    maxperiod: Annotated[int, Hyper(Ge(2))] = ...,
+    data: Validated[pd.Series[float], NotEmpty],
+    periods: Validated[pd.Series[float], NotEmpty],
     matype: int = ...,
   ) -> pd.Series: ...
 
 class _mavp_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for mavp.
+
+  Configuration:
+      minperiod (int)
+      maxperiod (int)
+  """
+
+  minperiod: int
+  maxperiod: int
 
 class _mavp_Config(_NCMakeableModel[_mavp_Bound]):
   """Configuration class for mavp.
@@ -43,19 +51,36 @@ class _mavp_Config(_NCMakeableModel[_mavp_Bound]):
 
   Returns:
     pd.Series: MAVP values.
+
+  Configuration:
+      minperiod (int)
+      maxperiod (int)
   """
 
-  pass
+  minperiod: int
+  maxperiod: int
+  def __init__(self, *, minperiod: int = ..., maxperiod: int = ...) -> None: ...
+  """Initialize configuration for mavp.
+
+    Configuration:
+        minperiod (int)
+        maxperiod (int)
+    """
+
+  @override
+  def make(self) -> _mavp_Bound: ...
 
 class mavp:
   Type = _mavp_Bound
   Config = _mavp_Config
   ConfigDict = _mavp_ConfigDict
+  minperiod: ClassVar[int]
+  maxperiod: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
-    periods: Validated[pd.Series, Finite, NotEmpty],
-    minperiod: Annotated[int, Hyper(Ge(2))] = ...,
-    maxperiod: Annotated[int, Hyper(Ge(2))] = ...,
+    data: Validated[pd.Series[float], NotEmpty],
+    periods: Validated[pd.Series[float], NotEmpty],
     matype: int = ...,
+    minperiod: int = ...,
+    maxperiod: int = ...,
   ) -> pd.Series: ...

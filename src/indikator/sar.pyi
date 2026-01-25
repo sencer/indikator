@@ -19,8 +19,8 @@ class _sar_Bound(Protocol):
   def maximum(self) -> float: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> SARResult: ...
 
 class _sar_ConfigDict(TypedDict, total=False):
@@ -96,8 +96,8 @@ class sar:
   maximum: ClassVar[float]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
     acceleration: float = ...,
     maximum: float = ...,
   ) -> SARResult: ...
@@ -122,8 +122,8 @@ class _sarext_Bound(Protocol):
   def acceleration_max_short(self) -> float: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> SARResult: ...
 
 class _sarext_ConfigDict(TypedDict, total=False):
@@ -232,8 +232,8 @@ class sarext:
   acceleration_max_short: ClassVar[float]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
     start_value: float = ...,
     offset_on_reversal: float = ...,
     acceleration_init_long: float = ...,

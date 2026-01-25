@@ -28,10 +28,10 @@ from indikator._results import MFIResult
 @configurable
 @validate
 def mfi(  # noqa: PLR0913, PLR0917
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
-  volume: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+  volume: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,  # noqa: ARG001
 ) -> MFIResult:
@@ -93,4 +93,4 @@ def mfi(  # noqa: PLR0913, PLR0917
   # Note: compute_mfi_numba calculates Typical Price internally
   mfi_values = compute_mfi_numba(high_arr, low_arr, close_arr, vol_arr, period)
 
-  return MFIResult(index=high.index, mfi=mfi_values)
+  return MFIResult(data_index=high.index, mfi=mfi_values)

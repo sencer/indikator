@@ -17,9 +17,9 @@ class _churn_factor_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> ChurnFactorResult: ...
 
 class _churn_factor_ConfigDict(TypedDict, total=False):
@@ -77,8 +77,8 @@ class churn_factor:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
     epsilon: float = ...,
   ) -> ChurnFactorResult: ...

@@ -19,8 +19,8 @@ from indikator._results import SectorCorrelationResult
 @configurable
 @validate
 def sector_correlation(
-  stock_data: Validated[pd.Series, Finite, NotEmpty],
-  sector_data: Validated[pd.Series, Finite, NotEmpty],
+  stock_data: Validated[pd.Series[float], Finite, NotEmpty],
+  sector_data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> SectorCorrelationResult:
   """Calculate rolling correlation between a stock and its sector/index.
@@ -50,8 +50,8 @@ def sector_correlation(
   corr_series = stock_data.rolling(window=period).corr(sector_data)
 
   # Extract array
-  corr_arr = corr_series.to_numpy(dtype=np.float64, copy=False)
+  corr_arr = corr_series.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
   # Handle potential NaNs not from window (e.g. misalignment) - kept as NaN
 
-  return SectorCorrelationResult(index=corr_series.index, correlation=corr_arr)
+  return SectorCorrelationResult(data_index=corr_series.index, correlation=corr_arr)

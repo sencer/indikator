@@ -26,7 +26,7 @@ from indikator._results import DEMAResult
 @configurable
 @validate
 def dema(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> DEMAResult:
   """Calculate Double Exponential Moving Average (DEMA).
@@ -64,4 +64,4 @@ def dema(
 
   dema_values = compute_dema_numba(values, period)
 
-  return DEMAResult(index=data.index, dema=dema_values)
+  return DEMAResult(data_index=data.index, dema=dema_values)

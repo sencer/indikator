@@ -26,8 +26,8 @@ from indikator._results import AROONOSCResult, AROONResult
 @configurable
 @validate
 def aroon(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 25,
 ) -> AROONResult:
   """Calculate AROON indicator.
@@ -85,7 +85,7 @@ def aroon(
   up, down, osc = compute_aroon_numba(high_vals, low_vals, period)
 
   return AROONResult(
-    index=high.index,
+    data_index=high.index,
     aroon_up=up,
     aroon_down=down,
     aroon_osc=osc,
@@ -95,8 +95,8 @@ def aroon(
 @configurable
 @validate
 def aroonosc(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 25,
 ) -> AROONOSCResult:
   """Calculate Aroon Oscillator.
@@ -117,13 +117,13 @@ def aroonosc(
   """
   high_vals = cast(
     "NDArray[np.float64]",
-    high.to_numpy(dtype=np.float64, copy=False),
+    high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
   low_vals = cast(
     "NDArray[np.float64]",
-    low.to_numpy(dtype=np.float64, copy=False),
+    low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
   osc = compute_aroonosc_numba(high_vals, low_vals, period)
 
-  return AROONOSCResult(index=high.index, aroonosc=osc)
+  return AROONOSCResult(data_index=high.index, aroonosc=osc)

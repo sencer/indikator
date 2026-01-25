@@ -21,9 +21,9 @@ class _stoch_Bound(Protocol):
   def d_period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> StochResult: ...
 
 class _stoch_ConfigDict(TypedDict, total=False):
@@ -119,9 +119,9 @@ class stoch:
   d_period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     k_period: int = ...,
     k_slowing: int = ...,
     d_period: int = ...,
@@ -135,9 +135,9 @@ class _stochf_Bound(Protocol):
   def fastd_period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> StochResult: ...
 
 class _stochf_ConfigDict(TypedDict, total=False):
@@ -199,9 +199,9 @@ class stochf:
   fastd_period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     fastk_period: int = ...,
     fastd_period: int = ...,
   ) -> StochResult: ...

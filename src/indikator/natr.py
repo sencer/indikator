@@ -26,9 +26,9 @@ from indikator._results import NATRResult
 @configurable
 @validate
 def natr(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> NATRResult:
   """Calculate Normalized Average True Range (NATR).
@@ -76,4 +76,4 @@ def natr(
 
   natr_values = compute_natr_numba(h, low_np, c, period)
 
-  return NATRResult(index=close.index, natr=natr_values)
+  return NATRResult(data_index=close.index, natr=natr_values)

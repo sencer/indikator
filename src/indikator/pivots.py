@@ -23,9 +23,9 @@ from indikator._results import PivotPointsResult
 @configurable
 @validate
 def pivots(  # noqa: PLR0915, PLR0914
-  high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-  low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-  close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+  low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+  close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   method: Literal["standard", "fibonacci", "woodie", "camarilla"] = "standard",
   anchor: Hyper[str] = "D",
 ) -> PivotPointsResult:
@@ -71,7 +71,7 @@ def pivots(  # noqa: PLR0915, PLR0914
   # Explicitly construct DataFrame to ensure column names
   df = pd.DataFrame({"high": high, "low": low, "close": close})
 
-  resampled = df.resample(anchor).agg({"high": "max", "low": "min", "close": "last"})
+  resampled = df.resample(anchor).agg({"high": "max", "low": "min", "close": "last"})  # pyright: ignore[reportUnknownMemberType]
 
   # Shift to get prior period stats
   prior = resampled.shift(1)
@@ -81,9 +81,9 @@ def pivots(  # noqa: PLR0915, PLR0914
   aligned = prior.reindex(high.index, method="ffill")
 
   # Convert to arrays
-  prev_high = aligned["high"].to_numpy(dtype=np.float64, copy=False)
-  prev_low = aligned["low"].to_numpy(dtype=np.float64, copy=False)
-  prev_close = aligned["close"].to_numpy(dtype=np.float64, copy=False)
+  prev_high = aligned["high"].to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  prev_low = aligned["low"].to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  prev_close = aligned["close"].to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
   # Handle NaN at start (first day has no prior)
   # Arrays already have NaNs from shift+reindex.
@@ -150,4 +150,4 @@ def pivots(  # noqa: PLR0915, PLR0914
   else:
     raise ValueError(f"Invalid method: {method}")
 
-  return PivotPointsResult(index=high.index, levels=levels)
+  return PivotPointsResult(data_index=high.index, levels=levels)

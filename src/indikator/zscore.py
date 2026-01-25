@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 @configurable
 @validate
 def zscore(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> ZScoreResult:
   """Calculate Z-Score (Standard Score).
@@ -68,13 +68,13 @@ def zscore(
   # Calculate Z-Score using Numba-optimized function
   zscore_values = compute_zscore_numba(values, period)
 
-  return ZScoreResult(index=data.index, zscore=zscore_values)
+  return ZScoreResult(data_index=data.index, zscore=zscore_values)
 
 
 @configurable
 @validate
 def zscore_intraday(
-  data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
@@ -140,4 +140,4 @@ def zscore_intraday(
 
   # Create result series
   # Create result series
-  return ZScoreIntradayResult(index=data.index, zscore_intraday=z_score_values)
+  return ZScoreIntradayResult(data_index=data.index, zscore_intraday=z_score_values)

@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
@@ -18,7 +16,7 @@ class _midpoint_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> MIDPOINTResult: ...
 
 class _midpoint_ConfigDict(TypedDict, total=False):
@@ -65,5 +63,5 @@ class midpoint:
   ConfigDict = _midpoint_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> MIDPOINTResult: ...

@@ -17,9 +17,9 @@ class _pivots_Bound(Protocol):
   def anchor(self) -> str: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     method: Literal["standard", "fibonacci", "woodie", "camarilla"] = ...,
   ) -> PivotPointsResult: ...
 
@@ -83,9 +83,9 @@ class pivots:
   anchor: ClassVar[str]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-    close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+    close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     method: Literal["standard", "fibonacci", "woodie", "camarilla"] = ...,
     anchor: str = ...,
   ) -> PivotPointsResult: ...

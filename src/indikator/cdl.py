@@ -88,10 +88,10 @@ from indikator._cdl_numba import (
 @configurable
 @validate
 def cdl_doji(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Doji pattern.
 
@@ -109,10 +109,10 @@ def cdl_doji(
 @configurable
 @validate
 def cdl_hammer(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Hammer pattern.
 
@@ -130,10 +130,10 @@ def cdl_hammer(
 @configurable
 @validate
 def cdl_engulfing(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Engulfing pattern.
 
@@ -154,10 +154,10 @@ def cdl_engulfing(
 @configurable
 @validate
 def cdl_harami(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Harami pattern.
 
@@ -178,10 +178,10 @@ def cdl_harami(
 @configurable
 @validate
 def cdl_shooting_star(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Shooting Star pattern.
 
@@ -201,10 +201,10 @@ def cdl_shooting_star(
 @configurable
 @validate
 def cdl_inverted_hammer(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Inverted Hammer pattern.
 
@@ -224,10 +224,10 @@ def cdl_inverted_hammer(
 @configurable
 @validate
 def cdl_hanging_man(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Hanging Man pattern.
 
@@ -247,10 +247,10 @@ def cdl_hanging_man(
 @configurable
 @validate
 def cdl_marubozu(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Marubozu pattern.
 
@@ -271,10 +271,10 @@ def cdl_marubozu(
 @configurable
 @validate
 def cdl_morning_star(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Morning Star pattern.
 
@@ -294,10 +294,10 @@ def cdl_morning_star(
 @configurable
 @validate
 def cdl_evening_star(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Evening Star pattern.
 
@@ -317,10 +317,10 @@ def cdl_evening_star(
 @configurable
 @validate
 def cdl_3black_crows(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Black Crows pattern.
 
@@ -336,10 +336,10 @@ def cdl_3black_crows(
 @configurable
 @validate
 def cdl_3white_soldiers(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three White Soldiers pattern.
 
@@ -355,10 +355,10 @@ def cdl_3white_soldiers(
 @configurable
 @validate
 def cdl_3inside(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Inside Up/Down pattern.
 
@@ -374,10 +374,10 @@ def cdl_3inside(
 @configurable
 @validate
 def cdl_3outside(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Outside Up/Down pattern.
 
@@ -393,10 +393,10 @@ def cdl_3outside(
 @configurable
 @validate
 def cdl_3line_strike(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Line Strike pattern.
 
@@ -412,10 +412,10 @@ def cdl_3line_strike(
 @configurable
 @validate
 def cdl_piercing(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Piercing Pattern.
 
@@ -431,10 +431,10 @@ def cdl_piercing(
 @configurable
 @validate
 def cdl_dark_cloud_cover(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Dark Cloud Cover Pattern.
 
@@ -450,10 +450,10 @@ def cdl_dark_cloud_cover(
 @configurable
 @validate
 def cdl_kicking(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Kicking Pattern.
 
@@ -469,10 +469,10 @@ def cdl_kicking(
 @configurable
 @validate
 def cdl_matching_low(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Matching Low Pattern.
 
@@ -488,10 +488,10 @@ def cdl_matching_low(
 @configurable
 @validate
 def cdl_spinning_top(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Spinning Top pattern.
 
@@ -507,10 +507,10 @@ def cdl_spinning_top(
 @configurable
 @validate
 def cdl_rickshaw_man(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Rickshaw Man pattern.
 
@@ -525,10 +525,10 @@ def cdl_rickshaw_man(
 @configurable
 @validate
 def cdl_high_wave(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect High Wave pattern.
 
@@ -544,10 +544,10 @@ def cdl_high_wave(
 @configurable
 @validate
 def cdl_long_legged_doji(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Long Legged Doji pattern.
 
@@ -562,10 +562,10 @@ def cdl_long_legged_doji(
 @configurable
 @validate
 def cdl_tristar(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Tristar pattern.
 
@@ -581,10 +581,10 @@ def cdl_tristar(
 @configurable
 @validate
 def cdl_tasuki_gap(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Tasuki Gap pattern.
 
@@ -600,10 +600,10 @@ def cdl_tasuki_gap(
 @configurable
 @validate
 def cdl_separating_lines(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Separating Lines pattern.
 
@@ -619,10 +619,10 @@ def cdl_separating_lines(
 @configurable
 @validate
 def cdl_gap_side_by_side_white(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Gap Side-by-Side White Lines.
 
@@ -638,10 +638,10 @@ def cdl_gap_side_by_side_white(
 @configurable
 @validate
 def cdl_2crows(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Two Crows pattern.
 
@@ -656,10 +656,10 @@ def cdl_2crows(
 @configurable
 @validate
 def cdl_upside_gap_two_crows(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Upside Gap Two Crows pattern.
 
@@ -674,10 +674,10 @@ def cdl_upside_gap_two_crows(
 @configurable
 @validate
 def cdl_abandoned_baby(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Abandoned Baby."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -688,10 +688,10 @@ def cdl_abandoned_baby(
 @configurable
 @validate
 def cdl_advance_block(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Advance Block."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -702,10 +702,10 @@ def cdl_advance_block(
 @configurable
 @validate
 def cdl_belt_hold(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Belt Hold."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -716,10 +716,10 @@ def cdl_belt_hold(
 @configurable
 @validate
 def cdl_breakaway(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Breakaway."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -730,10 +730,10 @@ def cdl_breakaway(
 @configurable
 @validate
 def cdl_closing_marubozu(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Closing Marubozu."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -744,10 +744,10 @@ def cdl_closing_marubozu(
 @configurable
 @validate
 def cdl_dragonfly_doji(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Dragonfly Doji."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -758,10 +758,10 @@ def cdl_dragonfly_doji(
 @configurable
 @validate
 def cdl_gravestone_doji(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Gravestone Doji."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -772,10 +772,10 @@ def cdl_gravestone_doji(
 @configurable
 @validate
 def cdl_hikkake(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Hikkake."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -786,10 +786,10 @@ def cdl_hikkake(
 @configurable
 @validate
 def cdl_homing_pigeon(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Homing Pigeon."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -800,10 +800,10 @@ def cdl_homing_pigeon(
 @configurable
 @validate
 def cdl_identical_3crows(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Identical Three Crows."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -814,10 +814,10 @@ def cdl_identical_3crows(
 @configurable
 @validate
 def cdl_in_neck(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect In-Neck."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -828,10 +828,10 @@ def cdl_in_neck(
 @configurable
 @validate
 def cdl_ladder_bottom(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Ladder Bottom."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -842,10 +842,10 @@ def cdl_ladder_bottom(
 @configurable
 @validate
 def cdl_long_line(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Long Line."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -856,10 +856,10 @@ def cdl_long_line(
 @configurable
 @validate
 def cdl_mat_hold(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Mat Hold."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -870,10 +870,10 @@ def cdl_mat_hold(
 @configurable
 @validate
 def cdl_on_neck(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect On-Neck."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -884,10 +884,10 @@ def cdl_on_neck(
 @configurable
 @validate
 def cdl_rise_fall_3methods(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Rise/Fall Three Methods."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -898,10 +898,10 @@ def cdl_rise_fall_3methods(
 @configurable
 @validate
 def cdl_short_line(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Short Line."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -912,10 +912,10 @@ def cdl_short_line(
 @configurable
 @validate
 def cdl_stalled_pattern(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Stalled Pattern."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -926,10 +926,10 @@ def cdl_stalled_pattern(
 @configurable
 @validate
 def cdl_stick_sandwich(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Stick Sandwich."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -940,10 +940,10 @@ def cdl_stick_sandwich(
 @configurable
 @validate
 def cdl_takuri(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Takuri."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -954,10 +954,10 @@ def cdl_takuri(
 @configurable
 @validate
 def cdl_thrusting(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Thrusting."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -968,10 +968,10 @@ def cdl_thrusting(
 @configurable
 @validate
 def cdl_unique_3river(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Unique 3 River."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -982,10 +982,10 @@ def cdl_unique_3river(
 @configurable
 @validate
 def cdl_counterattack(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Counterattack."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -996,10 +996,10 @@ def cdl_counterattack(
 @configurable
 @validate
 def cdl_doji_star(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Doji Star."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1010,10 +1010,10 @@ def cdl_doji_star(
 @configurable
 @validate
 def cdl_conceal_baby_swallow(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Concealing Baby Swallow."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1024,10 +1024,10 @@ def cdl_conceal_baby_swallow(
 @configurable
 @validate
 def cdl_harami_cross(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Harami Cross."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1038,10 +1038,10 @@ def cdl_harami_cross(
 @configurable
 @validate
 def cdl_hikkake_mod(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Modified Hikkake."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1052,10 +1052,10 @@ def cdl_hikkake_mod(
 @configurable
 @validate
 def cdl_morning_doji_star(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Morning Doji Star."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1066,10 +1066,10 @@ def cdl_morning_doji_star(
 @configurable
 @validate
 def cdl_evening_doji_star(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Evening Doji Star."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1080,10 +1080,10 @@ def cdl_evening_doji_star(
 @configurable
 @validate
 def cdl_kicking_by_length(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Kicking By Length."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1094,10 +1094,10 @@ def cdl_kicking_by_length(
 @configurable
 @validate
 def cdl_3stars_in_south(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Stars In The South."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
@@ -1108,10 +1108,10 @@ def cdl_3stars_in_south(
 @configurable
 @validate
 def cdl_xsidegap3methods(
-  open_: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Upside/Downside Gap Three Methods.
 

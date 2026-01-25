@@ -17,8 +17,8 @@ class _sector_correlation_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    stock_data: Validated[pd.Series, Finite, NotEmpty],
-    sector_data: Validated[pd.Series, Finite, NotEmpty],
+    stock_data: Validated[pd.Series[float], Finite, NotEmpty],
+    sector_data: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> SectorCorrelationResult: ...
 
 class _sector_correlation_ConfigDict(TypedDict, total=False):
@@ -73,7 +73,7 @@ class sector_correlation:
   period: ClassVar[int]
   def __new__(
     cls,
-    stock_data: Validated[pd.Series, Finite, NotEmpty],
-    sector_data: Validated[pd.Series, Finite, NotEmpty],
+    stock_data: Validated[pd.Series[float], Finite, NotEmpty],
+    sector_data: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> SectorCorrelationResult: ...

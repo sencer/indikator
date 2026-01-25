@@ -17,9 +17,9 @@ class _legs_Bound(Protocol):
   def deviation(self) -> float: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     method: Literal["percentage", "absolute"] = ...,
   ) -> ZigzagLegsResult: ...
 
@@ -91,9 +91,9 @@ class legs:
   deviation: ClassVar[float]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
     method: Literal["percentage", "absolute"] = ...,
     deviation: float = ...,
   ) -> ZigzagLegsResult: ...

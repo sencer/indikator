@@ -1,7 +1,5 @@
 """APO (Absolute Price Oscillator) indicator module."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -15,15 +13,11 @@ from indikator._results import APOResult
 from indikator.ema import ema
 from indikator.sma import sma
 
-if TYPE_CHECKING:
-  import numpy as np
-  from numpy.typing import NDArray
-
 
 @configurable
 @validate
 def apo(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   matype: int = 0,  # 0=SMA, 1=EMA
@@ -53,6 +47,6 @@ def apo(
     slow_ma = sma(data, period=slow_period).sma
 
   apo_values = fast_ma - slow_ma
-  apo_np = cast("NDArray[np.float64]", apo_values)
+  apo_np = apo_values
 
-  return APOResult(index=data.index, apo=apo_np)
+  return APOResult(data_index=data.index, apo=apo_np)

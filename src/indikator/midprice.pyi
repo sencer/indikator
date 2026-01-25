@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
@@ -19,8 +17,8 @@ class _midprice_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> MIDPRICEResult: ...
 
 class _midprice_ConfigDict(TypedDict, total=False):
@@ -69,7 +67,7 @@ class midprice:
   period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> MIDPRICEResult: ...

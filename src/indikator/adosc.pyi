@@ -19,10 +19,10 @@ class _adosc_Bound(Protocol):
   def slow_period(self) -> int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> ADOSCResult: ...
 
 class _adosc_ConfigDict(TypedDict, total=False):
@@ -96,10 +96,10 @@ class adosc:
   slow_period: ClassVar[int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
     fast_period: int = ...,
     slow_period: int = ...,
   ) -> ADOSCResult: ...

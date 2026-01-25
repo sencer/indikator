@@ -18,7 +18,7 @@ class _bollinger_bands_Bound(Protocol):
   @property
   def num_std(self) -> float: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> BollingerBandsResult: ...
 
 class _bollinger_bands_ConfigDict(TypedDict, total=False):
@@ -96,7 +96,7 @@ class bollinger_bands:
   num_std: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     window: int = ...,
     num_std: float = ...,
   ) -> BollingerBandsResult: ...
@@ -108,7 +108,7 @@ class _bollinger_with_bandwidth_Bound(Protocol):
   @property
   def num_std(self) -> float: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> BollingerResult: ...
 
 class _bollinger_with_bandwidth_ConfigDict(TypedDict, total=False):
@@ -190,7 +190,7 @@ class bollinger_with_bandwidth:
   num_std: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     window: int = ...,
     num_std: float = ...,
   ) -> BollingerResult: ...

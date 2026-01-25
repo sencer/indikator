@@ -35,9 +35,9 @@ from indikator._results import (
 @configurable
 @validate
 def adx(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> ADXSingleResult:
   """Calculate Average Directional Index (ADX).
@@ -78,15 +78,15 @@ def adx(
   # Calculate ADX using pure Numba function (no DI array overhead)
   adx_values = compute_adx_numba_pure(high_arr, low_arr, close_arr, period)
 
-  return ADXSingleResult(index=high.index, adx=adx_values)
+  return ADXSingleResult(data_index=high.index, adx=adx_values)
 
 
 @configurable
 @validate
 def adx_with_di(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> ADXResult:
   """Calculate Average Directional Index (ADX) with DI components.
@@ -132,15 +132,17 @@ def adx_with_di(
     high_arr, low_arr, close_arr, period
   )
 
-  return ADXResult(index=high.index, adx=adx_values, plus_di=plus_di, minus_di=minus_di)
+  return ADXResult(
+    data_index=high.index, adx=adx_values, plus_di=plus_di, minus_di=minus_di
+  )
 
 
 @configurable
 @validate
 def plus_dm(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> PlusDMResult:
   """Calculate Plus Directional Movement (+DM).
@@ -156,22 +158,22 @@ def plus_dm(
   Returns:
     PlusDMResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
 
   plus_dm_vals, _, _ = compute_dms_numba(high_arr, low_arr, close_arr, period)
-  return PlusDMResult(index=high.index, plus_dm=plus_dm_vals)
+  return PlusDMResult(data_index=high.index, plus_dm=plus_dm_vals)
 
 
 @configurable
 @validate
 def minus_dm(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> MinusDMResult:
   """Calculate Minus Directional Movement (-DM).
@@ -187,22 +189,22 @@ def minus_dm(
   Returns:
     MinusDMResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
 
   _, minus_dm_vals, _ = compute_dms_numba(high_arr, low_arr, close_arr, period)
-  return MinusDMResult(index=high.index, minus_dm=minus_dm_vals)
+  return MinusDMResult(data_index=high.index, minus_dm=minus_dm_vals)
 
 
 @configurable
 @validate
 def plus_di(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> PlusDIResult:
   """Calculate Plus Directional Indicator (+DI).
@@ -218,23 +220,23 @@ def plus_di(
   Returns:
     PlusDIResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
 
   plus_di_vals, _ = compute_di_numba(high_arr, low_arr, close_arr, period)
 
-  return PlusDIResult(index=high.index, plus_di=plus_di_vals)
+  return PlusDIResult(data_index=high.index, plus_di=plus_di_vals)
 
 
 @configurable
 @validate
 def minus_di(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> MinusDIResult:
   """Calculate Minus Directional Indicator (-DI).
@@ -250,23 +252,23 @@ def minus_di(
   Returns:
     MinusDIResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
 
   _, minus_di_vals = compute_di_numba(high_arr, low_arr, close_arr, period)
 
-  return MinusDIResult(index=high.index, minus_di=minus_di_vals)
+  return MinusDIResult(data_index=high.index, minus_di=minus_di_vals)
 
 
 @configurable
 @validate
 def dx(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> DXResult:
   """Calculate Directional Movement Index (DX).
@@ -282,22 +284,22 @@ def dx(
   Returns:
     DXResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   from indikator._adx_numba import compute_dx_numba  # noqa: PLC0415
 
   dx_vals = compute_dx_numba(high_arr, low_arr, close_arr, period)
-  return DXResult(index=high.index, dx=dx_vals)
+  return DXResult(data_index=high.index, dx=dx_vals)
 
 
 @configurable
 @validate
 def adxr(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> ADXRResult:
   """Calculate Average Directional Movement Rating (ADXR).
@@ -313,12 +315,12 @@ def adxr(
   Returns:
     ADXRResult
   """
-  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  high_arr = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   from indikator._adx_numba import compute_adxr_numba  # noqa: PLC0415
 
   adxr_vals = compute_adxr_numba(high_arr, low_arr, close_arr, period)
 
-  return ADXRResult(index=high.index, adxr=adxr_vals)
+  return ADXRResult(data_index=high.index, adxr=adxr_vals)

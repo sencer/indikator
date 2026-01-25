@@ -28,7 +28,7 @@ from indikator._rsi_numba import compute_rsi_numba
 @configurable
 @validate
 def rsi(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> RSIResult:
@@ -90,4 +90,4 @@ def rsi(
   # Calculate RSI using Numba-optimized function
   rsi_values = compute_rsi_numba(values, window, epsilon)
 
-  return RSIResult(index=data.index, rsi=rsi_values)
+  return RSIResult(data_index=data.index, rsi=rsi_values)

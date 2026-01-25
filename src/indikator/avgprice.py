@@ -3,8 +3,6 @@
 AVGPRICE = (Open + High + Low + Close) / 4
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -22,10 +20,10 @@ from indikator._results import AVGPRICEResult
 @configurable
 @validate
 def avgprice(
-  open: Validated[pd.Series, Finite, NotEmpty],
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  open: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> AVGPRICEResult:
   """Calculate Average Price.
 
@@ -40,11 +38,11 @@ def avgprice(
   Returns:
     AVGPRICEResult
   """
-  o = cast("NDArray[np.float64]", open.to_numpy(dtype=np.float64, copy=False))
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
-  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
+  o = cast("NDArray[np.float64]", open.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  c = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   result = compute_avgprice_numba(o, h, low_arr, c)
 
-  return AVGPRICEResult(index=high.index, avgprice=result)
+  return AVGPRICEResult(data_index=high.index, avgprice=result)

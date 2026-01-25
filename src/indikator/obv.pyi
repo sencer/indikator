@@ -15,8 +15,8 @@ class _obv_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> OBVResult: ...
 
 class _obv_ConfigDict(TypedDict, total=False):
@@ -71,6 +71,6 @@ class obv:
   ConfigDict = _obv_ConfigDict
   def __new__(
     cls,
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> OBVResult: ...

@@ -3,8 +3,6 @@
 MIDPOINT = (highest value + lowest value) / 2
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -22,7 +20,7 @@ from indikator._rolling_numba import compute_midpoint_numba
 @configurable
 @validate
 def midpoint(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> MIDPOINTResult:
   """Calculate Midpoint over period.
@@ -36,8 +34,8 @@ def midpoint(
   Returns:
     MIDPOINTResult
   """
-  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   result = compute_midpoint_numba(values, period)
 
-  return MIDPOINTResult(index=data.index, midpoint=result)
+  return MIDPOINTResult(data_index=data.index, midpoint=result)

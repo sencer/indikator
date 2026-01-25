@@ -26,9 +26,9 @@ from indikator._results import CCIResult
 @configurable
 @validate
 def cci(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
   constant: float = 0.015,
 ) -> CCIResult:
@@ -84,4 +84,4 @@ def cci(
   # Calculate CCI using Numba-optimized function
   cci_values = compute_cci_numba(high_arr, low_arr, close_arr, period, constant)
 
-  return CCIResult(index=high.index, cci=cci_values)
+  return CCIResult(data_index=high.index, cci=cci_values)

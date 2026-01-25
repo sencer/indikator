@@ -22,7 +22,7 @@ class _stochrsi_Bound(Protocol):
   @property
   def d_period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> StochRSIResult: ...
 
 class _stochrsi_ConfigDict(TypedDict, total=False):
@@ -118,7 +118,7 @@ class stochrsi:
   d_period: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     rsi_period: int = ...,
     stoch_period: int = ...,
     k_period: int = ...,

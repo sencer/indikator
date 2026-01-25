@@ -4,6 +4,8 @@ These constants are used across multiple indicator modules to ensure
 consistent behavior and easy maintenance.
 """
 
+from __future__ import annotations
+
 # Default minimum periods for intraday aggregation functions.
 # This is the minimum number of observations required before
 # the expanding window starts producing non-NaN values.

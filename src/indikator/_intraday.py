@@ -44,7 +44,7 @@ def _get_lookback_data(
 
 @validate
 def intraday_aggregate(
-  data: Validated[pd.Series, Index(Datetime), NotEmpty],
+  data: Validated[pd.Series[float], Index(Datetime), NotEmpty],
   agg_func: AggFunc | Callable[[pd.Series], float],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
@@ -86,13 +86,15 @@ def intraday_aggregate(
   )["__indikator_value__"].transform(expanding_agg_shifted)
 
   return IntradaySeriesResult(
-    index=data.index, values=agg_values.to_numpy(dtype=float), name="intraday_aggregate"
+    data_index=data.index,
+    values=agg_values.to_numpy(dtype=float),  # pyright: ignore[reportUnknownMemberType]
+    name="intraday_aggregate",
   )
 
 
 @validate
 def intraday_stats(
-  data: Validated[pd.Series, Index(Datetime), NotEmpty],
+  data: Validated[pd.Series[float], Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
 ) -> IntradayStatsResult:
@@ -123,7 +125,7 @@ def intraday_stats(
   )
 
   return IntradayStatsResult(
-    index=data.index,
-    mean=mean_values.to_numpy(dtype=float),
-    std=std_values.to_numpy(dtype=float),
+    data_index=data.index,
+    mean=mean_values.to_numpy(dtype=float),  # pyright: ignore[reportUnknownMemberType]
+    std=std_values.to_numpy(dtype=float),  # pyright: ignore[reportUnknownMemberType]
   )

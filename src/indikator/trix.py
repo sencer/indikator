@@ -27,7 +27,7 @@ from indikator._trix_numba import compute_trix_numba
 @configurable
 @validate
 def trix(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> TRIXResult:
   """Calculate TRIX (Triple Exponential Average).
@@ -71,4 +71,4 @@ def trix(
   # Calculate TRIX using Numba-optimized function
   trix_values = compute_trix_numba(values, period)
 
-  return TRIXResult(index=data.index, trix=trix_values)
+  return TRIXResult(data_index=data.index, trix=trix_values)

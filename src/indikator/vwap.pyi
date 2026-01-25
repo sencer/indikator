@@ -19,20 +19,20 @@ class _vwap_Bound(Protocol):
   def anchor(self) -> str | pd.Timedelta | int: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> VWAPResult: ...
 
 class _vwap_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for vwap.
 
   Configuration:
-      anchor (str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict)
+      anchor (str | pd.Timedelta | int)
   """
 
-  anchor: str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict
+  anchor: str | pd.Timedelta | int
 
 class _vwap_Config(_NCMakeableModel[_vwap_Bound]):
   """Configuration class for vwap.
@@ -71,19 +71,15 @@ class _vwap_Config(_NCMakeableModel[_vwap_Bound]):
     VWAPResult(index, vwap)
 
   Configuration:
-      anchor (str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict)
+      anchor (str | pd.Timedelta | int)
   """
 
-  anchor: str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict
-  def __init__(
-    self,
-    *,
-    anchor: str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict = ...,
-  ) -> None: ...
+  anchor: str | pd.Timedelta | int
+  def __init__(self, *, anchor: str | pd.Timedelta | int = ...) -> None: ...
   """Initialize configuration for vwap.
 
     Configuration:
-        anchor (str | pd.Timedelta | int.Config | str | pd.Timedelta | int.ConfigDict)
+        anchor (str | pd.Timedelta | int)
     """
 
   @override
@@ -96,10 +92,10 @@ class vwap:
   anchor: ClassVar[str | pd.Timedelta | int]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
     anchor: str | pd.Timedelta | int = ...,
   ) -> VWAPResult: ...
 

@@ -15,7 +15,9 @@ class _zscore_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> ZScoreResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> ZScoreResult: ...
 
 class _zscore_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for zscore.
@@ -76,7 +78,7 @@ class zscore:
   ConfigDict = _zscore_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> ZScoreResult: ...
 
 class _zscore_intraday_Bound(Protocol):
@@ -87,7 +89,7 @@ class _zscore_intraday_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     lookback_days: int | None = ...,
   ) -> ZScoreIntradayResult: ...
 
@@ -171,7 +173,7 @@ class zscore_intraday:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,

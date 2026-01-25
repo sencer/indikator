@@ -1,8 +1,6 @@
 """Math Transform indicators."""
 
-from __future__ import annotations
-
-from datawarden import Finite, NotEmpty, Validated, validate
+from datawarden import NotEmpty, Validated, validate
 from nonfig import configurable
 import numpy as np
 import pandas as pd
@@ -11,7 +9,7 @@ import pandas as pd
 @configurable
 @validate
 def sin(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Trigonometric Sin.
 
@@ -27,7 +25,7 @@ def sin(
 @configurable
 @validate
 def cos(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Trigonometric Cos.
 
@@ -43,7 +41,7 @@ def cos(
 @configurable
 @validate
 def tan(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Trigonometric Tan.
 
@@ -59,7 +57,7 @@ def tan(
 @configurable
 @validate
 def sinh(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Hyperbolic Sin.
 
@@ -75,7 +73,7 @@ def sinh(
 @configurable
 @validate
 def cosh(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Hyperbolic Cos.
 
@@ -91,7 +89,7 @@ def cosh(
 @configurable
 @validate
 def tanh(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Hyperbolic Tan.
 
@@ -107,7 +105,7 @@ def tanh(
 @configurable
 @validate
 def ceil(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Ceil.
 
@@ -123,7 +121,7 @@ def ceil(
 @configurable
 @validate
 def floor(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Floor.
 
@@ -139,7 +137,7 @@ def floor(
 @configurable
 @validate
 def exp(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Exponential.
 
@@ -155,7 +153,7 @@ def exp(
 @configurable
 @validate
 def ln(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Natural Log.
 
@@ -171,7 +169,7 @@ def ln(
 @configurable
 @validate
 def log10(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Log Base 10.
 
@@ -187,7 +185,7 @@ def log10(
 @configurable
 @validate
 def sqrt(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Square Root.
 
@@ -203,7 +201,7 @@ def sqrt(
 @configurable
 @validate
 def acos(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Arccos.
 
@@ -219,7 +217,7 @@ def acos(
 @configurable
 @validate
 def asin(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Arcsin.
 
@@ -235,7 +233,7 @@ def asin(
 @configurable
 @validate
 def atan(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
   """Vector Arctan.
 

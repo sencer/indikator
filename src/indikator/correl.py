@@ -26,8 +26,8 @@ from indikator._results import CORRELResult
 @configurable
 @validate
 def correl(
-  x: Validated[pd.Series, Finite, NotEmpty],
-  y: Validated[pd.Series, Finite, NotEmpty],
+  x: Validated[pd.Series[float], Finite, NotEmpty],
+  y: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> CORRELResult:
   """Calculate rolling Pearson correlation coefficient.
@@ -61,4 +61,4 @@ def correl(
 
   result = compute_correl_numba(x_arr, y_arr, period)
 
-  return CORRELResult(index=x.index, correl=result)
+  return CORRELResult(data_index=x.index, correl=result)

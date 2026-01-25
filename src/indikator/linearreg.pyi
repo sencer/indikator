@@ -22,7 +22,7 @@ class _linearreg_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> LINEARREGResult: ...
 
 class _linearreg_ConfigDict(TypedDict, total=False):
@@ -70,7 +70,7 @@ class linearreg:
   ConfigDict = _linearreg_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> LINEARREGResult: ...
 
 class _linearreg_intercept_Bound(Protocol):
@@ -78,7 +78,7 @@ class _linearreg_intercept_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> LINEARREGInterceptResult: ...
 
 class _linearreg_intercept_ConfigDict(TypedDict, total=False):
@@ -126,7 +126,7 @@ class linearreg_intercept:
   ConfigDict = _linearreg_intercept_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> LINEARREGInterceptResult: ...
 
 class _linearreg_angle_Bound(Protocol):
@@ -134,7 +134,7 @@ class _linearreg_angle_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> LINEARREGAngleResult: ...
 
 class _linearreg_angle_ConfigDict(TypedDict, total=False):
@@ -182,7 +182,7 @@ class linearreg_angle:
   ConfigDict = _linearreg_angle_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> LINEARREGAngleResult: ...
 
 class _linearreg_slope_Bound(Protocol):
@@ -190,7 +190,7 @@ class _linearreg_slope_Bound(Protocol):
   @property
   def period(self) -> int: ...
   def __call__(
-    self, data: Validated[pd.Series, Finite, NotEmpty]
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> LINEARREGSlopeResult: ...
 
 class _linearreg_slope_ConfigDict(TypedDict, total=False):
@@ -240,14 +240,16 @@ class linearreg_slope:
   ConfigDict = _linearreg_slope_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> LINEARREGSlopeResult: ...
 
 class _tsf_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property
   def period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> TSFResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> TSFResult: ...
 
 class _tsf_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for tsf.
@@ -296,5 +298,5 @@ class tsf:
   ConfigDict = _tsf_ConfigDict
   period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
   ) -> TSFResult: ...

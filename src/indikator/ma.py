@@ -34,7 +34,7 @@ MAType = {
 @configurable
 @validate
 def ma(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
   matype: Hyper[int, Ge[0]] = 0,
 ) -> "MAResult":

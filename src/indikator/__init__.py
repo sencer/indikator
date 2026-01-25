@@ -1,6 +1,19 @@
 """Indikator - Technical indicators library."""
 
+from __future__ import annotations
+
 __version__ = "0.2.0"
+
+# Monkeypatch pandas for runtime subscriptability (e.g. pd.Series[float])
+import pandas as pd
+
+try:
+  if not hasattr(pd.Series, "__class_getitem__"):
+    pd.Series.__class_getitem__ = classmethod(lambda cls, _: cls)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownLambdaType, reportUnknownArgumentType]
+  if not hasattr(pd.DataFrame, "__class_getitem__"):
+    pd.DataFrame.__class_getitem__ = classmethod(lambda cls, _: cls)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownLambdaType, reportUnknownArgumentType]
+except Exception:  # noqa: S110, BLE001
+  pass
 
 from indikator.ad import ad
 from indikator.adosc import adosc

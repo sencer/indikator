@@ -3,8 +3,6 @@
 MEDPRICE = (High + Low) / 2
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -22,8 +20,8 @@ from indikator._results import MEDPRICEResult
 @configurable
 @validate
 def medprice(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> MEDPRICEResult:
   """Calculate Median Price.
 
@@ -36,9 +34,9 @@ def medprice(
   Returns:
     MEDPRICEResult
   """
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   result = compute_medprice_numba(h, low_np)
 
-  return MEDPRICEResult(index=high.index, medprice=result)
+  return MEDPRICEResult(data_index=high.index, medprice=result)

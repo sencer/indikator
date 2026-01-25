@@ -3,8 +3,6 @@
 MIDPRICE = (highest high + lowest low) / 2
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -22,8 +20,8 @@ from indikator._rolling_numba import compute_midprice_numba
 @configurable
 @validate
 def midprice(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> MIDPRICEResult:
   """Calculate Midpoint Price over period.
@@ -38,9 +36,9 @@ def midprice(
   Returns:
     MIDPRICEResult
   """
-  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+  h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
 
   result = compute_midprice_numba(h, low_np, period)
 
-  return MIDPRICEResult(index=high.index, midprice=result)
+  return MIDPRICEResult(data_index=high.index, midprice=result)

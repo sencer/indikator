@@ -1,7 +1,5 @@
 """Cycle (Hilbert Transform) indicators."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
@@ -30,7 +28,7 @@ if TYPE_CHECKING:
 @configurable
 @validate
 def ht_dcperiod(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Hilbert Transform - Dominant Cycle Period.
 
@@ -54,7 +52,7 @@ def ht_dcperiod(
 @configurable
 @validate
 def ht_dcphase(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Hilbert Transform - Dominant Cycle Phase.
 
@@ -78,7 +76,7 @@ def ht_dcphase(
 @configurable
 @validate
 def ht_phasor(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> tuple[pd.Series, pd.Series]:
   """Hilbert Transform - Phasor Components.
 
@@ -104,7 +102,7 @@ def ht_phasor(
 @configurable
 @validate
 def ht_sine(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> tuple[pd.Series, pd.Series]:
   """Hilbert Transform - SineWave.
 
@@ -133,7 +131,7 @@ def ht_sine(
 @configurable
 @validate
 def ht_trendmode(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Hilbert Transform - Trend vs Cycle Mode.
 
@@ -158,7 +156,7 @@ def ht_trendmode(
 @configurable
 @validate
 def ht_trendline(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Hilbert Transform - Trendline.
 

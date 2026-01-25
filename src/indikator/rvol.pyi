@@ -17,7 +17,9 @@ class _rvol_Bound(Protocol):
   def window(self) -> int: ...
   @property
   def epsilon(self) -> float: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> RVOLResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> RVOLResult: ...
 
 class _rvol_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rvol.
@@ -79,7 +81,7 @@ class rvol:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     window: int = ...,
     epsilon: float = ...,
   ) -> RVOLResult: ...
@@ -92,7 +94,7 @@ class _rvol_intraday_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     lookback_days: int | None = ...,
   ) -> RVOLResult: ...
 
@@ -157,7 +159,7 @@ class rvol_intraday:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+    data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,

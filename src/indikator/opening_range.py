@@ -4,6 +4,8 @@ This module provides opening range calculation, a popular day trading
 strategy that identifies the high/low range of the first N minutes.
 """
 
+from typing import cast
+
 from datawarden import (
   Datetime,
   Finite,
@@ -22,9 +24,9 @@ from indikator._results import OpeningRangeResult
 @configurable
 @validate
 def opening_range(  # noqa: PLR0914
-  high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-  low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
-  close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  high: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+  low: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
+  close: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   period_minutes: Hyper[int, Ge[1]] = 30,
 ) -> OpeningRangeResult:
   """Calculate Opening Range Breakout (ORB) levels.
@@ -86,8 +88,7 @@ def opening_range(  # noqa: PLR0914
 
   # Using groupby + transformation is efficient enough.
 
-  session_date = idx.normalize()  # Date component
-  idx - session_date  # Timedelta since midnight
+  session_date = cast("pd.DatetimeIndex", idx).normalize()  # Date component
 
   # Determine each day's start time (min time)
   # This aligns with index? No.
@@ -137,7 +138,7 @@ def opening_range(  # noqa: PLR0914
 
   # Calculate stats on OR rows
   or_rows = df[is_or]
-  or_stats = or_rows.groupby("date").agg({"high": "max", "low": "min"})
+  or_stats = or_rows.groupby("date").agg({"high": "max", "low": "min"})  # pyright: ignore[reportUnknownMemberType]
 
   # Map back
   or_high = df["date"].map(or_stats["high"])
@@ -154,9 +155,9 @@ def opening_range(  # noqa: PLR0914
   breakout = np.zeros(len(close), dtype=np.int8)
 
   # Use numpy for comparisons
-  c_arr = close.to_numpy(dtype=np.float64, copy=False)
-  h_arr = or_high.to_numpy(dtype=np.float64, copy=False)
-  l_arr = or_low.to_numpy(dtype=np.float64, copy=False)
+  c_arr = close.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  h_arr = or_high.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  l_arr = or_low.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
   # Handle NaNs
   valid = ~np.isnan(h_arr) & ~np.isnan(l_arr)
@@ -165,10 +166,10 @@ def opening_range(  # noqa: PLR0914
   breakout[valid & (c_arr < l_arr)] = -1
 
   return OpeningRangeResult(
-    index=high.index,
+    data_index=high.index,
     or_high=h_arr,
     or_low=l_arr,
-    or_mid=or_mid.to_numpy(dtype=np.float64, copy=False),
-    or_range=or_range.to_numpy(dtype=np.float64, copy=False),
+    or_mid=or_mid.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+    or_range=or_range.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
     or_breakout=breakout,
   )

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -17,7 +15,7 @@ if TYPE_CHECKING:
 @configurable
 @validate
 def trima(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
 ) -> TRIMAResult:
   """Calculate Triangular Moving Average (TRIMA).
@@ -32,6 +30,6 @@ def trima(
   Returns:
     TRIMAResult
   """
-  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
   result = compute_trima_numba(values, period)
-  return TRIMAResult(index=data.index, trima=result)
+  return TRIMAResult(data_index=data.index, trima=result)

@@ -1,11 +1,8 @@
 """MAVP (Moving Average with Variable Period) indicator."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Annotated, cast
+from typing import TYPE_CHECKING, cast
 
 from datawarden import (
-  Finite,
   NotEmpty,
   Validated,
   validate,
@@ -23,10 +20,10 @@ if TYPE_CHECKING:
 @configurable
 @validate
 def mavp(
-  data: Validated[pd.Series, Finite, NotEmpty],
-  periods: Validated[pd.Series, Finite, NotEmpty],
-  minperiod: Annotated[int, Hyper(Ge(2))] = 2,
-  maxperiod: Annotated[int, Hyper(Ge(2))] = 30,
+  data: Validated[pd.Series[float], NotEmpty],
+  periods: Validated[pd.Series[float], NotEmpty],
+  minperiod: Hyper[int, Ge[2]] = 2,
+  maxperiod: Hyper[int, Ge[2]] = 30,
   matype: int = 0,
 ) -> pd.Series:
   """Moving Average with Variable Period.

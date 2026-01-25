@@ -44,7 +44,7 @@ from indikator._slope_numba import (
 @configurable
 @validate
 def linearreg(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> LINEARREGResult:
   """Calculate LINEARREG: linear regression value at end of window.
@@ -66,13 +66,13 @@ def linearreg(
 
   result = compute_linearreg_numba(values, period)
 
-  return LINEARREGResult(index=data.index, linearreg=result)
+  return LINEARREGResult(data_index=data.index, linearreg=result)
 
 
 @configurable
 @validate
 def linearreg_intercept(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> LINEARREGInterceptResult:
   """Calculate LINEARREG_INTERCEPT: y-intercept of regression line.
@@ -94,13 +94,13 @@ def linearreg_intercept(
 
   result = compute_linearreg_intercept_numba(values, period)
 
-  return LINEARREGInterceptResult(index=data.index, linearreg_intercept=result)
+  return LINEARREGInterceptResult(data_index=data.index, linearreg_intercept=result)
 
 
 @configurable
 @validate
 def linearreg_angle(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> LINEARREGAngleResult:
   """Calculate LINEARREG_ANGLE: angle of regression line in degrees.
@@ -122,13 +122,13 @@ def linearreg_angle(
 
   result = compute_linearreg_angle_numba(values, period)
 
-  return LINEARREGAngleResult(index=data.index, linearreg_angle=result)
+  return LINEARREGAngleResult(data_index=data.index, linearreg_angle=result)
 
 
 @configurable
 @validate
 def linearreg_slope(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> LINEARREGSlopeResult:
   """Calculate LINEARREG_SLOPE: slope of regression line.
@@ -152,13 +152,13 @@ def linearreg_slope(
 
   result = compute_slope_numba(values, period)
 
-  return LINEARREGSlopeResult(index=data.index, linearreg_slope=result)
+  return LINEARREGSlopeResult(data_index=data.index, linearreg_slope=result)
 
 
 @configurable
 @validate
 def tsf(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> TSFResult:
   """Calculate TSF: Time Series Forecast.
@@ -182,4 +182,4 @@ def tsf(
 
   result = compute_tsf_numba(values, period)
 
-  return TSFResult(index=data.index, tsf=result)
+  return TSFResult(data_index=data.index, tsf=result)

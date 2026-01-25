@@ -19,10 +19,10 @@ class _mfi_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> MFIResult: ...
 
 class _mfi_ConfigDict(TypedDict, total=False):
@@ -101,10 +101,10 @@ class mfi:
   epsilon: ClassVar[float]
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
-    volume: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
     epsilon: float = ...,
   ) -> MFIResult: ...

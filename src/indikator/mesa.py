@@ -3,8 +3,6 @@
 Includes MAMA (MESA Adaptive Moving Average) and FAMA (Following Adaptive Moving Average).
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
@@ -27,7 +25,7 @@ if TYPE_CHECKING:
 @configurable
 @validate
 def mama(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   fastlimit: Hyper[float, Gt[0.0], Le[1.0]] = 0.5,
   slowlimit: Hyper[float, Gt[0.0], Le[1.0]] = 0.05,
 ) -> MAMAResult:
@@ -51,4 +49,4 @@ def mama(
 
   m, f = compute_mama_numba(values, fastlimit, slowlimit)
 
-  return MAMAResult(index=data.index, mama=m, fama=f)
+  return MAMAResult(data_index=data.index, mama=m, fama=f)

@@ -13,10 +13,10 @@ class _cdl_doji_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_doji_ConfigDict(TypedDict, total=False):
@@ -38,20 +38,20 @@ class cdl_doji:
   ConfigDict = _cdl_doji_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hammer_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hammer_ConfigDict(TypedDict, total=False):
@@ -73,20 +73,20 @@ class cdl_hammer:
   ConfigDict = _cdl_hammer_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_engulfing_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_engulfing_ConfigDict(TypedDict, total=False):
@@ -111,20 +111,20 @@ class cdl_engulfing:
   ConfigDict = _cdl_engulfing_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_harami_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_harami_ConfigDict(TypedDict, total=False):
@@ -149,20 +149,20 @@ class cdl_harami:
   ConfigDict = _cdl_harami_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_shooting_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_shooting_star_ConfigDict(TypedDict, total=False):
@@ -186,20 +186,20 @@ class cdl_shooting_star:
   ConfigDict = _cdl_shooting_star_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_inverted_hammer_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_inverted_hammer_ConfigDict(TypedDict, total=False):
@@ -223,20 +223,20 @@ class cdl_inverted_hammer:
   ConfigDict = _cdl_inverted_hammer_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hanging_man_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hanging_man_ConfigDict(TypedDict, total=False):
@@ -260,20 +260,20 @@ class cdl_hanging_man:
   ConfigDict = _cdl_hanging_man_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_marubozu_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_marubozu_ConfigDict(TypedDict, total=False):
@@ -298,20 +298,20 @@ class cdl_marubozu:
   ConfigDict = _cdl_marubozu_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_morning_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_morning_star_ConfigDict(TypedDict, total=False):
@@ -335,20 +335,20 @@ class cdl_morning_star:
   ConfigDict = _cdl_morning_star_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_evening_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_evening_star_ConfigDict(TypedDict, total=False):
@@ -372,20 +372,20 @@ class cdl_evening_star:
   ConfigDict = _cdl_evening_star_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3black_crows_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3black_crows_ConfigDict(TypedDict, total=False):
@@ -409,20 +409,20 @@ class cdl_3black_crows:
   ConfigDict = _cdl_3black_crows_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3white_soldiers_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3white_soldiers_ConfigDict(TypedDict, total=False):
@@ -446,20 +446,20 @@ class cdl_3white_soldiers:
   ConfigDict = _cdl_3white_soldiers_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3inside_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3inside_ConfigDict(TypedDict, total=False):
@@ -483,20 +483,20 @@ class cdl_3inside:
   ConfigDict = _cdl_3inside_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3outside_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3outside_ConfigDict(TypedDict, total=False):
@@ -520,20 +520,20 @@ class cdl_3outside:
   ConfigDict = _cdl_3outside_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3line_strike_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3line_strike_ConfigDict(TypedDict, total=False):
@@ -557,20 +557,20 @@ class cdl_3line_strike:
   ConfigDict = _cdl_3line_strike_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_piercing_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_piercing_ConfigDict(TypedDict, total=False):
@@ -594,20 +594,20 @@ class cdl_piercing:
   ConfigDict = _cdl_piercing_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_dark_cloud_cover_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_dark_cloud_cover_ConfigDict(TypedDict, total=False):
@@ -631,20 +631,20 @@ class cdl_dark_cloud_cover:
   ConfigDict = _cdl_dark_cloud_cover_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_kicking_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_kicking_ConfigDict(TypedDict, total=False):
@@ -668,20 +668,20 @@ class cdl_kicking:
   ConfigDict = _cdl_kicking_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_matching_low_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_matching_low_ConfigDict(TypedDict, total=False):
@@ -705,20 +705,20 @@ class cdl_matching_low:
   ConfigDict = _cdl_matching_low_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_spinning_top_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_spinning_top_ConfigDict(TypedDict, total=False):
@@ -742,20 +742,20 @@ class cdl_spinning_top:
   ConfigDict = _cdl_spinning_top_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_rickshaw_man_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_rickshaw_man_ConfigDict(TypedDict, total=False):
@@ -778,20 +778,20 @@ class cdl_rickshaw_man:
   ConfigDict = _cdl_rickshaw_man_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_high_wave_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_high_wave_ConfigDict(TypedDict, total=False):
@@ -815,20 +815,20 @@ class cdl_high_wave:
   ConfigDict = _cdl_high_wave_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_long_legged_doji_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_long_legged_doji_ConfigDict(TypedDict, total=False):
@@ -851,20 +851,20 @@ class cdl_long_legged_doji:
   ConfigDict = _cdl_long_legged_doji_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_tristar_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_tristar_ConfigDict(TypedDict, total=False):
@@ -888,20 +888,20 @@ class cdl_tristar:
   ConfigDict = _cdl_tristar_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_tasuki_gap_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_tasuki_gap_ConfigDict(TypedDict, total=False):
@@ -925,20 +925,20 @@ class cdl_tasuki_gap:
   ConfigDict = _cdl_tasuki_gap_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_separating_lines_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_separating_lines_ConfigDict(TypedDict, total=False):
@@ -962,20 +962,20 @@ class cdl_separating_lines:
   ConfigDict = _cdl_separating_lines_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_gap_side_by_side_white_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_gap_side_by_side_white_ConfigDict(TypedDict, total=False):
@@ -1001,20 +1001,20 @@ class cdl_gap_side_by_side_white:
   ConfigDict = _cdl_gap_side_by_side_white_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_2crows_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_2crows_ConfigDict(TypedDict, total=False):
@@ -1037,20 +1037,20 @@ class cdl_2crows:
   ConfigDict = _cdl_2crows_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_upside_gap_two_crows_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_upside_gap_two_crows_ConfigDict(TypedDict, total=False):
@@ -1075,20 +1075,20 @@ class cdl_upside_gap_two_crows:
   ConfigDict = _cdl_upside_gap_two_crows_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_abandoned_baby_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_abandoned_baby_ConfigDict(TypedDict, total=False):
@@ -1108,20 +1108,20 @@ class cdl_abandoned_baby:
   ConfigDict = _cdl_abandoned_baby_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_advance_block_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_advance_block_ConfigDict(TypedDict, total=False):
@@ -1141,20 +1141,20 @@ class cdl_advance_block:
   ConfigDict = _cdl_advance_block_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_belt_hold_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_belt_hold_ConfigDict(TypedDict, total=False):
@@ -1174,20 +1174,20 @@ class cdl_belt_hold:
   ConfigDict = _cdl_belt_hold_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_breakaway_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_breakaway_ConfigDict(TypedDict, total=False):
@@ -1207,20 +1207,20 @@ class cdl_breakaway:
   ConfigDict = _cdl_breakaway_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_closing_marubozu_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_closing_marubozu_ConfigDict(TypedDict, total=False):
@@ -1240,20 +1240,20 @@ class cdl_closing_marubozu:
   ConfigDict = _cdl_closing_marubozu_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_dragonfly_doji_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_dragonfly_doji_ConfigDict(TypedDict, total=False):
@@ -1273,20 +1273,20 @@ class cdl_dragonfly_doji:
   ConfigDict = _cdl_dragonfly_doji_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_gravestone_doji_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_gravestone_doji_ConfigDict(TypedDict, total=False):
@@ -1306,20 +1306,20 @@ class cdl_gravestone_doji:
   ConfigDict = _cdl_gravestone_doji_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hikkake_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hikkake_ConfigDict(TypedDict, total=False):
@@ -1339,20 +1339,20 @@ class cdl_hikkake:
   ConfigDict = _cdl_hikkake_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_homing_pigeon_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_homing_pigeon_ConfigDict(TypedDict, total=False):
@@ -1372,20 +1372,20 @@ class cdl_homing_pigeon:
   ConfigDict = _cdl_homing_pigeon_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_identical_3crows_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_identical_3crows_ConfigDict(TypedDict, total=False):
@@ -1405,20 +1405,20 @@ class cdl_identical_3crows:
   ConfigDict = _cdl_identical_3crows_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_in_neck_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_in_neck_ConfigDict(TypedDict, total=False):
@@ -1438,20 +1438,20 @@ class cdl_in_neck:
   ConfigDict = _cdl_in_neck_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_ladder_bottom_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_ladder_bottom_ConfigDict(TypedDict, total=False):
@@ -1471,20 +1471,20 @@ class cdl_ladder_bottom:
   ConfigDict = _cdl_ladder_bottom_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_long_line_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_long_line_ConfigDict(TypedDict, total=False):
@@ -1504,20 +1504,20 @@ class cdl_long_line:
   ConfigDict = _cdl_long_line_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_mat_hold_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_mat_hold_ConfigDict(TypedDict, total=False):
@@ -1537,20 +1537,20 @@ class cdl_mat_hold:
   ConfigDict = _cdl_mat_hold_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_on_neck_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_on_neck_ConfigDict(TypedDict, total=False):
@@ -1570,20 +1570,20 @@ class cdl_on_neck:
   ConfigDict = _cdl_on_neck_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_rise_fall_3methods_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_rise_fall_3methods_ConfigDict(TypedDict, total=False):
@@ -1603,20 +1603,20 @@ class cdl_rise_fall_3methods:
   ConfigDict = _cdl_rise_fall_3methods_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_short_line_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_short_line_ConfigDict(TypedDict, total=False):
@@ -1636,20 +1636,20 @@ class cdl_short_line:
   ConfigDict = _cdl_short_line_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_stalled_pattern_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_stalled_pattern_ConfigDict(TypedDict, total=False):
@@ -1669,20 +1669,20 @@ class cdl_stalled_pattern:
   ConfigDict = _cdl_stalled_pattern_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_stick_sandwich_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_stick_sandwich_ConfigDict(TypedDict, total=False):
@@ -1702,20 +1702,20 @@ class cdl_stick_sandwich:
   ConfigDict = _cdl_stick_sandwich_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_takuri_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_takuri_ConfigDict(TypedDict, total=False):
@@ -1735,20 +1735,20 @@ class cdl_takuri:
   ConfigDict = _cdl_takuri_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_thrusting_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_thrusting_ConfigDict(TypedDict, total=False):
@@ -1768,20 +1768,20 @@ class cdl_thrusting:
   ConfigDict = _cdl_thrusting_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_unique_3river_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_unique_3river_ConfigDict(TypedDict, total=False):
@@ -1801,20 +1801,20 @@ class cdl_unique_3river:
   ConfigDict = _cdl_unique_3river_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_counterattack_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_counterattack_ConfigDict(TypedDict, total=False):
@@ -1834,20 +1834,20 @@ class cdl_counterattack:
   ConfigDict = _cdl_counterattack_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_doji_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_doji_star_ConfigDict(TypedDict, total=False):
@@ -1867,20 +1867,20 @@ class cdl_doji_star:
   ConfigDict = _cdl_doji_star_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_conceal_baby_swallow_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_conceal_baby_swallow_ConfigDict(TypedDict, total=False):
@@ -1902,20 +1902,20 @@ class cdl_conceal_baby_swallow:
   ConfigDict = _cdl_conceal_baby_swallow_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_harami_cross_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_harami_cross_ConfigDict(TypedDict, total=False):
@@ -1935,20 +1935,20 @@ class cdl_harami_cross:
   ConfigDict = _cdl_harami_cross_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hikkake_mod_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_hikkake_mod_ConfigDict(TypedDict, total=False):
@@ -1968,20 +1968,20 @@ class cdl_hikkake_mod:
   ConfigDict = _cdl_hikkake_mod_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_morning_doji_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_morning_doji_star_ConfigDict(TypedDict, total=False):
@@ -2001,20 +2001,20 @@ class cdl_morning_doji_star:
   ConfigDict = _cdl_morning_doji_star_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_evening_doji_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_evening_doji_star_ConfigDict(TypedDict, total=False):
@@ -2034,20 +2034,20 @@ class cdl_evening_doji_star:
   ConfigDict = _cdl_evening_doji_star_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_kicking_by_length_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_kicking_by_length_ConfigDict(TypedDict, total=False):
@@ -2067,20 +2067,20 @@ class cdl_kicking_by_length:
   ConfigDict = _cdl_kicking_by_length_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3stars_in_south_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_3stars_in_south_ConfigDict(TypedDict, total=False):
@@ -2100,20 +2100,20 @@ class cdl_3stars_in_south:
   ConfigDict = _cdl_3stars_in_south_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_xsidegap3methods_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
 class _cdl_xsidegap3methods_ConfigDict(TypedDict, total=False):
@@ -2137,8 +2137,8 @@ class cdl_xsidegap3methods:
   ConfigDict = _cdl_xsidegap3methods_ConfigDict
   def __new__(
     cls,
-    open_: Validated[pd.Series, Finite, NotEmpty],
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
-    close: Validated[pd.Series, Finite, NotEmpty],
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...

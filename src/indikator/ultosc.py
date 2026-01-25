@@ -25,9 +25,9 @@ from indikator._ultosc_numba import compute_ultosc_numba
 @configurable
 @validate
 def ultosc(  # noqa: PLR0913, PLR0917
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period1: Hyper[int, Ge[1]] = 7,
   period2: Hyper[int, Ge[1]] = 14,
   period3: Hyper[int, Ge[1]] = 28,
@@ -80,4 +80,4 @@ def ultosc(  # noqa: PLR0913, PLR0917
 
   ultosc_values = compute_ultosc_numba(h, low_np, c, period1, period2, period3)
 
-  return ULTOSCResult(index=close.index, ultosc=ultosc_values)
+  return ULTOSCResult(data_index=close.index, ultosc=ultosc_values)

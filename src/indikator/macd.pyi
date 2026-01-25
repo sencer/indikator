@@ -19,7 +19,9 @@ class _macd_Bound(Protocol):
   def slow_period(self) -> int: ...
   @property
   def signal_period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MACDResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> MACDResult: ...
 
 class _macd_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for macd.
@@ -105,7 +107,7 @@ class macd:
   signal_period: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     fast_period: int = ...,
     slow_period: int = ...,
     signal_period: int = ...,
@@ -125,7 +127,9 @@ class _macdext_Bound(Protocol):
   def signal_period(self) -> int: ...
   @property
   def signal_matype(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MACDResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> MACDResult: ...
 
 class _macdext_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for macdext.
@@ -214,7 +218,7 @@ class macdext:
   signal_matype: ClassVar[int]
   def __new__(
     cls,
-    data: Validated[pd.Series, Finite, NotEmpty],
+    data: Validated[pd.Series[float], Finite, NotEmpty],
     fast_period: int = ...,
     fast_matype: int = ...,
     slow_period: int = ...,
@@ -225,46 +229,22 @@ class macdext:
 
 class _macdfix_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
-  @property
-  def signal_period(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MACDResult: ...
+  def __call__(
+    self, data: Validated[pd.Series[float], Finite, NotEmpty]
+  ) -> MACDResult: ...
 
 class _macdfix_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for macdfix.
-
-  Configuration:
-      signal_period (int)
-  """
-
-  signal_period: int
+  pass
 
 class _macdfix_Config(_NCMakeableModel[_macdfix_Bound]):
-  """Configuration class for macdfix.
+  """Configuration class for macdfix."""
 
-  Calculate MACD with fixed periods (12, 26).
-
-  Matches TA-Lib MACDFIX.
-
-  Configuration:
-      signal_period (int)
-  """
-
-  signal_period: int
-  def __init__(self, *, signal_period: int = ...) -> None: ...
-  """Initialize configuration for macdfix.
-
-    Configuration:
-        signal_period (int)
-    """
-
-  @override
-  def make(self) -> _macdfix_Bound: ...
+  pass
 
 class macdfix:
   Type = _macdfix_Bound
   Config = _macdfix_Config
   ConfigDict = _macdfix_ConfigDict
-  signal_period: ClassVar[int]
   def __new__(
-    cls, data: Validated[pd.Series, Finite, NotEmpty], signal_period: int = ...
+    cls, data: Validated[pd.Series[float], Finite, NotEmpty]
   ) -> MACDResult: ...

@@ -25,7 +25,7 @@ from indikator._wma_numba import compute_wma_numba
 @configurable
 @validate
 def wma(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> WMAResult:
   """Calculate Weighted Moving Average (WMA).
@@ -63,4 +63,4 @@ def wma(
 
   wma_values = compute_wma_numba(values, period)
 
-  return WMAResult(index=data.index, wma=wma_values)
+  return WMAResult(data_index=data.index, wma=wma_values)

@@ -1,7 +1,5 @@
 """PPO (Percentage Price Oscillator) indicator module."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import (
   Finite,
   NotEmpty,
@@ -16,14 +14,11 @@ from indikator._results import PPOResult
 from indikator.ema import ema
 from indikator.sma import sma
 
-if TYPE_CHECKING:
-  from numpy.typing import NDArray
-
 
 @configurable
 @validate
 def ppo(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   matype: int = 0,  # 0=SMA, 1=EMA
@@ -58,6 +53,6 @@ def ppo(
   with np.errstate(divide="ignore", invalid="ignore"):
     ppo_values = (fast_ma - slow_ma) / slow_ma * 100.0
 
-  ppo_np = cast("NDArray[np.float64]", ppo_values)
+  ppo_np = ppo_values
 
-  return PPOResult(index=data.index, ppo=ppo_np)
+  return PPOResult(data_index=data.index, ppo=ppo_np)

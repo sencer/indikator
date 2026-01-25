@@ -26,7 +26,7 @@ __all__ = ["rvol", "rvol_intraday"]
 @configurable
 @validate
 def rvol(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> RVOLResult:
@@ -55,8 +55,8 @@ def rvol(
 
   # Calculate relative volume
   # Get numpy arrays for calculation
-  vol_arr = data.to_numpy(dtype=np.float64, copy=False)
-  sma_arr = sma_volume.to_numpy(dtype=np.float64, copy=False)
+  vol_arr = data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  sma_arr = sma_volume.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
   rvol_values = np.ones_like(vol_arr)  # Default to 1.0
 
@@ -66,13 +66,13 @@ def rvol(
 
   rvol_values[valid_sma] = vol_arr[valid_sma] / sma_arr[valid_sma]
 
-  return RVOLResult(index=data.index, rvol=rvol_values)
+  return RVOLResult(data_index=data.index, rvol=rvol_values)
 
 
 @configurable
 @validate
 def rvol_intraday(
-  data: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
+  data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty],
   lookback_days: int | None = None,
   min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
@@ -109,7 +109,7 @@ def rvol_intraday(
 
   # Calculate RVOL with division by zero protection
   # Calculate RVOL with division by zero protection
-  vol_arr = data.to_numpy(dtype=np.float64, copy=False)
+  vol_arr = data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
   # avg_volume_by_time is IntradaySeriesResult
   avg_arr = avg_volume_by_time.values
 
@@ -118,4 +118,4 @@ def rvol_intraday(
   valid_avg = (avg_arr > epsilon) & ~np.isnan(avg_arr) & ~np.isnan(vol_arr)
   rvol_values[valid_avg] = vol_arr[valid_avg] / avg_arr[valid_avg]
 
-  return RVOLResult(index=data.index, rvol=rvol_values)
+  return RVOLResult(data_index=data.index, rvol=rvol_values)

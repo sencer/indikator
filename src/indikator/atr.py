@@ -36,9 +36,9 @@ from indikator._results import ATRIntradayResult, ATRResult, TRANGEResult
 @configurable
 @validate
 def atr(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
 ) -> ATRResult:
   """Calculate Average True Range (ATR).
@@ -101,7 +101,7 @@ def atr(
   # Calculate ATR using Numba-optimized function
   atr_values = compute_atr_numba(high_arr, low_arr, close_arr, period)
 
-  return ATRResult(index=high.index, atr=atr_values)
+  return ATRResult(data_index=high.index, atr=atr_values)
 
 
 @configurable
@@ -164,7 +164,7 @@ def atr_intraday(
   # data[["high", "low", "close"]] guarantees order 0=H, 1=L, 2=C
   ohlc_values = cast(
     "NDArray[np.float64]",
-    data[["high", "low", "close"]].to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
+    data[["high", "low", "close"]].to_numpy(dtype=np.float64, copy=False),
   )
 
   true_ranges = compute_true_range_numba_2d(ohlc_values)
@@ -182,21 +182,17 @@ def atr_intraday(
   )
 
   # Return only the indicator (minimal return philosophy)
-  avg_tr_by_time.name = "atr_intraday"
-  # avg_tr_by_time is a Series from intraday_aggregate (which returns Series for now)
-  # But I need to convert to ATRIntradayResult
-  # intraday_aggregate currently returns Series. I will update it later.
-  # Assuming intraday_aggregate returns Series (as per current code):
-  vals = cast("NDArray[np.float64]", avg_tr_by_time.to_numpy(dtype=float, copy=False))
-  return ATRIntradayResult(index=data.index, atr_intraday=vals)
+  # avg_tr_by_time is IntradaySeriesResult
+  vals = avg_tr_by_time.values
+  return ATRIntradayResult(data_index=data.index, atr_intraday=vals)
 
 
 @configurable
 @validate
 def trange(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> TRANGEResult:
   """Calculate True Range (TRANGE).
 
@@ -230,4 +226,4 @@ def trange(
   # Calculate TR using Numba-optimized function
   tr_values = compute_true_range_numba(high_arr, low_arr, close_arr)
 
-  return TRANGEResult(index=high.index, trange=tr_values)
+  return TRANGEResult(data_index=high.index, trange=tr_values)

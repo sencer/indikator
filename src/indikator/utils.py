@@ -16,7 +16,7 @@ def trim_nans[T: (pd.Series, pd.DataFrame)](data: T) -> T:
   """
   if isinstance(data, pd.DataFrame):
     # Drop rows where any column is NaN
-    return data.dropna()
+    return data.dropna()  # pyright: ignore[reportUnknownMemberType]
   return data.dropna()
 
 

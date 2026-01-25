@@ -26,9 +26,9 @@ from indikator._results import WillRResult
 @configurable
 @validate
 def willr(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> WillRResult:
   """Calculate Williams %R.
@@ -74,4 +74,4 @@ def willr(
   # Calculate WillR using Numba-optimized function
   willr_values = compute_willr_numba(high_arr, low_arr, close_arr, period)
 
-  return WillRResult(index=high.index, willr=willr_values)
+  return WillRResult(data_index=high.index, willr=willr_values)

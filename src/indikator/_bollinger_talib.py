@@ -14,7 +14,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)  # pyright: ignore[reportUntypedFunctionDecorator]
 def compute_bollinger_talib(
   data: NDArray[np.float64], window: int, num_std: float
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:

@@ -3,8 +3,6 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from __future__ import annotations
-
 from typing import Protocol, TypedDict
 
 from datawarden import Finite, NotEmpty, Validated
@@ -17,8 +15,8 @@ class _medprice_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> MEDPRICEResult: ...
 
 class _medprice_ConfigDict(TypedDict, total=False):
@@ -47,6 +45,6 @@ class medprice:
   ConfigDict = _medprice_ConfigDict
   def __new__(
     cls,
-    high: Validated[pd.Series, Finite, NotEmpty],
-    low: Validated[pd.Series, Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> MEDPRICEResult: ...

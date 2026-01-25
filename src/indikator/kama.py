@@ -25,7 +25,7 @@ from indikator._results import KAMAResult
 @configurable
 @validate
 def kama(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 10,
   fast_period: Hyper[int, Ge[2]] = 2,
   slow_period: Hyper[int, Ge[2]] = 30,
@@ -70,4 +70,4 @@ def kama(
 
   kama_values = compute_kama_numba(values, period, fast_period, slow_period)
 
-  return KAMAResult(index=data.index, kama=kama_values)
+  return KAMAResult(data_index=data.index, kama=kama_values)

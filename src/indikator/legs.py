@@ -24,9 +24,9 @@ from indikator._results import ZigzagLegsResult
 @configurable
 @validate
 def legs(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
   deviation: Hyper[float, Gt[0.0]] = 0.05,
   method: Literal["percentage", "absolute"] = "percentage",
 ) -> ZigzagLegsResult:
@@ -67,9 +67,9 @@ def legs(
   # We use valid data but need to ensure types for Numba
   # Convert to numpy arrays for Numba
   # Use high/low for standard Zigzag
-  high_arr = high.to_numpy(dtype=np.float64, copy=False)
-  low_arr = low.to_numpy(dtype=np.float64, copy=False)
-  close_arr = close.to_numpy(dtype=np.float64, copy=False)
+  high_arr = high.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  low_arr = low.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  close_arr = close.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
   percentage_mode = method == "percentage"
 
@@ -100,7 +100,7 @@ def legs(
   pct_change[valid] = (end_prices[valid] - start_prices[valid]) / start_prices[valid]
 
   return ZigzagLegsResult(
-    index=pd.RangeIndex(len(directions)),  # Use RangeIndex for legs list
+    data_index=pd.RangeIndex(len(directions)),  # Use RangeIndex for legs list
     direction=directions,
     start_price=start_prices,
     end_price=end_prices,

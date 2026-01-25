@@ -25,10 +25,10 @@ from indikator._results import ADOSCResult
 @configurable
 @validate
 def adosc(  # noqa: PLR0913, PLR0917
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
-  volume: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+  volume: Validated[pd.Series[float], Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 3,
   slow_period: Hyper[int, Ge[2]] = 10,
 ) -> ADOSCResult:
@@ -82,4 +82,4 @@ def adosc(  # noqa: PLR0913, PLR0917
 
   adosc_values = compute_adosc_numba(h, low_arr, c, v, fast_period, slow_period)
 
-  return ADOSCResult(index=close.index, adosc=adosc_values)
+  return ADOSCResult(data_index=close.index, adosc=adosc_values)

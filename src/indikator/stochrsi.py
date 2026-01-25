@@ -25,7 +25,7 @@ from indikator._stochrsi_numba import compute_stochrsi_numba
 @configurable
 @validate
 def stochrsi(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   rsi_period: Hyper[int, Ge[2]] = 14,
   stoch_period: Hyper[int, Ge[2]] = 14,
   k_period: Hyper[int, Ge[1]] = 3,
@@ -74,4 +74,4 @@ def stochrsi(
     values, rsi_period, stoch_period, k_period, d_period
   )
 
-  return StochRSIResult(index=data.index, stochrsi_k=k_values, stochrsi_d=d_values)
+  return StochRSIResult(data_index=data.index, stochrsi_k=k_values, stochrsi_d=d_values)

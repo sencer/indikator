@@ -26,7 +26,7 @@ from indikator._sma_numba import compute_sma_numba
 @configurable
 @validate
 def sma(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
 ) -> SMAResult:
   """Calculate Simple Moving Average (SMA).
@@ -77,4 +77,4 @@ def sma(
   # Calculate SMA using Numba-optimized function
   sma_values = compute_sma_numba(values, period)
 
-  return SMAResult(index=data.index, sma=sma_values)
+  return SMAResult(data_index=data.index, sma=sma_values)

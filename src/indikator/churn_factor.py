@@ -21,9 +21,9 @@ from indikator._results import ChurnFactorResult
 @configurable
 @validate
 def churn_factor(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  volume: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  volume: Validated[pd.Series[float], Finite, NotEmpty],
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
 ) -> ChurnFactorResult:
   """Calculate Churn Factor.
@@ -48,9 +48,9 @@ def churn_factor(
     ChurnFactorResult(index, churn)
   """
   # Convert to numpy
-  high_arr = high.to_numpy(dtype=np.float64, copy=False)
-  low_arr = low.to_numpy(dtype=np.float64, copy=False)
-  vol_arr = volume.to_numpy(dtype=np.float64, copy=False)
+  high_arr = high.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  low_arr = low.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
+  vol_arr = volume.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
 
   price_range = high_arr - low_arr
 
@@ -61,4 +61,4 @@ def churn_factor(
   valid_range = price_range > epsilon
   churn[valid_range] = vol_arr[valid_range] / price_range[valid_range]
 
-  return ChurnFactorResult(index=high.index, churn=churn)
+  return ChurnFactorResult(data_index=high.index, churn=churn)

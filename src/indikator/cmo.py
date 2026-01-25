@@ -26,7 +26,7 @@ from indikator._results import CMOResult
 @configurable
 @validate
 def cmo(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
 ) -> CMOResult:
   """Calculate Chande Momentum Oscillator (CMO).
@@ -76,4 +76,4 @@ def cmo(
   # Calculate CMO using Numba-optimized function
   cmo_values = compute_cmo_numba(values, period)
 
-  return CMOResult(index=data.index, cmo=cmo_values)
+  return CMOResult(data_index=data.index, cmo=cmo_values)

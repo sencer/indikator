@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import Ge, Hyper, configurable
 import numpy as np
@@ -12,7 +10,7 @@ from indikator._t3_numba import compute_t3_numba
 @configurable
 @validate
 def t3(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 5,
   vfactor: Hyper[float, Ge[0.0]] = 0.7,
 ) -> T3Result:
@@ -30,6 +28,6 @@ def t3(
   Returns:
     T3Result
   """
-  values = data.to_numpy(dtype=np.float64, copy=False)
+  values = data.to_numpy(dtype=np.float64, copy=False)  # pyright: ignore[reportUnknownMemberType]
   result = compute_t3_numba(values, period, vfactor)
-  return T3Result(index=data.index, t3=result)
+  return T3Result(data_index=data.index, t3=result)

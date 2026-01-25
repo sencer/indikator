@@ -33,10 +33,10 @@ PARALLEL_THRESHOLD = 5
 @configurable
 @validate
 def vwap(
-  high: Validated[pd.Series, Finite, NotEmpty],
-  low: Validated[pd.Series, Finite, NotEmpty],
-  close: Validated[pd.Series, Finite, NotEmpty],
-  volume: Validated[pd.Series, Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+  volume: Validated[pd.Series[float], Finite, NotEmpty],
   anchor: Hyper[str | pd.Timedelta | int] = "D",
 ) -> VWAPResult:
   """Calculate Volume Weighted Average Price (VWAP).
@@ -120,7 +120,7 @@ def vwap(
   else:
     vwap_values = compute_vwap_numba(high_arr, low_arr, close_arr, vol_arr, reset_mask)
 
-  return VWAPResult(index=high.index, vwap=vwap_values)
+  return VWAPResult(data_index=high.index, vwap=vwap_values)
 
 
 @configurable
@@ -233,4 +233,4 @@ def vwap_anchored(
   vwap_values = compute_anchored_vwap_numba(typical_prices, volumes, anchor_index)
 
   # Return only the indicator (minimal return philosophy)
-  return VWAPAnchoredResult(index=data.index, vwap_anchored=vwap_values)
+  return VWAPAnchoredResult(data_index=data.index, vwap_anchored=vwap_values)

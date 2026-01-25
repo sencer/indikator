@@ -30,8 +30,8 @@ from indikator._results import BETAResult
 @configurable
 @validate
 def beta_statistical(
-  x: Validated[pd.Series, Finite, NotEmpty],
-  y: Validated[pd.Series, Finite, NotEmpty],
+  x: Validated[pd.Series[float], Finite, NotEmpty],
+  y: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 5,
 ) -> BETAResult:
   """Calculate rolling BETA coefficient on RAW INPUTS.
@@ -63,14 +63,14 @@ def beta_statistical(
 
   result = compute_beta_numba(x_arr, y_arr, period)
 
-  return BETAResult(index=x.index, beta=result)
+  return BETAResult(data_index=x.index, beta=result)
 
 
 @configurable
 @validate
 def beta(
-  x: Validated[pd.Series, Finite, NotEmpty],
-  y: Validated[pd.Series, Finite, NotEmpty],
+  x: Validated[pd.Series[float], Finite, NotEmpty],
+  y: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 5,
 ) -> BETAResult:
   """Calculate rolling BETA coefficient (TA-Lib compatible).
@@ -104,4 +104,4 @@ def beta(
   # Use fused kernel for optimal performance
   result = compute_beta_fused_rocp_numba(x_arr, y_arr, period)
 
-  return BETAResult(index=x.index, beta=result)
+  return BETAResult(data_index=x.index, beta=result)

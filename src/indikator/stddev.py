@@ -1,7 +1,5 @@
 """STDDEV - Standard Deviation over period."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from datawarden import Finite, NotEmpty, Validated, validate
@@ -19,7 +17,7 @@ from indikator._stats_numba import compute_stddev_numba
 @configurable
 @validate
 def stddev(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 5,
   nbdev: Hyper[float, Ge[0.0]] = 1.0,
 ) -> STDDEVResult:
@@ -33,6 +31,6 @@ def stddev(
   Returns:
     STDDEVResult
   """
-  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))
+  values = cast("NDArray[np.float64]", data.to_numpy(dtype=np.float64, copy=False))  # pyright: ignore[reportUnknownMemberType]
   result = compute_stddev_numba(values, period, nbdev)
-  return STDDEVResult(index=data.index, stddev=result)
+  return STDDEVResult(data_index=data.index, stddev=result)

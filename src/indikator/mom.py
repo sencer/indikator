@@ -22,7 +22,7 @@ from indikator._results import MOMResult
 @configurable
 @validate
 def mom(
-  data: Validated[pd.Series, Finite, NotEmpty],
+  data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 10,
 ) -> MOMResult:
   """Calculate Momentum (MOM).
@@ -68,4 +68,4 @@ def mom(
 
   mom_values = compute_mom_numba(values, period)
 
-  return MOMResult(index=data.index, mom=mom_values)
+  return MOMResult(data_index=data.index, mom=mom_values)

@@ -17,8 +17,8 @@ class _beta_statistical_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    x: Validated[pd.Series, Finite, NotEmpty],
-    y: Validated[pd.Series, Finite, NotEmpty],
+    x: Validated[pd.Series[float], Finite, NotEmpty],
+    y: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> BETAResult: ...
 
 class _beta_statistical_ConfigDict(TypedDict, total=False):
@@ -73,8 +73,8 @@ class beta_statistical:
   period: ClassVar[int]
   def __new__(
     cls,
-    x: Validated[pd.Series, Finite, NotEmpty],
-    y: Validated[pd.Series, Finite, NotEmpty],
+    x: Validated[pd.Series[float], Finite, NotEmpty],
+    y: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> BETAResult: ...
 
@@ -84,8 +84,8 @@ class _beta_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self,
-    x: Validated[pd.Series, Finite, NotEmpty],
-    y: Validated[pd.Series, Finite, NotEmpty],
+    x: Validated[pd.Series[float], Finite, NotEmpty],
+    y: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> BETAResult: ...
 
 class _beta_ConfigDict(TypedDict, total=False):
@@ -141,7 +141,7 @@ class beta:
   period: ClassVar[int]
   def __new__(
     cls,
-    x: Validated[pd.Series, Finite, NotEmpty],
-    y: Validated[pd.Series, Finite, NotEmpty],
+    x: Validated[pd.Series[float], Finite, NotEmpty],
+    y: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
   ) -> BETAResult: ...
