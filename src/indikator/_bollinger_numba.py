@@ -1,5 +1,4 @@
 """Numba-optimized Bollinger Bands calculation."""
-# ruff: noqa: PLR2004  # Magic values are acceptable in Numba performance code
 
 from __future__ import annotations
 

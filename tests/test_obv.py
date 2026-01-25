@@ -33,8 +33,6 @@ def test_obv_basic():
 
   # My implementation (Numba) usually starts at 0 or vol?
   # Let's check logic:
-  # obv = np.zeros
-  # obv[0] = volume[0] ?
 
   # Assuming standard implementation:
   # Up -> Add vol

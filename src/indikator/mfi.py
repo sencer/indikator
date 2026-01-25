@@ -27,14 +27,14 @@ from indikator._results import MFIResult
 
 @configurable
 @validate
-def mfi(
+def mfi(  # noqa: PLR0913, PLR0917
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
   volume: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> MFIResult:  # noqa: PLR0913, PLR0917, ARG001
+  epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,  # noqa: ARG001
+) -> MFIResult:
   """Calculate Money Flow Index (MFI).
 
   MFI is a momentum indicator that uses both price and volume to measure

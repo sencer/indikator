@@ -18,9 +18,7 @@ except ImportError:
 def test_apo_basic():
   """Test basic APO calculation."""
   data = pd.Series([10.0, 12.0, 14.0, 16.0, 18.0])
-  # Fast(2), Slow(4)
-  # SMA(2): -, 11, 13, 15, 17
-  # SMA(4): -, -, -, 13, 15
+  data = pd.Series([10.0, 12.0, 14.0, 16.0, 18.0])
   # APO = 15-13=2, 17-15=2
 
   result = apo(data, fast_period=2, slow_period=4).to_pandas()
@@ -34,9 +32,7 @@ def test_apo_basic():
 def test_ppo_basic():
   """Test basic PPO calculation."""
   data = pd.Series([10.0, 12.0, 14.0, 16.0, 18.0])
-  # Fast(2), Slow(4)
-  # SMA(2): 11, 13, 15, 17
-  # SMA(4): 13, 15
+  data = pd.Series([10.0, 12.0, 14.0, 16.0, 18.0])
   # PPO = (15-13)/13*100 = 2/13*100 = 15.38...
   #       (17-15)/15*100 = 2/15*100 = 13.33...
 

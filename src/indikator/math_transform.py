@@ -2,21 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from datawarden import (
-  validate,
-)
+from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import configurable
 import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-  from datawarden import (
-    Finite,
-    NotEmpty,
-    Validated,
-  )
 
 
 @configurable

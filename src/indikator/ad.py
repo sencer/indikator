@@ -64,7 +64,7 @@ def ad(
     "NDArray[np.float64]",
     high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
-  l = cast(
+  low_arr = cast(
     "NDArray[np.float64]",
     low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
@@ -77,6 +77,6 @@ def ad(
     volume.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  ad_values = compute_ad_numba(h, l, c, v)
+  ad_values = compute_ad_numba(h, low_arr, c, v)
 
   return ADResult(index=close.index, ad=ad_values)

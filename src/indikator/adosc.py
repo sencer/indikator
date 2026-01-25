@@ -24,7 +24,7 @@ from indikator._results import ADOSCResult
 
 @configurable
 @validate
-def adosc(
+def adosc(  # noqa: PLR0913, PLR0917
   high: Validated[pd.Series, Finite, NotEmpty],
   low: Validated[pd.Series, Finite, NotEmpty],
   close: Validated[pd.Series, Finite, NotEmpty],
@@ -67,7 +67,7 @@ def adosc(
     "NDArray[np.float64]",
     high.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
-  l = cast(
+  low_arr = cast(
     "NDArray[np.float64]",
     low.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
@@ -80,6 +80,6 @@ def adosc(
     volume.to_numpy(dtype=np.float64, copy=False),  # pyright: ignore[reportUnknownMemberType]
   )
 
-  adosc_values = compute_adosc_numba(h, l, c, v, fast_period, slow_period)
+  adosc_values = compute_adosc_numba(h, low_arr, c, v, fast_period, slow_period)
 
   return ADOSCResult(index=close.index, adosc=adosc_values)

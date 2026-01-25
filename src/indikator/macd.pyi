@@ -3,6 +3,8 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
+from __future__ import annotations
+
 from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated

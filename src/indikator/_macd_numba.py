@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @jit(nopython=True, cache=True, nogil=True)  # pragma: no cover
-def compute_macd_numba(  # noqa: PLR0914
+def compute_macd_numba(
   prices: NDArray[np.float64],
   fast_period: int,
   slow_period: int,

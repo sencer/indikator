@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
+  Finite,
+  NotEmpty,
+  Validated,
   validate,
 )
 from nonfig import configurable
@@ -21,11 +24,6 @@ from indikator._cycle_numba import (
 )
 
 if TYPE_CHECKING:
-  from datawarden import (
-    Finite,
-    NotEmpty,
-    Validated,
-  )
   from numpy.typing import NDArray
 
 

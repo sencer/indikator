@@ -7,13 +7,11 @@ from __future__ import annotations
 
 from typing import Protocol, TypedDict
 
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
+import pandas as pd
 
 from indikator._results import BOPResult
-
-if TYPE_CHECKING:
-  from datawarden import Finite, NotEmpty, Validated
-  import pandas as pd
 
 class _bop_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

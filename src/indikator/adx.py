@@ -160,7 +160,7 @@ def plus_dm(
   low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  from indikator._adx_numba import compute_dms_numba
+  from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
 
   plus_dm_vals, _, _ = compute_dms_numba(high_arr, low_arr, close_arr, period)
   return PlusDMResult(index=high.index, plus_dm=plus_dm_vals)
@@ -191,7 +191,7 @@ def minus_dm(
   low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  from indikator._adx_numba import compute_dms_numba
+  from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
 
   _, minus_dm_vals, _ = compute_dms_numba(high_arr, low_arr, close_arr, period)
   return MinusDMResult(index=high.index, minus_dm=minus_dm_vals)
@@ -222,7 +222,7 @@ def plus_di(
   low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  from indikator._adx_numba import compute_di_numba
+  from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
 
   plus_di_vals, _ = compute_di_numba(high_arr, low_arr, close_arr, period)
 
@@ -254,7 +254,7 @@ def minus_di(
   low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  from indikator._adx_numba import compute_di_numba
+  from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
 
   _, minus_di_vals = compute_di_numba(high_arr, low_arr, close_arr, period)
 
@@ -286,7 +286,7 @@ def dx(
   low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  from indikator._adx_numba import compute_dx_numba
+  from indikator._adx_numba import compute_dx_numba  # noqa: PLC0415
 
   dx_vals = compute_dx_numba(high_arr, low_arr, close_arr, period)
   return DXResult(index=high.index, dx=dx_vals)
@@ -317,7 +317,7 @@ def adxr(
   low_arr = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
   close_arr = cast("NDArray[np.float64]", close.to_numpy(dtype=np.float64, copy=False))
 
-  from indikator._adx_numba import compute_adxr_numba
+  from indikator._adx_numba import compute_adxr_numba  # noqa: PLC0415
 
   adxr_vals = compute_adxr_numba(high_arr, low_arr, close_arr, period)
 

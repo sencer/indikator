@@ -17,7 +17,7 @@ except ImportError:
 def test_mfi_basic():
   """Test basic MFI calculation."""
   # All prices up, high volume -> MFI should be 100
-  # TP = (H+L+C)/3
+  # Typical Price = (H+L+C)/3
   # If TP increases every bar, all flow is positive.
 
   high = pd.Series(np.arange(100, 200, dtype=float))

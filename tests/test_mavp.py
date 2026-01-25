@@ -14,7 +14,7 @@ def test_mavp_matches_talib_sma():
     np.random.randint(2, 30, size=periods_count), name="periods"
   ).astype(np.float64)
 
-  # matype=0 is SMA
+  # matype 0 is SMA
   result = mavp(data, periods, minperiod=2, maxperiod=30, matype=0)
   expected = talib.MAVP(
     data.values, periods.values, minperiod=2, maxperiod=30, matype=0

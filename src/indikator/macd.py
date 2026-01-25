@@ -1,12 +1,12 @@
-"""MACD (Moving Average Convergence Divergence) indicator module.
+"""MACD (Moving Average Convergence Divergence) indicator module."""
 
-This module provides MACD calculation, a trend-following momentum indicator
-that shows the relationship between two moving averages.
-"""
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
+  from collections.abc import Callable
+
   from numpy.typing import NDArray
 
 from datawarden import (
@@ -23,16 +23,18 @@ from indikator._macd_numba import compute_macd_numba
 from indikator._results import MACDResult
 
 
-def _get_ma_func(matype: int):
-  from indikator.dema import dema
-  from indikator.ema import ema
-  from indikator.kama import kama
-  from indikator.mesa import mama
-  from indikator.sma import sma
-  from indikator.t3 import t3
-  from indikator.tema import tema
-  from indikator.trima import trima
-  from indikator.wma import wma
+def _get_ma_func(
+  matype: int,
+) -> Callable[[pd.Series, int], NDArray[np.float64]]:
+  from indikator.dema import dema  # noqa: PLC0415
+  from indikator.ema import ema  # noqa: PLC0415
+  from indikator.kama import kama  # noqa: PLC0415
+  from indikator.mesa import mama  # noqa: PLC0415
+  from indikator.sma import sma  # noqa: PLC0415
+  from indikator.t3 import t3  # noqa: PLC0415
+  from indikator.tema import tema  # noqa: PLC0415
+  from indikator.trima import trima  # noqa: PLC0415
+  from indikator.wma import wma  # noqa: PLC0415
 
   mapping = {
     0: lambda d, p: sma(d, p).sma,
@@ -42,7 +44,7 @@ def _get_ma_func(matype: int):
     4: lambda d, p: tema(d, p).tema,
     5: lambda d, p: trima(d, p).trima,
     6: lambda d, p: kama(d, p).kama,
-    7: lambda d, p: mama(d).mama,  # Period ignored for MAMA
+    7: lambda d, _: mama(d).mama,  # Period ignored for MAMA
     8: lambda d, p: t3(d, p).t3,
   }
   return mapping.get(matype, mapping[1])  # Default EMA
@@ -116,7 +118,7 @@ def macd(
 
 @configurable
 @validate
-def macdext(
+def macdext(  # noqa: PLR0913, PLR0917
   data: Validated[pd.Series, Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 12,
   fast_matype: Hyper[int, Ge[0]] = 0,

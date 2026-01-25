@@ -738,3 +738,18 @@ class MAMAResult(NamedTuple):
     return pd.DataFrame(
       {"mama": self.mama, "fama": self.fama}, index=self.index, copy=False
     )
+
+
+# --- Type Aliases ---
+
+type MAResult = (
+  SMAResult
+  | EMAResult
+  | WMAResult
+  | DEMAResult
+  | TEMAResult
+  | TRIMAResult
+  | KAMAResult
+  | MAMAResult
+  | T3Result
+)

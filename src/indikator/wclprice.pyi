@@ -5,13 +5,12 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, TypedDict
+from typing import Protocol, TypedDict
 
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
+import pandas as pd
 
-if TYPE_CHECKING:
-  from datawarden import Finite, NotEmpty, Validated
-  import pandas as pd
 from indikator._results import WCLPRICEResult
 
 class _wclprice_Bound(Protocol):

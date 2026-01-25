@@ -9,7 +9,6 @@ from datawarden import (
   validate,
 )
 from nonfig import Ge, Hyper, configurable
-import numpy as np
 import pandas as pd
 
 from indikator._results import APOResult
@@ -17,6 +16,7 @@ from indikator.ema import ema
 from indikator.sma import sma
 
 if TYPE_CHECKING:
+  import numpy as np
   from numpy.typing import NDArray
 
 

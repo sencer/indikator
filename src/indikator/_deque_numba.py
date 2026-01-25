@@ -59,7 +59,7 @@ def deque_expire(
 
 
 @jit(nopython=True, inline="always")  # pragma: no cover
-def deque_push_max(  # noqa: PLR0913, PLR0917
+def deque_push_max(
   dq: NDArray[np.int64],
   head: int,
   tail: int,
@@ -75,7 +75,7 @@ def deque_push_max(  # noqa: PLR0913, PLR0917
 
 
 @jit(nopython=True, inline="always")  # pragma: no cover
-def deque_push_min(  # noqa: PLR0913, PLR0917
+def deque_push_min(
   dq: NDArray[np.int64],
   head: int,
   tail: int,

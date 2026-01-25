@@ -5,13 +5,11 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Protocol, TypedDict, override
+from typing import ClassVar, Protocol, TypedDict, override
 
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-
-if TYPE_CHECKING:
-  from datawarden import Finite, NotEmpty, Validated
 
 from indikator._results import TRIMAResult
 

@@ -16,7 +16,7 @@ except ImportError:
 
 def test_bop_basic():
   """Test basic BOP calculation."""
-  # BOP = (Close - Open) / (High - Low)
+  """Test basic BOP calculation."""
   open_ = pd.Series([10.0, 10.0, 10.0, 10.0])
   high = pd.Series([12.0, 15.0, 12.0, 12.0])
   low = pd.Series([8.0, 5.0, 8.0, 8.0])

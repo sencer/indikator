@@ -85,13 +85,13 @@ def legs(
 
   # Convert integer indices to the original index values if possible?
   # The Result should probably store integer indices and the pandas Index separately.
-  # ZigzagLegsResult definition in _results.py:
-  # index: pd.Index
-  # direction: NDArray[np.int8]
-  # start_index: NDArray[np.int64]
-  # end_index: NDArray[np.int64]
-  # start_price: NDArray[np.float64]
-  # end_price: NDArray[np.float64]
+  # ZigzagLegsResult definition in _results.py includes:
+  # - index: pd.Index
+  # - direction: NDArray
+  # - start_index: int array
+  # - end_index: int array
+  # - start_price: float array
+  # - end_price: float array
 
   # Calculate pct_change for result
   # Avoid division by zero

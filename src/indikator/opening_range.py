@@ -21,7 +21,7 @@ from indikator._results import OpeningRangeResult
 
 @configurable
 @validate
-def opening_range(
+def opening_range(  # noqa: PLR0914
   high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
   low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
   close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
@@ -90,7 +90,6 @@ def opening_range(
   idx - session_date  # Timedelta since midnight
 
   # Determine each day's start time (min time)
-  # day_start = time_component.groupby(session_date).min()
   # This aligns with index? No.
 
   # To keep it fast and compatible:

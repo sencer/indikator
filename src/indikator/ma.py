@@ -5,13 +5,14 @@ Matches TA-Lib MA function which selects MA type by integer.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from datawarden import (
-  validate,
-)
-from nonfig import configurable
+from datawarden import Finite, NotEmpty, Validated, validate
+from nonfig import Ge, Hyper, configurable
+import pandas as pd
 
+if TYPE_CHECKING:
+  from indikator._results import MAResult
 from indikator.dema import dema
 from indikator.ema import ema
 from indikator.kama import kama
@@ -20,15 +21,6 @@ from indikator.t3 import t3
 from indikator.tema import tema
 from indikator.trima import trima
 from indikator.wma import wma
-
-if TYPE_CHECKING:
-  from datawarden import (
-    Finite,
-    NotEmpty,
-    Validated,
-  )
-  from nonfig import Ge, Hyper
-  import pandas as pd
 
 # Type mapping for TA-Lib compatibility
 MAType = {
@@ -50,7 +42,7 @@ def ma(
   data: Validated[pd.Series, Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
   matype: Hyper[int, Ge[0]] = 0,
-) -> Any:
+) -> MAResult:
   """Universal Moving Average wrapper.
 
   Args:
@@ -63,8 +55,8 @@ def ma(
   """
   ma_func = MAType.get(matype)
   if ma_func is None:
-    if matype == 7:
-      from indikator.mesa import mama
+    if matype == 7:  # noqa: PLR2004
+      from indikator.mesa import mama  # noqa: PLC0415
 
       return mama(data)  # Default mama parameters
     raise ValueError(f"Invalid matype: {matype}")

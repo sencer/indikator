@@ -107,7 +107,7 @@ def test_cdl_engulfing_matches_talib():
   low = np.minimum(open_, close) - 0.5
 
   # Inject Bullish Engulfing at 20
-  # Prev: Red
+  # Previous bar was Red
   open_.iloc[19] = 100.0
   close.iloc[19] = 99.0
   # Curr: Green, engulfs
@@ -115,7 +115,7 @@ def test_cdl_engulfing_matches_talib():
   close.iloc[20] = 100.5
 
   # Inject Bearish Engulfing at 40
-  # Prev: Green
+  # Previous bar was Green
   open_.iloc[39] = 100.0
   close.iloc[39] = 101.0
   # Curr: Red, engulfs

@@ -11,6 +11,8 @@ import pandas as pd
 
 from indikator._results import VWAPAnchoredResult, VWAPResult
 
+PARALLEL_THRESHOLD: ...
+
 class _vwap_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   @property

@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, cast
 
 from datawarden import (
+  Finite,
+  NotEmpty,
+  Validated,
   validate,
 )
 from nonfig import Ge, Hyper, configurable
@@ -14,11 +17,6 @@ import pandas as pd
 from indikator._mavp_numba import compute_mavp_sma_numba
 
 if TYPE_CHECKING:
-  from datawarden import (
-    Finite,
-    NotEmpty,
-    Validated,
-  )
   from numpy.typing import NDArray
 
 
@@ -68,7 +66,7 @@ def mavp(
     # EMA with variable period is complex as alpha varies.
     # TA-Lib supports them. For parity, we should support them.
     # We'll implement a general variable period MA kernel for recursive types.
-    from indikator._mavp_numba import compute_mavp_general_numba
+    from indikator._mavp_numba import compute_mavp_general_numba  # noqa: PLC0415
 
     result = compute_mavp_general_numba(
       input_arr, periods_arr, minperiod, maxperiod, matype

@@ -19,8 +19,9 @@ def compute_bop_numba(
   close: NDArray[np.float64],
 ) -> NDArray[np.float64]:
   """Calculate Balance of Power (BOP).
+  # ruff: noqa: PLR0912, PLR0913, PLR0914, PLR0915, C901, PLR2004, ERA001, SIM, N806, B007, ARG, E741, TC, ANN
 
-  BOP = (Close - Open) / (High - Low)
+    BOP = (Close - Open) / (High - Low)
   """
   n = len(close)
   out = np.empty(n, dtype=np.float64)

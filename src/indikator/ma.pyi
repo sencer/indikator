@@ -5,9 +5,14 @@ Do not edit manually - regenerate with: nonfig-stubgen <path>
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Protocol, TypedDict, override
+from typing import TYPE_CHECKING, ClassVar, Protocol, TypedDict, override
 
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
+import pandas as pd
+
+if TYPE_CHECKING:
+  from indikator._results import MAResult
 
 MAType: ...
 
@@ -17,7 +22,7 @@ class _ma_Bound(Protocol):
   def period(self) -> int: ...
   @property
   def matype(self) -> int: ...
-  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> Any: ...
+  def __call__(self, data: Validated[pd.Series, Finite, NotEmpty]) -> MAResult: ...
 
 class _ma_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for ma.
@@ -72,4 +77,4 @@ class ma:
     data: Validated[pd.Series, Finite, NotEmpty],
     period: int = ...,
     matype: int = ...,
-  ) -> Any: ...
+  ) -> MAResult: ...

@@ -7,15 +7,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from datawarden import validate
-from nonfig import configurable
+from datawarden import Finite, NotEmpty, Validated, validate
+from nonfig import Ge, Hyper, configurable
 import numpy as np
+import pandas as pd
 
 if TYPE_CHECKING:
-  from datawarden import Finite, NotEmpty, Validated
-  from nonfig import Ge, Hyper
   from numpy.typing import NDArray
-  import pandas as pd
 
 from indikator._results import MIDPRICEResult
 from indikator._rolling_numba import compute_midprice_numba
@@ -41,8 +39,8 @@ def midprice(
     MIDPRICEResult
   """
   h = cast("NDArray[np.float64]", high.to_numpy(dtype=np.float64, copy=False))
-  l = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
+  low_np = cast("NDArray[np.float64]", low.to_numpy(dtype=np.float64, copy=False))
 
-  result = compute_midprice_numba(h, l, period)
+  result = compute_midprice_numba(h, low_np, period)
 
   return MIDPRICEResult(index=high.index, midprice=result)

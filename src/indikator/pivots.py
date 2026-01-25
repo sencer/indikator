@@ -22,7 +22,7 @@ from indikator._results import PivotPointsResult
 
 @configurable
 @validate
-def pivots(
+def pivots(  # noqa: PLR0915, PLR0914
   high: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
   low: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],
   close: Validated[pd.Series, Finite, Index(Datetime), NotEmpty],

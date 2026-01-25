@@ -28,7 +28,6 @@ def test_beta_matches_talib(period):
   low = pd.Series(np.random.randn(100).cumsum() + 100, name="low")  # Market
 
   # Our 'beta' function docstring says: x=Independent (Market), y=Dependent (Stock).
-  # result = beta(x=low, y=high)
 
   # Let's see what TA-Lib expects: TA-Lib(real0, real1).
   # Convention usually is (asset, benchmark).

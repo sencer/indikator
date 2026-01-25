@@ -162,9 +162,42 @@ max-complexity = 10  # Maximum cyclomatic complexity
 "**/*.pyi" = [
     "N801",    # Ignore CapWords for stubs
     "Q000",    # Ignore quote style in stubs (auto-generated)
+    "F821",    # Ignore undefined name in stubs (relying on implicit imports for now if necessary, though we fix them)
+]
+"src/indikator/*.py" = [
+    "TCH002",  # Move third-party import into a type-checking block
 ]
 "benchmarks/**/*.py" = [
     "T201",    # Allow print statements in benchmarks
+    "ANN",     # Don't require annotations in benchmarks
+    "PLR",     # Allow complexity
+    "N806",    # Allow non-lowercase variables
+    "ERA001",  # Allow commented-out code
+    "S403",    # Subprocess
+    "S404",    # Subprocess
+    "S603",    # Subprocess
+    "S607",    # Subprocess
+    "BLE001",  # Blind exception
+    "E402",    # Module level import
+    "B023",    # Loop variable binding
+    "C901",    # Complexity
+    "ARG",     # Unused arguments
+    "PLC2701", # Private import
+]
+"src/indikator/_bollinger_talib.py" = [
+    "PLR0914", # Too many local variables
+]
+"src/indikator/**/*_numba.py" = [
+    "PL",      # Pylint rules
+    "N806",    # Lowercase variables
+    "ERA001",  # Commented-out code
+    "SIM",     # Simplification rules
+    "ARG",     # Unused arguments
+    "E741",    # Ambiguous names
+    "TC",      # Type-checking blocks
+    "ANN",     # Annotations
+    "B007",    # Unused loop control
+    "C901",    # Complexity
 ]
 
 [tool.ruff.lint.isort]

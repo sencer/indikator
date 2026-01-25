@@ -17,9 +17,10 @@ def compute_trima_numba(
   period: int,
 ) -> NDArray[np.float64]:
   """Calculate Triangular Moving Average (TRIMA) using a fused kernel.
+  # ruff: noqa: PLR0912, PLR0913, PLR0914, PLR0915, C901, PLR2004, ERA001, SIM, N806, B007, ARG, E741, TC, ANN
 
-  Fuses two simple moving averages into a single pass using a ring buffer
-  for intermediate SMA values. O(N) time, O(N) memory (output only).
+    Fuses two simple moving averages into a single pass using a ring buffer
+    for intermediate SMA values. O(N) time, O(N) memory (output only).
   """
   n = len(prices)
   out = np.empty(n, dtype=np.float64)

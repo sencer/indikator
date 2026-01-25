@@ -18,6 +18,7 @@ def compute_typprice_numba(
   close: NDArray[np.float64],
 ) -> NDArray[np.float64]:
   """Calculate Typical Price: (High + Low + Close) / 3."""
+
   n = len(high)
   out = np.empty(n, dtype=np.float64)
   for i in range(n):

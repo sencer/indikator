@@ -2,23 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from datawarden import (
-  validate,
-)
+from datawarden import Finite, NotEmpty, Validated, validate
 from nonfig import configurable
 import numpy as np
+import pandas as pd
 
 from indikator._bop_numba import compute_bop_numba
 from indikator._results import BOPResult
 
 if TYPE_CHECKING:
-  from datawarden import (
-    Finite,
-    NotEmpty,
-    Validated,
-  )
   from numpy.typing import NDArray
-  import pandas as pd
 
 
 @configurable

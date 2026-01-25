@@ -7,11 +7,9 @@ from __future__ import annotations
 
 from typing import Protocol, TypedDict
 
+from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
-
-if TYPE_CHECKING:
-  from datawarden import Finite, NotEmpty, Validated
 
 class _ht_dcperiod_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""

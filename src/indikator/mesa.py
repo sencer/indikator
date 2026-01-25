@@ -8,23 +8,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from datawarden import (
+  Finite,
+  NotEmpty,
+  Validated,
   validate,
 )
-from nonfig import configurable
+from nonfig import Gt, Hyper, Le, configurable
 import numpy as np
-
-if TYPE_CHECKING:
-  from datawarden import (
-    Finite,
-    NotEmpty,
-    Validated,
-  )
-  from nonfig import Gt, Hyper, Le
-  from numpy.typing import NDArray
-  import pandas as pd
+import pandas as pd
 
 from indikator._mesa_numba import compute_mama_numba
 from indikator._results import MAMAResult
+
+if TYPE_CHECKING:
+  from numpy.typing import NDArray
 
 
 @configurable
