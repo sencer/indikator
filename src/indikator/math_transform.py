@@ -2,8 +2,6 @@
 
 from typing import TYPE_CHECKING, cast
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import NotEmpty, Validated, validate
 from nonfig import configurable
 from numba import jit
@@ -14,7 +12,7 @@ import pandas as pd
 from indikator.utils import to_numpy
 
 
-# --- Optimized Kernels ---
+# --- Optimized Kernels (Parallel) ---
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
@@ -92,6 +90,24 @@ def _atan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.arctan(data)
 
 
+# --- Serial Kernels (Low Overhead) ---
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=False)
+def _ceil_impl_serial(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.ceil(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=False)
+def _floor_impl_serial(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.floor(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=False)
+def _sqrt_impl_serial(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.sqrt(data)
+
+
 # --- Public API ---
 
 
@@ -162,7 +178,11 @@ def ceil(
 ) -> pd.Series:
   """Vector Ceil."""
   arr = to_numpy(data)
-  return pd.Series(_ceil_impl(arr), index=data.index, name="ceil")
+  if len(arr) < 4096:
+    res = _ceil_impl_serial(arr)
+  else:
+    res = _ceil_impl(arr)
+  return pd.Series(res, index=data.index, name="ceil")
 
 
 @configurable
@@ -172,7 +192,11 @@ def floor(
 ) -> pd.Series:
   """Vector Floor."""
   arr = to_numpy(data)
-  return pd.Series(_floor_impl(arr), index=data.index, name="floor")
+  if len(arr) < 4096:
+    res = _floor_impl_serial(arr)
+  else:
+    res = _floor_impl(arr)
+  return pd.Series(res, index=data.index, name="floor")
 
 
 @configurable
@@ -212,7 +236,11 @@ def sqrt(
 ) -> pd.Series:
   """Vector Square Root."""
   arr = to_numpy(data)
-  return pd.Series(_sqrt_impl(arr), index=data.index, name="sqrt")
+  if len(arr) < 4096:
+    res = _sqrt_impl_serial(arr)
+  else:
+    res = _sqrt_impl(arr)
+  return pd.Series(res, index=data.index, name="sqrt")
 
 
 @configurable
