@@ -24,8 +24,8 @@ import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
-from indikator._intraday import intraday_aggregate
 from indikator._results import IndicatorResult
+from indikator.intraday import intraday_aggregate
 from indikator.numba.atr import (
   compute_atr_numba,
   compute_true_range_numba,

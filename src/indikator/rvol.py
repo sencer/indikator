@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
-from indikator._intraday import intraday_aggregate
 from indikator._results import IndicatorResult
+from indikator.intraday import intraday_aggregate
 from indikator.utils import to_numpy
 
 __all__ = ["rvol", "rvol_intraday"]

@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
-from indikator._intraday import intraday_stats
 from indikator._results import IndicatorResult
+from indikator.intraday import intraday_stats
 from indikator.numba.zscore import compute_zscore_numba
 from indikator.utils import to_numpy
 

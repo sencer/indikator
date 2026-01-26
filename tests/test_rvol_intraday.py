@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from indikator.intraday import intraday_aggregate
 from indikator.rvol import rvol_intraday
-from indikator._intraday import intraday_aggregate
 
 
 class TestRvolIntraday:

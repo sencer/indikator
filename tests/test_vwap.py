@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from indikator.vwap import vwap, vwap_anchored
 
@@ -68,10 +68,6 @@ def test_vwap_int_anchor():
 def test_vwap_invalid_freq():
   """Test vwap with invalid session frequency."""
   dates = pd.date_range("2024-01-01", periods=5)
-  data = pd.DataFrame(
-    {"high": [10] * 5, "low": [9] * 5, "close": [9.5] * 5, "volume": [100] * 5},
-    index=dates,
-  )
 
   # Validation should catch this
   with pytest.raises((ValueError, KeyError, AssertionError, ValidationError)):
