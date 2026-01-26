@@ -20,12 +20,6 @@ class _sin_Config(_NCMakeableModel[_sin_Bound]):
   """Configuration class for sin.
 
   Vector Trigonometric Sin.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -47,12 +41,6 @@ class _cos_Config(_NCMakeableModel[_cos_Bound]):
   """Configuration class for cos.
 
   Vector Trigonometric Cos.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -74,12 +62,6 @@ class _tan_Config(_NCMakeableModel[_tan_Bound]):
   """Configuration class for tan.
 
   Vector Trigonometric Tan.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -101,12 +83,6 @@ class _sinh_Config(_NCMakeableModel[_sinh_Bound]):
   """Configuration class for sinh.
 
   Vector Hyperbolic Sin.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -128,12 +104,6 @@ class _cosh_Config(_NCMakeableModel[_cosh_Bound]):
   """Configuration class for cosh.
 
   Vector Hyperbolic Cos.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -155,12 +125,6 @@ class _tanh_Config(_NCMakeableModel[_tanh_Bound]):
   """Configuration class for tanh.
 
   Vector Hyperbolic Tan.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -182,12 +146,6 @@ class _ceil_Config(_NCMakeableModel[_ceil_Bound]):
   """Configuration class for ceil.
 
   Vector Ceil.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -209,12 +167,6 @@ class _floor_Config(_NCMakeableModel[_floor_Bound]):
   """Configuration class for floor.
 
   Vector Floor.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -236,12 +188,6 @@ class _exp_Config(_NCMakeableModel[_exp_Bound]):
   """Configuration class for exp.
 
   Vector Exponential.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -263,12 +209,6 @@ class _ln_Config(_NCMakeableModel[_ln_Bound]):
   """Configuration class for ln.
 
   Vector Natural Log.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -290,12 +230,6 @@ class _log10_Config(_NCMakeableModel[_log10_Bound]):
   """Configuration class for log10.
 
   Vector Log Base 10.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -317,12 +251,6 @@ class _sqrt_Config(_NCMakeableModel[_sqrt_Bound]):
   """Configuration class for sqrt.
 
   Vector Square Root.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -344,12 +272,6 @@ class _acos_Config(_NCMakeableModel[_acos_Bound]):
   """Configuration class for acos.
 
   Vector Arccos.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -371,12 +293,6 @@ class _asin_Config(_NCMakeableModel[_asin_Bound]):
   """Configuration class for asin.
 
   Vector Arcsin.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass
@@ -398,12 +314,6 @@ class _atan_Config(_NCMakeableModel[_atan_Bound]):
   """Configuration class for atan.
 
   Vector Arctan.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
   """
 
   pass

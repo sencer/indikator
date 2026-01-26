@@ -337,6 +337,13 @@ def run_benchmarks() -> None:
       lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
     ),
     (
+      "3StarsSouth",
+      cdl_3stars_in_south,
+      lambda d: (d["open"], d["high"], d["low"], d["close"]),
+      talib.CDL3STARSINSOUTH,
+      lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
+    ),
+    (
       "3Outside",
       cdl_3outside,
       lambda d: (d["open"], d["high"], d["low"], d["close"]),
@@ -347,14 +354,6 @@ def run_benchmarks() -> None:
       "3River",
       cdl_unique_3river,
       lambda d: (d["open"], d["high"], d["low"], d["close"]),
-      talib.CDLUNIQUE3RIVER,
-      lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
-    ),
-    (
-      "3StarsSouth",
-      cdl_3stars_in_south,
-      lambda d: (d["open"], d["high"], d["low"], d["close"]),
-      talib.CDL3STARSINSOUTH,
       lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
     ),
     (
@@ -827,6 +826,13 @@ def run_benchmarks() -> None:
       linearreg_intercept,
       lambda d: (d["close"], 14),
       talib.LINEARREG_INTERCEPT,
+      lambda d: (d["np_close"], 14),
+    ),
+    (
+      "LINREGS",
+      linearreg_slope,
+      lambda d: (d["close"], 14),
+      talib.LINEARREG_SLOPE,
       lambda d: (d["np_close"], 14),
     ),
     (

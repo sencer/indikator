@@ -1,9 +1,98 @@
 """Math Transform indicators."""
 
+from typing import TYPE_CHECKING, cast
+
+from typing import TYPE_CHECKING, cast
+
 from datawarden import NotEmpty, Validated, validate
 from nonfig import configurable
+from numba import jit
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
+
+from indikator.utils import to_numpy
+
+
+# --- Optimized Kernels ---
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _sin_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.sin(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _cos_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.cos(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _tan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.tan(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _sinh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.sinh(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _cosh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.cosh(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _tanh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.tanh(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _ceil_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.ceil(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _floor_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.floor(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _exp_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.exp(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _ln_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.log(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _log10_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.log10(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _sqrt_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.sqrt(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _acos_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.arccos(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _asin_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.arcsin(data)
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def _atan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
+  return np.arctan(data)
+
+
+# --- Public API ---
 
 
 @configurable
@@ -11,15 +100,9 @@ import pandas as pd
 def sin(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Trigonometric Sin.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.sin(data), index=data.index, name="sin")
+  """Vector Trigonometric Sin."""
+  arr = to_numpy(data)
+  return pd.Series(_sin_impl(arr), index=data.index, name="sin")
 
 
 @configurable
@@ -27,15 +110,9 @@ def sin(
 def cos(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Trigonometric Cos.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.cos(data), index=data.index, name="cos")
+  """Vector Trigonometric Cos."""
+  arr = to_numpy(data)
+  return pd.Series(_cos_impl(arr), index=data.index, name="cos")
 
 
 @configurable
@@ -43,15 +120,9 @@ def cos(
 def tan(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Trigonometric Tan.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.tan(data), index=data.index, name="tan")
+  """Vector Trigonometric Tan."""
+  arr = to_numpy(data)
+  return pd.Series(_tan_impl(arr), index=data.index, name="tan")
 
 
 @configurable
@@ -59,15 +130,9 @@ def tan(
 def sinh(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Hyperbolic Sin.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.sinh(data), index=data.index, name="sinh")
+  """Vector Hyperbolic Sin."""
+  arr = to_numpy(data)
+  return pd.Series(_sinh_impl(arr), index=data.index, name="sinh")
 
 
 @configurable
@@ -75,15 +140,9 @@ def sinh(
 def cosh(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Hyperbolic Cos.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.cosh(data), index=data.index, name="cosh")
+  """Vector Hyperbolic Cos."""
+  arr = to_numpy(data)
+  return pd.Series(_cosh_impl(arr), index=data.index, name="cosh")
 
 
 @configurable
@@ -91,15 +150,9 @@ def cosh(
 def tanh(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Hyperbolic Tan.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.tanh(data), index=data.index, name="tanh")
+  """Vector Hyperbolic Tan."""
+  arr = to_numpy(data)
+  return pd.Series(_tanh_impl(arr), index=data.index, name="tanh")
 
 
 @configurable
@@ -107,15 +160,9 @@ def tanh(
 def ceil(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Ceil.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.ceil(data), index=data.index, name="ceil")
+  """Vector Ceil."""
+  arr = to_numpy(data)
+  return pd.Series(_ceil_impl(arr), index=data.index, name="ceil")
 
 
 @configurable
@@ -123,15 +170,9 @@ def ceil(
 def floor(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Floor.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.floor(data), index=data.index, name="floor")
+  """Vector Floor."""
+  arr = to_numpy(data)
+  return pd.Series(_floor_impl(arr), index=data.index, name="floor")
 
 
 @configurable
@@ -139,15 +180,9 @@ def floor(
 def exp(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Exponential.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.exp(data), index=data.index, name="exp")
+  """Vector Exponential."""
+  arr = to_numpy(data)
+  return pd.Series(_exp_impl(arr), index=data.index, name="exp")
 
 
 @configurable
@@ -155,15 +190,9 @@ def exp(
 def ln(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Natural Log.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.log(data), index=data.index, name="ln")
+  """Vector Natural Log."""
+  arr = to_numpy(data)
+  return pd.Series(_ln_impl(arr), index=data.index, name="ln")
 
 
 @configurable
@@ -171,15 +200,9 @@ def ln(
 def log10(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Log Base 10.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.log10(data), index=data.index, name="log10")
+  """Vector Log Base 10."""
+  arr = to_numpy(data)
+  return pd.Series(_log10_impl(arr), index=data.index, name="log10")
 
 
 @configurable
@@ -187,15 +210,9 @@ def log10(
 def sqrt(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Square Root.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.sqrt(data), index=data.index, name="sqrt")
+  """Vector Square Root."""
+  arr = to_numpy(data)
+  return pd.Series(_sqrt_impl(arr), index=data.index, name="sqrt")
 
 
 @configurable
@@ -203,15 +220,9 @@ def sqrt(
 def acos(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Arccos.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.arccos(data), index=data.index, name="acos")
+  """Vector Arccos."""
+  arr = to_numpy(data)
+  return pd.Series(_acos_impl(arr), index=data.index, name="acos")
 
 
 @configurable
@@ -219,15 +230,9 @@ def acos(
 def asin(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Arcsin.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.arcsin(data), index=data.index, name="asin")
+  """Vector Arcsin."""
+  arr = to_numpy(data)
+  return pd.Series(_asin_impl(arr), index=data.index, name="asin")
 
 
 @configurable
@@ -235,12 +240,6 @@ def asin(
 def atan(
   data: Validated[pd.Series[float], NotEmpty],
 ) -> pd.Series:
-  """Vector Arctan.
-
-  Args:
-    data: Input series.
-
-  Returns:
-    pd.Series: Resulting series.
-  """
-  return pd.Series(np.arctan(data), index=data.index, name="atan")
+  """Vector Arctan."""
+  arr = to_numpy(data)
+  return pd.Series(_atan_impl(arr), index=data.index, name="atan")
