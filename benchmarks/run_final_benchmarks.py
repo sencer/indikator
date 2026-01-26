@@ -354,6 +354,7 @@ def run_benchmarks() -> None:
       "3River",
       cdl_unique_3river,
       lambda d: (d["open"], d["high"], d["low"], d["close"]),
+      talib.CDLUNIQUE3RIVER,
       lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
     ),
     (
