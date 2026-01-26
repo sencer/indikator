@@ -17,77 +17,77 @@ from indikator.utils import to_numpy
 # --- Optimized Kernels ---
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _sin_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.sin(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _cos_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.cos(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _tan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.tan(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _sinh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.sinh(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _cosh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.cosh(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _tanh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.tanh(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _ceil_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.ceil(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _floor_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.floor(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _exp_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.exp(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _ln_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.log(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _log10_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.log10(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _sqrt_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.sqrt(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _acos_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.arccos(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _asin_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.arcsin(data)
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def _atan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
   return np.arctan(data)
 
