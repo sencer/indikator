@@ -9,13 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import (
-  LINEARREGAngleResult,
-  LINEARREGInterceptResult,
-  LINEARREGResult,
-  LINEARREGSlopeResult,
-  TSFResult,
-)
+from indikator._results import IndicatorResult
 
 class _linearreg_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -23,7 +17,7 @@ class _linearreg_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> LINEARREGResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for linearreg.
@@ -47,7 +41,7 @@ class _linearreg_Config(_NCMakeableModel[_linearreg_Bound]):
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGResult(index, linearreg)
+    IndicatorResult(index, linearreg)
 
   Configuration:
       period (int)
@@ -71,7 +65,7 @@ class linearreg:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> LINEARREGResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_intercept_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -79,7 +73,7 @@ class _linearreg_intercept_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> LINEARREGInterceptResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_intercept_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for linearreg_intercept.
@@ -103,7 +97,7 @@ class _linearreg_intercept_Config(_NCMakeableModel[_linearreg_intercept_Bound]):
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGInterceptResult(index, linearreg_intercept)
+    IndicatorResult(index, linearreg_intercept)
 
   Configuration:
       period (int)
@@ -127,7 +121,7 @@ class linearreg_intercept:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> LINEARREGInterceptResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_angle_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -135,7 +129,7 @@ class _linearreg_angle_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> LINEARREGAngleResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_angle_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for linearreg_angle.
@@ -159,7 +153,7 @@ class _linearreg_angle_Config(_NCMakeableModel[_linearreg_angle_Bound]):
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGAngleResult(index, linearreg_angle)
+    IndicatorResult(index, linearreg_angle)
 
   Configuration:
       period (int)
@@ -183,7 +177,7 @@ class linearreg_angle:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> LINEARREGAngleResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_slope_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -191,7 +185,7 @@ class _linearreg_slope_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> LINEARREGSlopeResult: ...
+  ) -> IndicatorResult: ...
 
 class _linearreg_slope_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for linearreg_slope.
@@ -217,7 +211,7 @@ class _linearreg_slope_Config(_NCMakeableModel[_linearreg_slope_Bound]):
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGSlopeResult(index, linearreg_slope)
+    IndicatorResult(index, linearreg_slope)
 
   Configuration:
       period (int)
@@ -241,7 +235,7 @@ class linearreg_slope:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> LINEARREGSlopeResult: ...
+  ) -> IndicatorResult: ...
 
 class _tsf_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -249,7 +243,7 @@ class _tsf_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> TSFResult: ...
+  ) -> IndicatorResult: ...
 
 class _tsf_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for tsf.
@@ -275,7 +269,7 @@ class _tsf_Config(_NCMakeableModel[_tsf_Bound]):
     period: Rolling window size (default: 14)
 
   Returns:
-    TSFResult(index, tsf)
+    IndicatorResult(index, tsf)
 
   Configuration:
       period (int)
@@ -299,4 +293,4 @@ class tsf:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> TSFResult: ...
+  ) -> IndicatorResult: ...

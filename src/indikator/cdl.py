@@ -18,7 +18,7 @@ import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 
-from indikator._cdl_numba import (
+from indikator.numba.cdl import (
   detect_abandoned_baby_numba,
   detect_advance_block_numba,
   detect_belt_hold_numba,

@@ -20,13 +20,9 @@ from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
 from indikator._results import (
-  LINEARREGAngleResult,
-  LINEARREGInterceptResult,
-  LINEARREGResult,
-  LINEARREGSlopeResult,
-  TSFResult,
+  IndicatorResult,
 )
-from indikator._slope_numba import (
+from indikator.numba.slope import (
   compute_linearreg_angle_numba,
   compute_linearreg_intercept_numba,
   compute_linearreg_numba,
@@ -41,7 +37,7 @@ from indikator.utils import to_numpy
 def linearreg(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> LINEARREGResult:
+) -> IndicatorResult:
   """Calculate LINEARREG: linear regression value at end of window.
 
   Fits a linear regression line y = mx + b over the past `period` bars,
@@ -52,13 +48,13 @@ def linearreg(
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGResult(index, linearreg)
+    IndicatorResult(index, linearreg)
   """
   values = to_numpy(data)
 
   result = compute_linearreg_numba(values, period)
 
-  return LINEARREGResult(data_index=data.index, linearreg=result)
+  return IndicatorResult(data_index=data.index, value=result, name="linearreg")
 
 
 @configurable
@@ -66,7 +62,7 @@ def linearreg(
 def linearreg_intercept(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> LINEARREGInterceptResult:
+) -> IndicatorResult:
   """Calculate LINEARREG_INTERCEPT: y-intercept of regression line.
 
   Fits a linear regression line y = mx + b over the past `period` bars,
@@ -77,13 +73,15 @@ def linearreg_intercept(
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGInterceptResult(index, linearreg_intercept)
+    IndicatorResult(index, linearreg_intercept)
   """
   values = to_numpy(data)
 
   result = compute_linearreg_intercept_numba(values, period)
 
-  return LINEARREGInterceptResult(data_index=data.index, linearreg_intercept=result)
+  return IndicatorResult(
+    data_index=data.index, value=result, name="linearreg_intercept"
+  )
 
 
 @configurable
@@ -91,7 +89,7 @@ def linearreg_intercept(
 def linearreg_angle(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> LINEARREGAngleResult:
+) -> IndicatorResult:
   """Calculate LINEARREG_ANGLE: angle of regression line in degrees.
 
   Fits a linear regression line over the past `period` bars,
@@ -102,13 +100,13 @@ def linearreg_angle(
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGAngleResult(index, linearreg_angle)
+    IndicatorResult(index, linearreg_angle)
   """
   values = to_numpy(data)
 
   result = compute_linearreg_angle_numba(values, period)
 
-  return LINEARREGAngleResult(data_index=data.index, linearreg_angle=result)
+  return IndicatorResult(data_index=data.index, value=result, name="linearreg_angle")
 
 
 @configurable
@@ -116,7 +114,7 @@ def linearreg_angle(
 def linearreg_slope(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> LINEARREGSlopeResult:
+) -> IndicatorResult:
   """Calculate LINEARREG_SLOPE: slope of regression line.
 
   Fits a linear regression line over the past `period` bars,
@@ -129,13 +127,13 @@ def linearreg_slope(
     period: Rolling window size (default: 14)
 
   Returns:
-    LINEARREGSlopeResult(index, linearreg_slope)
+    IndicatorResult(index, linearreg_slope)
   """
   values = to_numpy(data)
 
   result = compute_slope_numba(values, period)
 
-  return LINEARREGSlopeResult(data_index=data.index, linearreg_slope=result)
+  return IndicatorResult(data_index=data.index, value=result, name="linearreg_slope")
 
 
 @configurable
@@ -143,7 +141,7 @@ def linearreg_slope(
 def tsf(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> TSFResult:
+) -> IndicatorResult:
   """Calculate TSF: Time Series Forecast.
 
   Fits a linear regression line over the past `period` bars,
@@ -156,10 +154,10 @@ def tsf(
     period: Rolling window size (default: 14)
 
   Returns:
-    TSFResult(index, tsf)
+    IndicatorResult(index, tsf)
   """
   values = to_numpy(data)
 
   result = compute_tsf_numba(values, period)
 
-  return TSFResult(data_index=data.index, tsf=result)
+  return IndicatorResult(data_index=data.index, value=result, name="tsf")

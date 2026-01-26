@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import DEMAResult
+from indikator._results import IndicatorResult
 
 class _dema_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _dema_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> DEMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _dema_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for dema.
@@ -53,7 +53,7 @@ class _dema_Config(_NCMakeableModel[_dema_Bound]):
     period: Lookback period (default: 20)
 
   Returns:
-    DEMAResult with DEMA values
+    IndicatorResult with DEMA values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -81,4 +81,4 @@ class dema:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> DEMAResult: ...
+  ) -> IndicatorResult: ...

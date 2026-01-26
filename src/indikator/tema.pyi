@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import TEMAResult
+from indikator._results import IndicatorResult
 
 class _tema_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _tema_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> TEMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _tema_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for tema.
@@ -58,7 +58,7 @@ class _tema_Config(_NCMakeableModel[_tema_Bound]):
     period: Lookback period (default: 20)
 
   Returns:
-    TEMAResult with TEMA values
+    IndicatorResult with TEMA values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -86,4 +86,4 @@ class tema:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> TEMAResult: ...
+  ) -> IndicatorResult: ...

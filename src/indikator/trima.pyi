@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import TRIMAResult
+from indikator._results import IndicatorResult
 
 class _trima_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _trima_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> TRIMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _trima_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for trima.
@@ -41,7 +41,7 @@ class _trima_Config(_NCMakeableModel[_trima_Bound]):
     period: Lookback period (default: 30).
 
   Returns:
-    TRIMAResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -65,4 +65,4 @@ class trima:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> TRIMAResult: ...
+  ) -> IndicatorResult: ...

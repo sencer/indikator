@@ -52,3 +52,19 @@ def test_correlation_alignment():
 
   assert len(res) == 5
   # Where mismatch happens, might be NaN if rolling window affected
+
+
+def test_sector_correlation_poor_alignment():
+  """Test sector_correlation returns default when data alignment is poor."""
+  # Stock data at one set of times
+  stock_dates = pd.date_range("2024-01-01", periods=10, freq="1h")
+  stock = pd.Series([100.0 + i for i in range(10)], index=stock_dates)
+
+  # Sector data at completely different times (no overlap)
+  sector_dates = pd.date_range("2024-06-01", periods=10, freq="1h")
+  sector = pd.Series([1000.0 + i for i in range(10)], index=sector_dates)
+
+  result = sector_correlation(stock, sector, period=3)
+
+  # Should return NaNs due to poor alignment
+  assert pd.isna(result.value).all()

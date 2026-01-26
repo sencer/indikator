@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import BETAResult
+from indikator._results import IndicatorResult
 
 class _beta_statistical_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _beta_statistical_Bound(Protocol):
     self,
     x: Validated[pd.Series[float], Finite, NotEmpty],
     y: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> BETAResult: ...
+  ) -> IndicatorResult: ...
 
 class _beta_statistical_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for beta_statistical.
@@ -49,7 +49,7 @@ class _beta_statistical_Config(_NCMakeableModel[_beta_statistical_Bound]):
     period: Rolling window size (default: 5)
 
   Returns:
-    BETAResult(index, beta)
+    IndicatorResult(index, beta)
 
   Configuration:
       period (int)
@@ -76,7 +76,7 @@ class beta_statistical:
     x: Validated[pd.Series[float], Finite, NotEmpty],
     y: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> BETAResult: ...
+  ) -> IndicatorResult: ...
 
 class _beta_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -86,7 +86,7 @@ class _beta_Bound(Protocol):
     self,
     x: Validated[pd.Series[float], Finite, NotEmpty],
     y: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> BETAResult: ...
+  ) -> IndicatorResult: ...
 
 class _beta_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for beta.
@@ -117,7 +117,7 @@ class _beta_Config(_NCMakeableModel[_beta_Bound]):
     period: Rolling window size (default: 5)
 
   Returns:
-    BETAResult(index, beta)
+    IndicatorResult(index, beta)
 
   Configuration:
       period (int)
@@ -144,4 +144,4 @@ class beta:
     x: Validated[pd.Series[float], Finite, NotEmpty],
     y: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> BETAResult: ...
+  ) -> IndicatorResult: ...

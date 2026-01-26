@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import BOPResult
+from indikator._results import IndicatorResult
 
 class _bop_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _bop_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> BOPResult: ...
+  ) -> IndicatorResult: ...
 
 class _bop_ConfigDict(TypedDict, total=False):
   pass
@@ -38,7 +38,7 @@ class _bop_Config(_NCMakeableModel[_bop_Bound]):
       close: Close prices
 
   Returns:
-      BOPResult: Balance of Power values
+      IndicatorResult: Balance of Power values
   """
 
   pass
@@ -53,4 +53,4 @@ class bop:
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> BOPResult: ...
+  ) -> IndicatorResult: ...

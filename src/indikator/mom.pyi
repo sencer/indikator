@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import MOMResult
+from indikator._results import IndicatorResult
 
 class _mom_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _mom_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> MOMResult: ...
+  ) -> IndicatorResult: ...
 
 class _mom_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for mom.
@@ -60,7 +60,7 @@ class _mom_Config(_NCMakeableModel[_mom_Bound]):
     period: Lookback period (default: 10)
 
   Returns:
-    MOMResult with momentum values
+    IndicatorResult with momentum values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -88,4 +88,4 @@ class mom:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> MOMResult: ...
+  ) -> IndicatorResult: ...

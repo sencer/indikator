@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import WCLPRICEResult
+from indikator._results import IndicatorResult
 
 class _wclprice_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -18,7 +18,7 @@ class _wclprice_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> WCLPRICEResult: ...
+  ) -> IndicatorResult: ...
 
 class _wclprice_ConfigDict(TypedDict, total=False):
   pass
@@ -36,7 +36,7 @@ class _wclprice_Config(_NCMakeableModel[_wclprice_Bound]):
     close: Close prices
 
   Returns:
-    WCLPRICEResult
+    IndicatorResult
   """
 
   pass
@@ -50,4 +50,4 @@ class wclprice:
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> WCLPRICEResult: ...
+  ) -> IndicatorResult: ...

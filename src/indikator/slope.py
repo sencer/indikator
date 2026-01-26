@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import SlopeResult
-from indikator._slope_numba import compute_slope_numba
+from indikator._results import IndicatorResult
+from indikator.numba.slope import compute_slope_numba
 from indikator.utils import to_numpy
 
 
@@ -23,7 +23,7 @@ from indikator.utils import to_numpy
 def slope(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 20,
-) -> SlopeResult:
+) -> IndicatorResult:
   """Calculate the slope of linear regression over a rolling window.
 
   The slope indicates the direction and steepness of the trend:
@@ -36,7 +36,7 @@ def slope(
     window: Rolling window size for regression
 
   Returns:
-    SlopeResult(index, slope)
+    IndicatorResult(index, slope)
 
   Raises:
     ValueError: If validation fails
@@ -48,4 +48,4 @@ def slope(
   # Calculate slopes using Numba-optimized function
   slopes = compute_slope_numba(values, window)
 
-  return SlopeResult(data_index=data.index, slope=slopes)
+  return IndicatorResult(data_index=data.index, value=slopes, name="slope")

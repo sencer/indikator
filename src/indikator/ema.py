@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._ema_numba import compute_ema_numba
-from indikator._results import EMAResult
+from indikator._results import IndicatorResult
+from indikator.numba.ema import compute_ema_numba
 from indikator.utils import to_numpy
 
 
@@ -23,7 +23,7 @@ from indikator.utils import to_numpy
 def ema(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> EMAResult:
+) -> IndicatorResult:
   """Calculate Exponential Moving Average (EMA).
 
   EMA is a trend-following indicator that gives more weight to recent prices.
@@ -55,7 +55,7 @@ def ema(
     period: Lookback period (default: 20)
 
   Returns:
-    EMAResult(index, ema_array)
+    IndicatorResult(index, ema_array)
   """
   # Convert to numpy for Numba
   values = to_numpy(data)
@@ -63,4 +63,4 @@ def ema(
   # Calculate EMA using Numba-optimized function
   ema_values = compute_ema_numba(values, period)
 
-  return EMAResult(data_index=data.index, ema=ema_values)
+  return IndicatorResult(data_index=data.index, value=ema_values, name="ema")

@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import CORRELResult
+from indikator._results import IndicatorResult
 
 class _correl_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _correl_Bound(Protocol):
     self,
     x: Validated[pd.Series[float], Finite, NotEmpty],
     y: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> CORRELResult: ...
+  ) -> IndicatorResult: ...
 
 class _correl_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for correl.
@@ -51,7 +51,7 @@ class _correl_Config(_NCMakeableModel[_correl_Bound]):
     period: Rolling window size (default: 30)
 
   Returns:
-    CORRELResult(index, correl)
+    IndicatorResult(index, correl)
 
   Configuration:
       period (int)
@@ -78,4 +78,4 @@ class correl:
     x: Validated[pd.Series[float], Finite, NotEmpty],
     y: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> CORRELResult: ...
+  ) -> IndicatorResult: ...

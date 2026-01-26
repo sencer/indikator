@@ -17,7 +17,7 @@ from datawarden import (
 import pandas as pd
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
-from indikator._results import IntradaySeriesResult, IntradayStatsResult
+from indikator._results import IndicatorResult, IntradayStatsResult
 from indikator.utils import to_numpy
 
 # Optimized aggregation functions (use these for best performance)
@@ -49,7 +49,7 @@ def intraday_aggregate(
   agg_func: AggFunc | Callable[[pd.Series], float],
   lookback_days: int | None = None,
   min_samples: int = DEFAULT_MIN_SAMPLES,
-) -> IntradaySeriesResult:
+) -> IndicatorResult:
   """Generic intraday aggregation by time-of-day.
 
   For each bar, aggregates historical values for that specific time of day
@@ -86,9 +86,9 @@ def intraday_aggregate(
     "__indikator_time_slot__", group_keys=False
   )["__indikator_value__"].transform(expanding_agg_shifted)
 
-  return IntradaySeriesResult(
+  return IndicatorResult(
     data_index=data.index,
-    values=to_numpy(agg_values),
+    value=to_numpy(agg_values),
     name="intraday_aggregate",
   )
 

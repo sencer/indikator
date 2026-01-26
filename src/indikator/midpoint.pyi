@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import MIDPOINTResult
+from indikator._results import IndicatorResult
 
 class _midpoint_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _midpoint_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> MIDPOINTResult: ...
+  ) -> IndicatorResult: ...
 
 class _midpoint_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for midpoint.
@@ -40,7 +40,7 @@ class _midpoint_Config(_NCMakeableModel[_midpoint_Bound]):
     period: Lookback period (default 14)
 
   Returns:
-    MIDPOINTResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -64,4 +64,4 @@ class midpoint:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> MIDPOINTResult: ...
+  ) -> IndicatorResult: ...

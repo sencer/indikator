@@ -14,8 +14,8 @@ from nonfig import Ge, Gt, Hyper, configurable
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
-from indikator._momentum_numba import compute_mfi_numba
-from indikator._results import MFIResult
+from indikator._results import IndicatorResult
+from indikator.numba.momentum import compute_mfi_numba
 from indikator.utils import to_numpy
 
 
@@ -28,7 +28,7 @@ def mfi(  # noqa: PLR0913, PLR0917
   volume: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,  # noqa: ARG001
-) -> MFIResult:
+) -> IndicatorResult:
   """Calculate Money Flow Index (MFI).
 
   MFI is a momentum indicator that uses both price and volume to measure
@@ -63,7 +63,7 @@ def mfi(  # noqa: PLR0913, PLR0917
     period: Lookback period (default: 14)
 
   Returns:
-    MFIResult(index, mfi)
+    IndicatorResult(index, mfi)
   """
   # Convert to numpy for Numba
   high_arr = to_numpy(high)
@@ -75,4 +75,4 @@ def mfi(  # noqa: PLR0913, PLR0917
   # Note: compute_mfi_numba calculates Typical Price internally
   mfi_values = compute_mfi_numba(high_arr, low_arr, close_arr, vol_arr, period)
 
-  return MFIResult(data_index=high.index, mfi=mfi_values)
+  return IndicatorResult(data_index=high.index, value=mfi_values, name="mfi")

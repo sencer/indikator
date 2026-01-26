@@ -8,7 +8,7 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._mavp_numba import compute_mavp_sma_numba
+from indikator.numba.mavp import compute_mavp_sma_numba
 from indikator.utils import to_numpy
 
 
@@ -52,7 +52,7 @@ def mavp(
     # EMA with variable period is complex as alpha varies.
     # TA-Lib supports them. For parity, we should support them.
     # We'll implement a general variable period MA kernel for recursive types.
-    from indikator._mavp_numba import compute_mavp_general_numba  # noqa: PLC0415
+    from indikator.numba.mavp import compute_mavp_general_numba  # noqa: PLC0415
 
     result = compute_mavp_general_numba(
       input_arr, periods_arr, minperiod, maxperiod, matype

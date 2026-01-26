@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import AVGPRICEResult
+from indikator._results import IndicatorResult
 
 class _avgprice_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _avgprice_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> AVGPRICEResult: ...
+  ) -> IndicatorResult: ...
 
 class _avgprice_ConfigDict(TypedDict, total=False):
   pass
@@ -38,7 +38,7 @@ class _avgprice_Config(_NCMakeableModel[_avgprice_Bound]):
     close: Close prices
 
   Returns:
-    AVGPRICEResult
+    IndicatorResult
   """
 
   pass
@@ -53,4 +53,4 @@ class avgprice:
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> AVGPRICEResult: ...
+  ) -> IndicatorResult: ...

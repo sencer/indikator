@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import WMAResult
-from indikator._wma_numba import compute_wma_numba
+from indikator._results import IndicatorResult
+from indikator.numba.wma import compute_wma_numba
 from indikator.utils import to_numpy
 
 
@@ -22,7 +22,7 @@ from indikator.utils import to_numpy
 def wma(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> WMAResult:
+) -> IndicatorResult:
   """Calculate Weighted Moving Average (WMA).
 
   WMA assigns linearly increasing weights to prices, with the most
@@ -45,7 +45,7 @@ def wma(
     period: Lookback period (default: 20)
 
   Returns:
-    WMAResult with weighted moving average values
+    IndicatorResult with weighted moving average values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -55,4 +55,4 @@ def wma(
 
   wma_values = compute_wma_numba(values, period)
 
-  return WMAResult(data_index=data.index, wma=wma_values)
+  return IndicatorResult(data_index=data.index, value=wma_values, name="wma")

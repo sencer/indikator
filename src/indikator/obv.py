@@ -14,8 +14,8 @@ from nonfig import configurable
 import numpy as np
 import pandas as pd
 
-from indikator._obv_numba import compute_obv_numba
-from indikator._results import OBVResult
+from indikator._results import IndicatorResult
+from indikator.numba.obv import compute_obv_numba
 
 
 @configurable
@@ -23,7 +23,7 @@ from indikator._results import OBVResult
 def obv(
   close: Validated[pd.Series[float], Finite, NotEmpty],
   volume: Validated[pd.Series[float], Finite, NotEmpty],
-) -> OBVResult:
+) -> IndicatorResult:
   """Calculate On Balance Volume (OBV).
 
   OBV measures buying and selling pressure as a cumulative indicator that
@@ -70,4 +70,4 @@ def obv(
   obv_values = compute_obv_numba(closes, volumes)
 
   # Return only the indicator (minimal return philosophy)
-  return OBVResult(data_index=close.index, obv=obv_values)
+  return IndicatorResult(data_index=close.index, value=obv_values, name="obv")

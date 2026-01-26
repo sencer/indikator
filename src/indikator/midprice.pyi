@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import MIDPRICEResult
+from indikator._results import IndicatorResult
 
 class _midprice_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _midprice_Bound(Protocol):
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> MIDPRICEResult: ...
+  ) -> IndicatorResult: ...
 
 class _midprice_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for midprice.
@@ -43,7 +43,7 @@ class _midprice_Config(_NCMakeableModel[_midprice_Bound]):
     period: Lookback period (default 14)
 
   Returns:
-    MIDPRICEResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -70,4 +70,4 @@ class midprice:
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> MIDPRICEResult: ...
+  ) -> IndicatorResult: ...

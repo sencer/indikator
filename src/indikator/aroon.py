@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._aroon_numba import compute_aroon_numba, compute_aroonosc_numba
-from indikator._results import AROONOSCResult, AROONResult
+from indikator._results import AROONResult, IndicatorResult
+from indikator.numba.aroon import compute_aroon_numba, compute_aroonosc_numba
 from indikator.utils import to_numpy
 
 
@@ -88,7 +88,7 @@ def aroonosc(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 25,
-) -> AROONOSCResult:
+) -> IndicatorResult:
   """Calculate Aroon Oscillator.
 
   AROONOSC = Aroon Up - Aroon Down
@@ -103,11 +103,11 @@ def aroonosc(
     period: Lookback period (default: 25)
 
   Returns:
-    AROONOSCResult
+    IndicatorResult
   """
   high_vals = to_numpy(high)
   low_vals = to_numpy(low)
 
   osc = compute_aroonosc_numba(high_vals, low_vals, period)
 
-  return AROONOSCResult(data_index=high.index, aroonosc=osc)
+  return IndicatorResult(data_index=high.index, value=osc, name="aroonosc")

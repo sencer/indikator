@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import MEDPRICEResult
+from indikator._results import IndicatorResult
 
 class _medprice_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _medprice_Bound(Protocol):
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> MEDPRICEResult: ...
+  ) -> IndicatorResult: ...
 
 class _medprice_ConfigDict(TypedDict, total=False):
   pass
@@ -34,7 +34,7 @@ class _medprice_Config(_NCMakeableModel[_medprice_Bound]):
     low: Low prices
 
   Returns:
-    MEDPRICEResult
+    IndicatorResult
   """
 
   pass
@@ -47,4 +47,4 @@ class medprice:
     cls,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> MEDPRICEResult: ...
+  ) -> IndicatorResult: ...

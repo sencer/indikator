@@ -1,9 +1,9 @@
-"""Tests for VWAP indicator."""
-
 import numpy as np
 import pandas as pd
+import pytest
+from pydantic import ValidationError
 
-from indikator.vwap import vwap
+from indikator.vwap import vwap, vwap_anchored
 
 
 def test_vwap_basic():
@@ -63,3 +63,62 @@ def test_vwap_int_anchor():
 
   assert np.allclose(res.iloc[0:3], 10.0)
   assert np.allclose(res.iloc[3:6], 20.0)
+
+
+def test_vwap_invalid_freq():
+  """Test vwap with invalid session frequency."""
+  dates = pd.date_range("2024-01-01", periods=5)
+  data = pd.DataFrame(
+    {"high": [10] * 5, "low": [9] * 5, "close": [9.5] * 5, "volume": [100] * 5},
+    index=dates,
+  )
+
+  # Validation should catch this
+  with pytest.raises((ValueError, KeyError, AssertionError, ValidationError)):
+    vwap(
+      pd.Series([10] * 5, index=dates),
+      pd.Series([9] * 5, index=dates),
+      pd.Series([9.5] * 5, index=dates),
+      pd.Series([100] * 5, index=dates),
+      anchor="INVALID",  # type: ignore
+    )
+
+
+def test_vwap_anchored_non_datetime_index():
+  """Test vwap_anchored with anchor_datetime but index is not DatetimeIndex."""
+  data = pd.DataFrame({
+    "high": [10] * 5,
+    "low": [9] * 5,
+    "close": [9.5] * 5,
+    "volume": [100] * 5,
+  })  # Default range index (int)
+
+  # Validation or function logic should catch this
+  with pytest.raises(
+    (ValueError, ValidationError), match="anchor_datetime requires DatetimeIndex"
+  ):
+    vwap_anchored(data, anchor_datetime="2024-01-01")
+
+
+def test_vwap_anchored_datetime_not_found():
+  """Test vwap_anchored when datetime is not found but close matches exist."""
+  dates = pd.date_range("2024-01-01", periods=10, freq="1D")
+  data = pd.DataFrame(
+    {
+      "high": [10.0] * 10,
+      "low": [9.0] * 10,
+      "close": [9.5] * 10,
+      "volume": [100.0] * 10,
+    },
+    index=dates,
+  )
+
+  # Use a datetime that doesn't exist exactly but has a close match
+  result_obj = vwap_anchored(data, anchor_datetime="2024-01-03 12:00")
+  result = result_obj.to_pandas()
+
+  # Should find the nearest datetime and work - returns Series
+  assert isinstance(result, pd.Series)
+  assert result.name == "vwap_anchored"
+  # First 2 bars should be NaN (before anchor)
+  assert result.iloc[:2].isna().all()

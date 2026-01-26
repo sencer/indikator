@@ -149,7 +149,7 @@ def intraday_data(draw):
 def test_atr_fuzz(data, window):
   with config.Overrides(skip_validation=True):
     result = atr(data["high"], data["low"], data["close"], period=window)
-  assert hasattr(result, "atr")
+  assert result.name == "atr"
   assert len(result.to_pandas()) == len(data)
 
 
@@ -157,7 +157,7 @@ def test_atr_fuzz(data, window):
 @given(data=ohlcv_data(), window=st.integers(min_value=2, max_value=20))
 def test_mfi_fuzz(data, window):
   result = mfi(data["high"], data["low"], data["close"], data["volume"], period=window)
-  assert hasattr(result, "mfi")
+  assert result.name == "mfi"
   assert len(result.to_pandas()) == len(data)
 
 
@@ -165,7 +165,7 @@ def test_mfi_fuzz(data, window):
 @given(data=ohlcv_data())
 def test_obv_fuzz(data):
   result = obv(data["close"], data["volume"])
-  assert hasattr(result, "obv")
+  assert result.name == "obv"
   assert len(result.to_pandas()) == len(data)
 
 
@@ -221,12 +221,6 @@ def test_intraday_indicators(data):
   df_or = res_or.to_pandas()
   assert "or_high" in df_or.columns
 
-  # Intraday variants might still return Series?
-  # atr_intraday, zscore_intraday, rvol_intraday were meant to use intraday aggregation.
-  # We haven't refactored them to NamedTuple yet?
-  # The user request said "Refactor Remaining Indicators".
-  # I did `rvol_intraday` (which is in `rvol.py` and returns RVOLResult).
-
   res_rvol = rvol_intraday(data["volume"], min_samples=2)
   assert hasattr(res_rvol, "to_pandas")
 
@@ -238,16 +232,6 @@ def test_pivots_fuzz(data, method):
   try:
     # Pass Series explicitly
     pivots(data["high"], data["low"], data["close"], method=method, anchor="D")
-    # Result is PivotPointsResult(index, levels: dict)
-    # It doesn't have .to_pandas() returning a DataFrame with all levels unless I implemented methods on result?
-    # PivotPointsResult is a NamedTuple.
-    # But pivots() in pivots.py returns PivotPointsResult.
-    # PivotPointsResult has .to_pandas()?
-    # Wait, I defined `BaseResult` but `PivotPointsResult` uses `dict[str, NDArray]`.
-    # Does `BaseResult` implementation handle dict?
-    # If I used standard `BaseResult` from `_results.py`:
-    # No, `PivotPointsResult` in `_results.py` is `NamedTuple`.
-    # I need to check `_results.py` if I implemented `to_pandas` for `PivotPointsResult`.
     pass
   except ValueError:
     pass
@@ -266,13 +250,14 @@ def test_macd_fuzz(data, fast, slow, signal):
   result = macd(data["close"], fast_period=fast, slow_period=slow, signal_period=signal)
   df = result.to_pandas()
   assert "macd" in df.columns
+  assert len(df) == len(data)
 
 
 @settings(max_examples=10, deadline=None)
 @given(data=ohlcv_data(index_type="datetime"))
 def test_vwap_fuzz(data):
   result = vwap(data["high"], data["low"], data["close"], data["volume"])
-  assert hasattr(result, "vwap")
+  assert result.name == "vwap"
 
 
 @settings(max_examples=10, deadline=None)

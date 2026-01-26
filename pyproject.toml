@@ -187,8 +187,8 @@ max-complexity = 10  # Maximum cyclomatic complexity
 "src/indikator/_bollinger_talib.py" = [
     "PLR0914", # Too many local variables
 ]
-"src/indikator/**/*_numba.py" = [
-    "PL",      # Pylint rules
+"src/indikator/numba/*.py" = [
+    "PL",      # Pylint rules (complexity, arguments, etc.)
     "N806",    # Lowercase variables
     "ERA001",  # Commented-out code
     "SIM",     # Simplification rules
@@ -199,6 +199,7 @@ max-complexity = 10  # Maximum cyclomatic complexity
     "B007",    # Unused loop control
     "C901",    # Complexity
 ]
+
 
 [tool.ruff.lint.isort]
 known-first-party = ["indikator"]
@@ -248,6 +249,10 @@ reportAny = false
 reportExplicitAny = false
 reportIgnoreCommentWithoutRule = false  # No permitir # type: ignore sin código
 reportPrivateLocalImportUsage = true
+
+executionEnvironments = [
+  { root = "src/indikator/numba", reportMissingTypeStubs = "none", reportUntypedFunctionDecorator = "none", reportUnknownParameterType = "none", reportUnknownArgumentType = "none", reportUnknownVariableType = "none", reportUnknownMemberType = "none" }
+]
 
 # ============================================================
 # TYPE COMPLETENESS (like TS noImplicitAny + strictFunctionTypes)
@@ -342,8 +347,6 @@ exclude = [
     "notebooks/**/*.ipynb",  # Skip notebooks
     ".ipynb_checkpoints/**",  # Skip notebook checkpoints
     "**/.ipynb_checkpoints/**",  # Skip all checkpoint folders
-    "**/_numba.py",
-    "**/*_numba.py",
 ]
 
 venvPath = "."

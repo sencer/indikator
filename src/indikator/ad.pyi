@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ADResult
+from indikator._results import IndicatorResult
 
 class _ad_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _ad_Bound(Protocol):
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ADResult: ...
+  ) -> IndicatorResult: ...
 
 class _ad_ConfigDict(TypedDict, total=False):
   pass
@@ -52,7 +52,7 @@ class _ad_Config(_NCMakeableModel[_ad_Bound]):
     volume: Volume
 
   Returns:
-    ADResult with cumulative A/D values
+    IndicatorResult with cumulative A/D values
 
   Example:
     >>> result = ad(high, low, close, volume)
@@ -70,4 +70,4 @@ class ad:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ADResult: ...
+  ) -> IndicatorResult: ...

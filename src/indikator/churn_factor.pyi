@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ChurnFactorResult
+from indikator._results import IndicatorResult
 
 class _churn_factor_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -20,7 +20,7 @@ class _churn_factor_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ChurnFactorResult: ...
+  ) -> IndicatorResult: ...
 
 class _churn_factor_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for churn_factor.
@@ -53,7 +53,7 @@ class _churn_factor_Config(_NCMakeableModel[_churn_factor_Bound]):
     epsilon: Division by zero protection.
 
   Returns:
-    ChurnFactorResult(index, churn)
+    IndicatorResult(index, churn)
 
   Configuration:
       epsilon (float)
@@ -81,4 +81,4 @@ class churn_factor:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
     epsilon: float = ...,
-  ) -> ChurnFactorResult: ...
+  ) -> IndicatorResult: ...

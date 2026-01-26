@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import EMAResult
+from indikator._results import IndicatorResult
 
 class _ema_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _ema_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> EMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _ema_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for ema.
@@ -62,7 +62,7 @@ class _ema_Config(_NCMakeableModel[_ema_Bound]):
     period: Lookback period (default: 20)
 
   Returns:
-    EMAResult(index, ema_array)
+    IndicatorResult(index, ema_array)
 
   Configuration:
       period (int)
@@ -86,4 +86,4 @@ class ema:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> EMAResult: ...
+  ) -> IndicatorResult: ...

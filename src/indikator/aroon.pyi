@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import AROONOSCResult, AROONResult
+from indikator._results import AROONResult, IndicatorResult
 
 class _aroon_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -110,7 +110,7 @@ class _aroonosc_Bound(Protocol):
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> AROONOSCResult: ...
+  ) -> IndicatorResult: ...
 
 class _aroonosc_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for aroonosc.
@@ -138,7 +138,7 @@ class _aroonosc_Config(_NCMakeableModel[_aroonosc_Bound]):
     period: Lookback period (default: 25)
 
   Returns:
-    AROONOSCResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -165,4 +165,4 @@ class aroonosc:
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> AROONOSCResult: ...
+  ) -> IndicatorResult: ...

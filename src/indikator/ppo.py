@@ -10,7 +10,7 @@ from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-from indikator._results import PPOResult
+from indikator._results import IndicatorResult
 from indikator.ema import ema
 from indikator.sma import sma
 
@@ -22,7 +22,7 @@ def ppo(
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   matype: Hyper[int] = 0,  # 0=SMA, 1=EMA
-) -> PPOResult:
+) -> IndicatorResult:
   """Calculate Percentage Price Oscillator (PPO).
 
   PPO = (FastMA - SlowMA) / SlowMA * 100
@@ -34,15 +34,15 @@ def ppo(
     matype: Moving Average type (0=SMA, 1=EMA). Default 0.
 
   Returns:
-    PPOResult
+    IndicatorResult
   """
   if matype == 1:
-    fast_ma = ema(data, period=fast_period).ema
-    slow_ma = ema(data, period=slow_period).ema
+    fast_ma = ema(data, period=fast_period).value
+    slow_ma = ema(data, period=slow_period).value
   else:
     # Default to SMA
-    fast_ma = sma(data, period=fast_period).sma
-    slow_ma = sma(data, period=slow_period).sma
+    fast_ma = sma(data, period=fast_period).value
+    slow_ma = sma(data, period=slow_period).value
 
   # Avoid div by zero?
   # If slow_ma is 0, result is likely NaN or Inf.
@@ -55,4 +55,4 @@ def ppo(
 
   ppo_np = ppo_values
 
-  return PPOResult(data_index=data.index, ppo=ppo_np)
+  return IndicatorResult(data_index=data.index, value=ppo_np, name="ppo")

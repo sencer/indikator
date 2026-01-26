@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import WillRResult
+from indikator._results import IndicatorResult
 
 class _willr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -20,7 +20,7 @@ class _willr_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> WillRResult: ...
+  ) -> IndicatorResult: ...
 
 class _willr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for willr.
@@ -58,7 +58,7 @@ class _willr_Config(_NCMakeableModel[_willr_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    WillRResult(index, willr)
+    IndicatorResult(index, willr)
 
   Configuration:
       period (int)
@@ -86,4 +86,4 @@ class willr:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> WillRResult: ...
+  ) -> IndicatorResult: ...

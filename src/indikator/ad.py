@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import configurable
 import pandas as pd
 
-from indikator._ad_numba import compute_ad_numba
-from indikator._results import ADResult
+from indikator._results import IndicatorResult
+from indikator.numba.ad import compute_ad_numba
 from indikator.utils import to_numpy
 
 
@@ -24,7 +24,7 @@ def ad(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   volume: Validated[pd.Series[float], Finite, NotEmpty],
-) -> ADResult:
+) -> IndicatorResult:
   """Calculate Accumulation/Distribution Line (AD).
 
   The A/D Line measures cumulative buying/selling pressure by analyzing
@@ -50,7 +50,7 @@ def ad(
     volume: Volume
 
   Returns:
-    ADResult with cumulative A/D values
+    IndicatorResult with cumulative A/D values
 
   Example:
     >>> result = ad(high, low, close, volume)
@@ -62,4 +62,4 @@ def ad(
 
   ad_values = compute_ad_numba(h, low_arr, c, v)
 
-  return ADResult(data_index=close.index, ad=ad_values)
+  return IndicatorResult(data_index=close.index, value=ad_values, name="ad")

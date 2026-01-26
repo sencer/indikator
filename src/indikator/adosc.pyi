@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ADOSCResult
+from indikator._results import IndicatorResult
 
 class _adosc_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -23,7 +23,7 @@ class _adosc_Bound(Protocol):
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ADOSCResult: ...
+  ) -> IndicatorResult: ...
 
 class _adosc_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for adosc.
@@ -65,7 +65,7 @@ class _adosc_Config(_NCMakeableModel[_adosc_Bound]):
     slow_period: Slow EMA period (default: 10)
 
   Returns:
-    ADOSCResult with oscillator values
+    IndicatorResult with oscillator values
 
   Example:
     >>> result = adosc(high, low, close, volume, fast_period=3, slow_period=10)
@@ -102,4 +102,4 @@ class adosc:
     volume: Validated[pd.Series[float], Finite, NotEmpty],
     fast_period: int = ...,
     slow_period: int = ...,
-  ) -> ADOSCResult: ...
+  ) -> IndicatorResult: ...

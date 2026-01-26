@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._momentum_numba import compute_cci_numba
-from indikator._results import CCIResult
+from indikator._results import IndicatorResult
+from indikator.numba.momentum import compute_cci_numba
 from indikator.utils import to_numpy
 
 
@@ -26,7 +26,7 @@ def cci(
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
   constant: Hyper[float] = 0.015,
-) -> CCIResult:
+) -> IndicatorResult:
   """Calculate Commodity Channel Index (CCI).
 
   CCI is a momentum-based oscillator used to determine when an asset
@@ -60,7 +60,7 @@ def cci(
     constant: Scaling constant (default: 0.015)
 
   Returns:
-    CCIResult(index, cci)
+    IndicatorResult(index, cci)
   """
   # Convert to numpy for Numba
   high_arr = to_numpy(high)
@@ -70,4 +70,4 @@ def cci(
   # Calculate CCI using Numba-optimized function
   cci_values = compute_cci_numba(high_arr, low_arr, close_arr, period, constant)
 
-  return CCIResult(data_index=high.index, cci=cci_values)
+  return IndicatorResult(data_index=high.index, value=cci_values, name="cci")

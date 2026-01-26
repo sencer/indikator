@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import T3Result
+from indikator._results import IndicatorResult
 
 class _t3_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _t3_Bound(Protocol):
   def vfactor(self) -> float: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> T3Result: ...
+  ) -> IndicatorResult: ...
 
 class _t3_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for t3.
@@ -47,7 +47,7 @@ class _t3_Config(_NCMakeableModel[_t3_Bound]):
     vfactor: Volume factor (default 0.7).
 
   Returns:
-    T3Result
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -78,4 +78,4 @@ class t3:
     data: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
     vfactor: float = ...,
-  ) -> T3Result: ...
+  ) -> IndicatorResult: ...

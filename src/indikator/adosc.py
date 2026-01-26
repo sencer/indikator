@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._ad_numba import compute_adosc_numba
-from indikator._results import ADOSCResult
+from indikator._results import IndicatorResult
+from indikator.numba.ad import compute_adosc_numba
 from indikator.utils import to_numpy
 
 
@@ -26,7 +26,7 @@ def adosc(  # noqa: PLR0913, PLR0917
   volume: Validated[pd.Series[float], Finite, NotEmpty],
   fast_period: Hyper[int, Ge[2]] = 3,
   slow_period: Hyper[int, Ge[2]] = 10,
-) -> ADOSCResult:
+) -> IndicatorResult:
   """Calculate Accumulation/Distribution Oscillator (Chaikin Oscillator).
 
   ADOSC measures the momentum of the A/D line by taking the difference
@@ -53,7 +53,7 @@ def adosc(  # noqa: PLR0913, PLR0917
     slow_period: Slow EMA period (default: 10)
 
   Returns:
-    ADOSCResult with oscillator values
+    IndicatorResult with oscillator values
 
   Example:
     >>> result = adosc(high, low, close, volume, fast_period=3, slow_period=10)
@@ -65,4 +65,4 @@ def adosc(  # noqa: PLR0913, PLR0917
 
   adosc_values = compute_adosc_numba(h, low_arr, c, v, fast_period, slow_period)
 
-  return ADOSCResult(data_index=close.index, adosc=adosc_values)
+  return IndicatorResult(data_index=close.index, value=adosc_values, name="adosc")

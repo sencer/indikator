@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from indikator.rvol import rvol_intraday
+from indikator._intraday import intraday_aggregate
 
 
 class TestRvolIntraday:
@@ -108,3 +109,56 @@ class TestRvolIntraday:
     dates = pd.date_range("2024-01-01", periods=5)
     result = rvol_intraday(pd.Series([100] * 5, index=dates))
     assert hasattr(result, "to_pandas")
+
+
+def test_intraday_aggregate_custom_function():
+  """Test intraday_aggregate with a custom aggregation function."""
+  # Create data with multiple days at the same time slot
+  dates = pd.date_range("2024-01-01 10:00", periods=10, freq="1D")
+  data = pd.Series(
+    [100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0],
+    index=dates,
+  )
+
+  # Use custom function (median)
+  result = intraday_aggregate(data, agg_func="median", min_samples=2).to_pandas()
+
+  # Should have values after the first 2 samples at each time slot
+  assert not result.isna().all()
+
+
+def test_intraday_aggregate_min_function():
+  """Test intraday_aggregate with 'min' aggregation function."""
+  dates = pd.date_range("2024-01-01 10:00", periods=5, freq="1D")
+  data = pd.Series([100.0, 90.0, 110.0, 80.0, 120.0], index=dates)
+
+  result = intraday_aggregate(data, agg_func="min", min_samples=2).to_pandas()
+
+  # Should have values after enough samples
+  assert not result.isna().all()
+
+
+def test_intraday_aggregate_max_function():
+  """Test intraday_aggregate with 'max' aggregation function."""
+  dates = pd.date_range("2024-01-01 10:00", periods=5, freq="1D")
+  data = pd.Series([100.0, 90.0, 110.0, 80.0, 120.0], index=dates)
+
+  result = intraday_aggregate(data, agg_func="max", min_samples=2).to_pandas()
+
+  # Should have values after enough samples
+  assert not result.isna().all()
+
+
+def test_intraday_aggregate_callable_function():
+  """Test intraday_aggregate with a callable aggregation function."""
+  dates = pd.date_range("2024-01-01 10:00", periods=5, freq="1D")
+  data = pd.Series([100.0, 110.0, 120.0, 130.0, 140.0], index=dates)
+
+  # Use a simple lambda as custom function
+  def custom_agg(x: pd.Series) -> float:
+    return float(x.sum() / len(x))  # Same as mean
+
+  result = intraday_aggregate(data, agg_func=custom_agg, min_samples=2).to_pandas()
+
+  # Should have values after enough samples
+  assert not result.isna().all()

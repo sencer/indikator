@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import SMAResult
-from indikator._sma_numba import compute_sma_numba
+from indikator._results import IndicatorResult
+from indikator.numba.sma import compute_sma_numba
 from indikator.utils import to_numpy
 
 
@@ -23,7 +23,7 @@ from indikator.utils import to_numpy
 def sma(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> SMAResult:
+) -> IndicatorResult:
   """Calculate Simple Moving Average (SMA).
 
     SMA is a trend-following indicator that averages prices over a specified
@@ -53,7 +53,7 @@ def sma(
       period: Lookback period (default: 20)
 
     Returns:
-      SMAResult(index, sma)
+      IndicatorResult(index, sma)
 
     Raises:
       ValueError: If data contains NaN/Inf
@@ -70,4 +70,4 @@ def sma(
   # Calculate SMA using Numba-optimized function
   sma_values = compute_sma_numba(values, period)
 
-  return SMAResult(data_index=data.index, sma=sma_values)
+  return IndicatorResult(data_index=data.index, value=sma_values, name="sma")

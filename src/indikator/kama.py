@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._kama_numba import compute_kama_numba
-from indikator._results import KAMAResult
+from indikator._results import IndicatorResult
+from indikator.numba.kama import compute_kama_numba
 from indikator.utils import to_numpy
 
 
@@ -24,7 +24,7 @@ def kama(
   period: Hyper[int, Ge[2]] = 10,
   fast_period: Hyper[int, Ge[2]] = 2,
   slow_period: Hyper[int, Ge[2]] = 30,
-) -> KAMAResult:
+) -> IndicatorResult:
   """Calculate Kaufman Adaptive Moving Average (KAMA).
 
   KAMA adjusts its smoothing constant based on market efficiency:
@@ -52,7 +52,7 @@ def kama(
     slow_period: Slow smoothing period (default: 30)
 
   Returns:
-    KAMAResult with adaptive moving average values
+    IndicatorResult with adaptive moving average values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -62,4 +62,4 @@ def kama(
 
   kama_values = compute_kama_numba(values, period, fast_period, slow_period)
 
-  return KAMAResult(data_index=data.index, kama=kama_values)
+  return IndicatorResult(data_index=data.index, value=kama_values, name="kama")

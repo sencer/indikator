@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import PPOResult
+from indikator._results import IndicatorResult
 
 class _ppo_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -21,7 +21,7 @@ class _ppo_Bound(Protocol):
   def matype(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> PPOResult: ...
+  ) -> IndicatorResult: ...
 
 class _ppo_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for ppo.
@@ -50,7 +50,7 @@ class _ppo_Config(_NCMakeableModel[_ppo_Bound]):
     matype: Moving Average type (0=SMA, 1=EMA). Default 0.
 
   Returns:
-    PPOResult
+    IndicatorResult
 
   Configuration:
       fast_period (int)
@@ -88,4 +88,4 @@ class ppo:
     fast_period: int = ...,
     slow_period: int = ...,
     matype: int = ...,
-  ) -> PPOResult: ...
+  ) -> IndicatorResult: ...

@@ -9,7 +9,7 @@ from datawarden import Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ZScoreIntradayResult, ZScoreResult
+from indikator._results import IndicatorResult
 
 class _zscore_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _zscore_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> ZScoreResult: ...
+  ) -> IndicatorResult: ...
 
 class _zscore_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for zscore.
@@ -55,7 +55,7 @@ class _zscore_Config(_NCMakeableModel[_zscore_Bound]):
     period: Lookback period (default: 20)
 
   Returns:
-    ZScoreResult(index, zscore)
+    IndicatorResult(index, zscore)
 
   Configuration:
       period (int)
@@ -79,7 +79,7 @@ class zscore:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> ZScoreResult: ...
+  ) -> IndicatorResult: ...
 
 class _zscore_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -91,7 +91,7 @@ class _zscore_intraday_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty]
-  ) -> ZScoreIntradayResult: ...
+  ) -> IndicatorResult: ...
 
 class _zscore_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for zscore_intraday.
@@ -190,4 +190,4 @@ class zscore_intraday:
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,
-  ) -> ZScoreIntradayResult: ...
+  ) -> IndicatorResult: ...

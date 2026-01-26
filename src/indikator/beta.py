@@ -14,11 +14,11 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._correlation_numba import (
+from indikator._results import IndicatorResult
+from indikator.numba.correlation import (
   compute_beta_fused_rocp_numba,
   compute_beta_numba,
 )
-from indikator._results import BETAResult
 from indikator.utils import to_numpy
 
 
@@ -28,7 +28,7 @@ def beta_statistical(
   x: Validated[pd.Series[float], Finite, NotEmpty],
   y: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 5,
-) -> BETAResult:
+) -> IndicatorResult:
   """Calculate rolling BETA coefficient on RAW INPUTS.
 
   This is the pure statistical calculation of Beta:
@@ -45,14 +45,14 @@ def beta_statistical(
     period: Rolling window size (default: 5)
 
   Returns:
-    BETAResult(index, beta)
+    IndicatorResult(index, beta)
   """
   x_arr = to_numpy(x)
   y_arr = to_numpy(y)
 
   result = compute_beta_numba(x_arr, y_arr, period)
 
-  return BETAResult(data_index=x.index, beta=result)
+  return IndicatorResult(data_index=x.index, value=result, name="beta")
 
 
 @configurable
@@ -61,7 +61,7 @@ def beta(
   x: Validated[pd.Series[float], Finite, NotEmpty],
   y: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 5,
-) -> BETAResult:
+) -> IndicatorResult:
   """Calculate rolling BETA coefficient (TA-Lib compatible).
 
   Matches TA-Lib's behavior: automatically calculates 1-period
@@ -79,7 +79,7 @@ def beta(
     period: Rolling window size (default: 5)
 
   Returns:
-    BETAResult(index, beta)
+    IndicatorResult(index, beta)
   """
   x_arr = to_numpy(x)
   y_arr = to_numpy(y)
@@ -87,4 +87,4 @@ def beta(
   # Use fused kernel for optimal performance
   result = compute_beta_fused_rocp_numba(x_arr, y_arr, period)
 
-  return BETAResult(data_index=x.index, beta=result)
+  return IndicatorResult(data_index=x.index, value=result, name="beta")

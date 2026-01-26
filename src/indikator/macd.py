@@ -17,8 +17,8 @@ from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-from indikator._macd_numba import compute_macd_numba
 from indikator._results import MACDResult
+from indikator.numba.macd import compute_macd_numba
 from indikator.utils import to_numpy
 
 
@@ -36,17 +36,17 @@ def _get_ma_func(
   from indikator.wma import wma  # noqa: PLC0415
 
   mapping = {  # pyright: ignore[reportUnknownVariableType]
-    0: lambda d, p: sma(d, p).sma,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
-    1: lambda d, p: ema(d, p).ema,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
-    2: lambda d, p: wma(d, p).wma,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
-    3: lambda d, p: dema(d, p).dema,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
-    4: lambda d, p: tema(d, p).tema,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
-    5: lambda d, p: trima(d, p).trima,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
-    6: lambda d, p: kama(d, p).kama,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    0: lambda d, p: sma(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    1: lambda d, p: ema(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    2: lambda d, p: wma(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    3: lambda d, p: dema(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    4: lambda d, p: tema(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    5: lambda d, p: trima(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    6: lambda d, p: kama(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
     7: lambda d, _: mama(  # pyright: ignore[reportUnknownLambdaType]
       d  # pyright: ignore[reportUnknownArgumentType]
     ).mama,  # Period ignored for MAMA
-    8: lambda d, p: t3(d, p).t3,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
+    8: lambda d, p: t3(d, p).value,  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
   }
   return mapping.get(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
     matype, mapping[1]

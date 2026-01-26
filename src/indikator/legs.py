@@ -17,8 +17,8 @@ from nonfig import Gt, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-from indikator._legs_numba import compute_zigzag_numba
 from indikator._results import ZigzagLegsResult
+from indikator.numba.legs import compute_zigzag_numba
 from indikator.utils import to_numpy
 
 

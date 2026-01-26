@@ -13,7 +13,7 @@ from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
 from indikator._results import StochRSIResult
-from indikator._stochrsi_numba import compute_stochrsi_numba
+from indikator.numba.stochrsi import compute_stochrsi_numba
 from indikator.utils import to_numpy
 
 

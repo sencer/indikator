@@ -15,8 +15,8 @@ from nonfig import Ge, Gt, Hyper, configurable
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
-from indikator._results import RSIResult
-from indikator._rsi_numba import compute_rsi_numba
+from indikator._results import IndicatorResult
+from indikator.numba.rsi import compute_rsi_numba
 from indikator.utils import to_numpy
 
 
@@ -26,7 +26,7 @@ def rsi(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> RSIResult:
+) -> IndicatorResult:
   """Calculate Relative Strength Index (RSI).
 
     RSI is a momentum oscillator that measures the speed and magnitude of
@@ -83,4 +83,4 @@ def rsi(
   # Calculate RSI using Numba-optimized function
   rsi_values = compute_rsi_numba(values, window, epsilon)
 
-  return RSIResult(data_index=data.index, rsi=rsi_values)
+  return IndicatorResult(data_index=data.index, value=rsi_values, name="rsi")

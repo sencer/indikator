@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import ULTOSCResult
-from indikator._ultosc_numba import compute_ultosc_numba
+from indikator._results import IndicatorResult
+from indikator.numba.ultosc import compute_ultosc_numba
 from indikator.utils import to_numpy
 
 
@@ -26,7 +26,7 @@ def ultosc(  # noqa: PLR0913, PLR0917
   period1: Hyper[int, Ge[1]] = 7,
   period2: Hyper[int, Ge[1]] = 14,
   period3: Hyper[int, Ge[1]] = 28,
-) -> ULTOSCResult:
+) -> IndicatorResult:
   """Calculate Ultimate Oscillator (ULTOSC).
 
   ULTOSC combines momentum from three timeframes to reduce false
@@ -55,7 +55,7 @@ def ultosc(  # noqa: PLR0913, PLR0917
     period3: Long period (default: 28, weight 1)
 
   Returns:
-    ULTOSCResult with oscillator values (0-100)
+    IndicatorResult with oscillator values (0-100)
 
   Example:
     >>> result = ultosc(high, low, close, period1=7, period2=14, period3=28)
@@ -66,4 +66,4 @@ def ultosc(  # noqa: PLR0913, PLR0917
 
   ultosc_values = compute_ultosc_numba(h, low_np, c, period1, period2, period3)
 
-  return ULTOSCResult(data_index=close.index, ultosc=ultosc_values)
+  return IndicatorResult(data_index=close.index, value=ultosc_values, name="ultosc")

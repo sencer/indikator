@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._momentum_numba import compute_cmo_numba
-from indikator._results import CMOResult
+from indikator._results import IndicatorResult
+from indikator.numba.momentum import compute_cmo_numba
 from indikator.utils import to_numpy
 
 
@@ -23,7 +23,7 @@ from indikator.utils import to_numpy
 def cmo(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> CMOResult:
+) -> IndicatorResult:
   """Calculate Chande Momentum Oscillator (CMO).
 
     CMO measures the momentum of price changes. It oscillates between -100
@@ -51,7 +51,7 @@ def cmo(
       period: Lookback period (default: 14)
 
     Returns:
-      CMOResult(index, cmo)
+      IndicatorResult(index, cmo)
 
     Raises:
       ValueError: If data contains NaN/Inf
@@ -69,4 +69,4 @@ def cmo(
   # Calculate CMO using Numba-optimized function
   cmo_values = compute_cmo_numba(values, period)
 
-  return CMOResult(data_index=data.index, cmo=cmo_values)
+  return IndicatorResult(data_index=data.index, value=cmo_values, name="cmo")

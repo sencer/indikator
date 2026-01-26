@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._correlation_numba import compute_correl_numba
-from indikator._results import CORRELResult
+from indikator._results import IndicatorResult
+from indikator.numba.correlation import compute_correl_numba
 from indikator.utils import to_numpy
 
 
@@ -24,7 +24,7 @@ def correl(
   x: Validated[pd.Series[float], Finite, NotEmpty],
   y: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 30,
-) -> CORRELResult:
+) -> IndicatorResult:
   """Calculate rolling Pearson correlation coefficient.
 
   CORREL measures the linear relationship between two variables.
@@ -43,11 +43,11 @@ def correl(
     period: Rolling window size (default: 30)
 
   Returns:
-    CORRELResult(index, correl)
+    IndicatorResult(index, correl)
   """
   x_arr = to_numpy(x)
   y_arr = to_numpy(y)
 
   result = compute_correl_numba(x_arr, y_arr, period)
 
-  return CORRELResult(data_index=x.index, correl=result)
+  return IndicatorResult(data_index=x.index, value=result, name="correl")

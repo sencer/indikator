@@ -23,14 +23,14 @@ from nonfig import Ge, Hyper, configurable
 import numpy as np
 import pandas as pd
 
-from indikator._atr_numba import (
+from indikator._constants import DEFAULT_MIN_SAMPLES
+from indikator._intraday import intraday_aggregate
+from indikator._results import IndicatorResult
+from indikator.numba.atr import (
   compute_atr_numba,
   compute_true_range_numba,
   compute_true_range_numba_2d,
 )
-from indikator._constants import DEFAULT_MIN_SAMPLES
-from indikator._intraday import intraday_aggregate
-from indikator._results import ATRIntradayResult, ATRResult, TRANGEResult
 from indikator.utils import to_numpy
 
 
@@ -41,7 +41,7 @@ def atr(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> ATRResult:
+) -> IndicatorResult:
   """Calculate Average True Range (ATR).
 
   ATR measures market volatility by calculating the average of true ranges
@@ -83,7 +83,7 @@ def atr(
     period: Lookback period (default: 14)
 
   Returns:
-    ATRResult(index, atr)
+    IndicatorResult(index, atr)
   """
   # Convert to numpy for Numba
   high_arr = to_numpy(high)
@@ -93,7 +93,7 @@ def atr(
   # Calculate ATR using Numba-optimized function
   atr_values = compute_atr_numba(high_arr, low_arr, close_arr, period)
 
-  return ATRResult(data_index=high.index, atr=atr_values)
+  return IndicatorResult(data_index=high.index, value=atr_values, name="atr")
 
 
 @configurable
@@ -108,7 +108,7 @@ def atr_intraday(
   ],
   lookback_days: Hyper[int] | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
-) -> ATRIntradayResult:
+) -> IndicatorResult:
   """Calculate time-of-day adjusted ATR (intraday volatility).
 
     Compares current volatility to the historical average volatility for that
@@ -175,9 +175,9 @@ def atr_intraday(
   )
 
   # Return only the indicator (minimal return philosophy)
-  # avg_tr_by_time is IntradaySeriesResult
-  vals = avg_tr_by_time.values
-  return ATRIntradayResult(data_index=data.index, atr_intraday=vals)
+  # avg_tr_by_time is IndicatorResult
+  vals = avg_tr_by_time.value
+  return IndicatorResult(data_index=data.index, value=vals, name="atr_intraday")
 
 
 @configurable
@@ -186,7 +186,7 @@ def trange(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
-) -> TRANGEResult:
+) -> IndicatorResult:
   """Calculate True Range (TRANGE).
 
   The True Range is the greatest of:
@@ -210,4 +210,4 @@ def trange(
   # Calculate TR using Numba-optimized function
   tr_values = compute_true_range_numba(high_arr, low_arr, close_arr)
 
-  return TRANGEResult(data_index=high.index, trange=tr_values)
+  return IndicatorResult(data_index=high.index, value=tr_values, name="trange")

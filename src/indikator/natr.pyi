@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import NATRResult
+from indikator._results import IndicatorResult
 
 class _natr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -20,7 +20,7 @@ class _natr_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> NATRResult: ...
+  ) -> IndicatorResult: ...
 
 class _natr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for natr.
@@ -59,7 +59,7 @@ class _natr_Config(_NCMakeableModel[_natr_Bound]):
     period: ATR lookback period (default: 14)
 
   Returns:
-    NATRResult with normalized ATR values (percentage)
+    IndicatorResult with normalized ATR values (percentage)
 
   Example:
     >>> result = natr(high, low, close, period=14)
@@ -90,4 +90,4 @@ class natr:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> NATRResult: ...
+  ) -> IndicatorResult: ...

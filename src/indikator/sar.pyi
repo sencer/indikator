@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import SARResult
+from indikator._results import IndicatorResult
 
 class _sar_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -21,7 +21,7 @@ class _sar_Bound(Protocol):
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> SARResult: ...
+  ) -> IndicatorResult: ...
 
 class _sar_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for sar.
@@ -65,7 +65,7 @@ class _sar_Config(_NCMakeableModel[_sar_Bound]):
     maximum: Maximum AF (default: 0.2)
 
   Returns:
-    SARResult with SAR values
+    IndicatorResult with SAR values
 
   Example:
     >>> result = sar(high, low, acceleration=0.02, maximum=0.2)
@@ -100,7 +100,7 @@ class sar:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     acceleration: float = ...,
     maximum: float = ...,
-  ) -> SARResult: ...
+  ) -> IndicatorResult: ...
 
 class _sarext_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -124,7 +124,7 @@ class _sarext_Bound(Protocol):
     self,
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> SARResult: ...
+  ) -> IndicatorResult: ...
 
 class _sarext_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for sarext.
@@ -169,7 +169,7 @@ class _sarext_Config(_NCMakeableModel[_sarext_Bound]):
     acceleration_max_short: Maximum acceleration for short (default 0.2).
 
   Returns:
-    SARResult(index, sar)
+    IndicatorResult(index, sar)
 
   Configuration:
       start_value (float)
@@ -242,4 +242,4 @@ class sarext:
     acceleration_init_short: float = ...,
     acceleration_short: float = ...,
     acceleration_max_short: float = ...,
-  ) -> SARResult: ...
+  ) -> IndicatorResult: ...

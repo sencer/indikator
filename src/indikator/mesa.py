@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Gt, Hyper, Le, configurable
 import pandas as pd
 
-from indikator._mesa_numba import compute_mama_numba
 from indikator._results import MAMAResult
+from indikator.numba.mesa import compute_mama_numba
 from indikator.utils import to_numpy
 
 

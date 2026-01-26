@@ -18,8 +18,8 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_stats
-from indikator._results import ZScoreIntradayResult, ZScoreResult
-from indikator._zscore_numba import compute_zscore_numba
+from indikator._results import IndicatorResult
+from indikator.numba.zscore import compute_zscore_numba
 from indikator.utils import to_numpy
 
 
@@ -28,7 +28,7 @@ from indikator.utils import to_numpy
 def zscore(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> ZScoreResult:
+) -> IndicatorResult:
   """Calculate Z-Score (Standard Score).
 
   Z-Score measures how many standard deviations a price is from the mean.
@@ -53,7 +53,7 @@ def zscore(
     period: Lookback period (default: 20)
 
   Returns:
-    ZScoreResult(index, zscore)
+    IndicatorResult(index, zscore)
   """
   # Convert to numpy for Numba
   values = to_numpy(data)
@@ -61,7 +61,7 @@ def zscore(
   # Calculate Z-Score using Numba-optimized function
   zscore_values = compute_zscore_numba(values, period)
 
-  return ZScoreResult(data_index=data.index, zscore=zscore_values)
+  return IndicatorResult(data_index=data.index, value=zscore_values, name="zscore")
 
 
 @configurable
@@ -71,7 +71,7 @@ def zscore_intraday(
   lookback_days: Hyper[int] | None = None,
   min_samples: Hyper[int, Ge[2]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> ZScoreIntradayResult:
+) -> IndicatorResult:
   """Calculate time-of-day adjusted Z-Score.
 
     Compares current value to the historical mean and std dev for that specific
@@ -134,4 +134,6 @@ def zscore_intraday(
 
   # Create result series
   # Create result series
-  return ZScoreIntradayResult(data_index=data.index, zscore_intraday=z_score_values)
+  return IndicatorResult(
+    data_index=data.index, value=z_score_values, name="zscore_intraday"
+  )

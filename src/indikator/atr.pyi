@@ -9,7 +9,7 @@ from datawarden import Columns, Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ATRIntradayResult, ATRResult, TRANGEResult
+from indikator._results import IndicatorResult
 
 class _atr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -20,7 +20,7 @@ class _atr_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ATRResult: ...
+  ) -> IndicatorResult: ...
 
 class _atr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr.
@@ -75,7 +75,7 @@ class _atr_Config(_NCMakeableModel[_atr_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    ATRResult(index, atr)
+    IndicatorResult(index, atr)
 
   Configuration:
       period (int)
@@ -103,7 +103,7 @@ class atr:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> ATRResult: ...
+  ) -> IndicatorResult: ...
 
 class _atr_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -116,7 +116,7 @@ class _atr_intraday_Bound(Protocol):
     data: Validated[
       pd.DataFrame, Columns(["high", "low", "close"]), Finite, Index(Datetime), NotEmpty
     ],
-  ) -> ATRIntradayResult: ...
+  ) -> IndicatorResult: ...
 
 class _atr_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for atr_intraday.
@@ -206,7 +206,7 @@ class atr_intraday:
     ],
     lookback_days: int | None = ...,
     min_samples: int = ...,
-  ) -> ATRIntradayResult: ...
+  ) -> IndicatorResult: ...
 
 class _trange_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -215,7 +215,7 @@ class _trange_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> TRANGEResult: ...
+  ) -> IndicatorResult: ...
 
 class _trange_ConfigDict(TypedDict, total=False):
   pass
@@ -250,4 +250,4 @@ class trange:
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> TRANGEResult: ...
+  ) -> IndicatorResult: ...

@@ -18,7 +18,7 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._intraday import intraday_aggregate
-from indikator._results import RVOLResult
+from indikator._results import IndicatorResult
 from indikator.utils import to_numpy
 
 __all__ = ["rvol", "rvol_intraday"]
@@ -30,7 +30,7 @@ def rvol(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   window: Hyper[int, Ge[2]] = 14,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> RVOLResult:
+) -> IndicatorResult:
   """Calculate Relative Volume (RVOL) using simple moving average.
 
   Measures current volume relative to average volume over a rolling window.
@@ -49,7 +49,7 @@ def rvol(
     epsilon: Small value to prevent division by zero
 
   Returns:
-    RVOLResult(index, rvol)
+    IndicatorResult(index, rvol)
   """
   # Calculate simple moving average of volume
   sma_volume = data.rolling(window=window).mean()
@@ -67,7 +67,7 @@ def rvol(
 
   rvol_values[valid_sma] = vol_arr[valid_sma] / sma_arr[valid_sma]
 
-  return RVOLResult(data_index=data.index, rvol=rvol_values)
+  return IndicatorResult(data_index=data.index, value=rvol_values, name="rvol")
 
 
 @configurable
@@ -77,7 +77,7 @@ def rvol_intraday(
   lookback_days: Hyper[int] | None = None,
   min_samples: Hyper[int, Ge[1]] = DEFAULT_MIN_SAMPLES,
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> RVOLResult:
+) -> IndicatorResult:
   """Calculate intraday RVOL based on time-of-day historical averages.
 
   Compares current volume to the historical average volume for that specific
@@ -97,7 +97,7 @@ def rvol_intraday(
     epsilon: Small value to prevent division by zero asd
 
   Returns:
-    RVOLResult(index, rvol)
+    IndicatorResult(index, rvol)
   """
 
   # Get historical averages for each time slot using generic aggregator
@@ -111,12 +111,12 @@ def rvol_intraday(
   # Calculate RVOL with division by zero protection
   # Calculate RVOL with division by zero protection
   vol_arr = to_numpy(data)
-  # avg_volume_by_time is IntradaySeriesResult
-  avg_arr = avg_volume_by_time.values
+  # avg_volume_by_time is IndicatorResult
+  avg_arr = avg_volume_by_time.value
 
   rvol_values = np.ones_like(vol_arr)
 
   valid_avg = (avg_arr > epsilon) & ~np.isnan(avg_arr) & ~np.isnan(vol_arr)
   rvol_values[valid_avg] = vol_arr[valid_avg] / avg_arr[valid_avg]
 
-  return RVOLResult(data_index=data.index, rvol=rvol_values)
+  return IndicatorResult(data_index=data.index, value=rvol_values, name="rvol")

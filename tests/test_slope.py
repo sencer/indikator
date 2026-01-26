@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from indikator._results import SlopeResult  # noqa: PLC2701
+from indikator._results import IndicatorResult  # noqa: PLC2701
 from indikator.slope import slope
 
 
@@ -17,7 +17,7 @@ class TestBasicFunctionality:
   def test_returns_series_from_dataframe(self, simple_uptrend_df: pd.DataFrame) -> None:
     """Should return a Series when input is a DataFrame."""
     res_obj = slope(simple_uptrend_df["close"], window=3)
-    assert isinstance(res_obj, SlopeResult)
+    assert isinstance(res_obj, IndicatorResult)
 
     result = res_obj.to_pandas()
 

@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._natr_numba import compute_natr_numba
-from indikator._results import NATRResult
+from indikator._results import IndicatorResult
+from indikator.numba.natr import compute_natr_numba
 from indikator.utils import to_numpy
 
 
@@ -25,7 +25,7 @@ def natr(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> NATRResult:
+) -> IndicatorResult:
   """Calculate Normalized Average True Range (NATR).
 
   NATR normalizes ATR as a percentage of the closing price, allowing
@@ -51,7 +51,7 @@ def natr(
     period: ATR lookback period (default: 14)
 
   Returns:
-    NATRResult with normalized ATR values (percentage)
+    IndicatorResult with normalized ATR values (percentage)
 
   Example:
     >>> result = natr(high, low, close, period=14)
@@ -62,4 +62,4 @@ def natr(
 
   natr_values = compute_natr_numba(h, low_np, c, period)
 
-  return NATRResult(data_index=close.index, natr=natr_values)
+  return IndicatorResult(data_index=close.index, value=natr_values, name="natr")

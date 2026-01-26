@@ -9,7 +9,7 @@ from datawarden import Columns, Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import VWAPAnchoredResult, VWAPResult
+from indikator._results import IndicatorResult
 
 PARALLEL_THRESHOLD: ...
 
@@ -23,7 +23,7 @@ class _vwap_Bound(Protocol):
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> VWAPResult: ...
+  ) -> IndicatorResult: ...
 
 class _vwap_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for vwap.
@@ -68,7 +68,7 @@ class _vwap_Config(_NCMakeableModel[_vwap_Bound]):
     anchor: Reset anchor (e.g. 'D', 'W', '1h') or int (bars). Default 'D'.
 
   Returns:
-    VWAPResult(index, vwap)
+    IndicatorResult(index, vwap)
 
   Configuration:
       anchor (str | pd.Timedelta | int)
@@ -97,7 +97,7 @@ class vwap:
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
     anchor: str | pd.Timedelta | int = ...,
-  ) -> VWAPResult: ...
+  ) -> IndicatorResult: ...
 
 class _vwap_anchored_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -110,7 +110,7 @@ class _vwap_anchored_Bound(Protocol):
     data: Validated[
       pd.DataFrame, Columns(["high", "low", "close", "volume"]), Finite, NotEmpty
     ],
-  ) -> VWAPAnchoredResult: ...
+  ) -> IndicatorResult: ...
 
 class _vwap_anchored_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for vwap_anchored.
@@ -210,4 +210,4 @@ class vwap_anchored:
     ],
     anchor_index: int | None = ...,
     anchor_datetime: pd.Timestamp | str | None = ...,
-  ) -> VWAPAnchoredResult: ...
+  ) -> IndicatorResult: ...

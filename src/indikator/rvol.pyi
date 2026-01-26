@@ -9,7 +9,7 @@ from datawarden import Datetime, Finite, Index, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import RVOLResult
+from indikator._results import IndicatorResult
 
 class _rvol_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _rvol_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> RVOLResult: ...
+  ) -> IndicatorResult: ...
 
 class _rvol_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rvol.
@@ -53,7 +53,7 @@ class _rvol_Config(_NCMakeableModel[_rvol_Bound]):
     epsilon: Small value to prevent division by zero
 
   Returns:
-    RVOLResult(index, rvol)
+    IndicatorResult(index, rvol)
 
   Configuration:
       window (int)
@@ -84,7 +84,7 @@ class rvol:
     data: Validated[pd.Series[float], Finite, NotEmpty],
     window: int = ...,
     epsilon: float = ...,
-  ) -> RVOLResult: ...
+  ) -> IndicatorResult: ...
 
 class _rvol_intraday_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -96,7 +96,7 @@ class _rvol_intraday_Bound(Protocol):
   def epsilon(self) -> float: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, Index(Datetime), NotEmpty]
-  ) -> RVOLResult: ...
+  ) -> IndicatorResult: ...
 
 class _rvol_intraday_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for rvol_intraday.
@@ -133,7 +133,7 @@ class _rvol_intraday_Config(_NCMakeableModel[_rvol_intraday_Bound]):
     epsilon: Small value to prevent division by zero asd
 
   Returns:
-    RVOLResult(index, rvol)
+    IndicatorResult(index, rvol)
 
   Configuration:
       lookback_days (int | None)
@@ -175,4 +175,4 @@ class rvol_intraday:
     lookback_days: int | None = ...,
     min_samples: int = ...,
     epsilon: float = ...,
-  ) -> RVOLResult: ...
+  ) -> IndicatorResult: ...

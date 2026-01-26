@@ -9,16 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import (
-  ADXResult,
-  ADXRResult,
-  ADXSingleResult,
-  DXResult,
-  MinusDIResult,
-  MinusDMResult,
-  PlusDIResult,
-  PlusDMResult,
-)
+from indikator._results import ADXResult, IndicatorResult
 
 class _adx_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -29,7 +20,7 @@ class _adx_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ADXSingleResult: ...
+  ) -> IndicatorResult: ...
 
 class _adx_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for adx.
@@ -62,7 +53,7 @@ class _adx_Config(_NCMakeableModel[_adx_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    ADXSingleResult(index, adx)
+    IndicatorResult(index, adx)
 
   Configuration:
       period (int)
@@ -90,7 +81,7 @@ class adx:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> ADXSingleResult: ...
+  ) -> IndicatorResult: ...
 
 class _adx_with_di_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -176,7 +167,7 @@ class _plus_dm_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> PlusDMResult: ...
+  ) -> IndicatorResult: ...
 
 class _plus_dm_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for plus_dm.
@@ -201,7 +192,7 @@ class _plus_dm_Config(_NCMakeableModel[_plus_dm_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    PlusDMResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -229,7 +220,7 @@ class plus_dm:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> PlusDMResult: ...
+  ) -> IndicatorResult: ...
 
 class _minus_dm_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -240,7 +231,7 @@ class _minus_dm_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> MinusDMResult: ...
+  ) -> IndicatorResult: ...
 
 class _minus_dm_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for minus_dm.
@@ -265,7 +256,7 @@ class _minus_dm_Config(_NCMakeableModel[_minus_dm_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    MinusDMResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -293,7 +284,7 @@ class minus_dm:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> MinusDMResult: ...
+  ) -> IndicatorResult: ...
 
 class _plus_di_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -304,7 +295,7 @@ class _plus_di_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> PlusDIResult: ...
+  ) -> IndicatorResult: ...
 
 class _plus_di_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for plus_di.
@@ -329,7 +320,7 @@ class _plus_di_Config(_NCMakeableModel[_plus_di_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    PlusDIResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -357,7 +348,7 @@ class plus_di:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> PlusDIResult: ...
+  ) -> IndicatorResult: ...
 
 class _minus_di_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -368,7 +359,7 @@ class _minus_di_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> MinusDIResult: ...
+  ) -> IndicatorResult: ...
 
 class _minus_di_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for minus_di.
@@ -393,7 +384,7 @@ class _minus_di_Config(_NCMakeableModel[_minus_di_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    MinusDIResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -421,7 +412,7 @@ class minus_di:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> MinusDIResult: ...
+  ) -> IndicatorResult: ...
 
 class _dx_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -432,7 +423,7 @@ class _dx_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> DXResult: ...
+  ) -> IndicatorResult: ...
 
 class _dx_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for dx.
@@ -457,7 +448,7 @@ class _dx_Config(_NCMakeableModel[_dx_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    DXResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -485,7 +476,7 @@ class dx:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> DXResult: ...
+  ) -> IndicatorResult: ...
 
 class _adxr_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -496,7 +487,7 @@ class _adxr_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ADXRResult: ...
+  ) -> IndicatorResult: ...
 
 class _adxr_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for adxr.
@@ -521,7 +512,7 @@ class _adxr_Config(_NCMakeableModel[_adxr_Bound]):
     period: Lookback period (default: 14)
 
   Returns:
-    ADXRResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -549,4 +540,4 @@ class adxr:
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> ADXRResult: ...
+  ) -> IndicatorResult: ...

@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._dema_numba import compute_dema_numba
-from indikator._results import DEMAResult
+from indikator._results import IndicatorResult
+from indikator.numba.dema import compute_dema_numba
 from indikator.utils import to_numpy
 
 
@@ -23,7 +23,7 @@ from indikator.utils import to_numpy
 def dema(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> DEMAResult:
+) -> IndicatorResult:
   """Calculate Double Exponential Moving Average (DEMA).
 
   DEMA reduces the lag inherent in EMAs by applying a correction factor
@@ -46,7 +46,7 @@ def dema(
     period: Lookback period (default: 20)
 
   Returns:
-    DEMAResult with DEMA values
+    IndicatorResult with DEMA values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -56,4 +56,4 @@ def dema(
 
   dema_values = compute_dema_numba(values, period)
 
-  return DEMAResult(data_index=data.index, dema=dema_values)
+  return IndicatorResult(data_index=data.index, value=dema_values, name="dema")

@@ -13,17 +13,11 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._adx_numba import compute_adx_numba, compute_adx_numba_pure
 from indikator._results import (
   ADXResult,
-  ADXRResult,
-  ADXSingleResult,
-  DXResult,
-  MinusDIResult,
-  MinusDMResult,
-  PlusDIResult,
-  PlusDMResult,
+  IndicatorResult,
 )
+from indikator.numba.adx import compute_adx_numba, compute_adx_numba_pure
 from indikator.utils import to_numpy
 
 
@@ -34,7 +28,7 @@ def adx(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> ADXSingleResult:
+) -> IndicatorResult:
   """Calculate Average Directional Index (ADX).
 
   ADX measures trend strength regardless of direction. This function returns
@@ -54,7 +48,7 @@ def adx(
     period: Lookback period (default: 14)
 
   Returns:
-    ADXSingleResult(index, adx)
+    IndicatorResult(index, adx)
   """
   # Convert to numpy for Numba
   high_arr = to_numpy(high)
@@ -64,7 +58,7 @@ def adx(
   # Calculate ADX using pure Numba function (no DI array overhead)
   adx_values = compute_adx_numba_pure(high_arr, low_arr, close_arr, period)
 
-  return ADXSingleResult(data_index=high.index, adx=adx_values)
+  return IndicatorResult(data_index=high.index, value=adx_values, name="adx")
 
 
 @configurable
@@ -121,7 +115,7 @@ def plus_dm(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> PlusDMResult:
+) -> IndicatorResult:
   """Calculate Plus Directional Movement (+DM).
 
   Returns the smoothed accumulated +DM over the period.
@@ -133,16 +127,16 @@ def plus_dm(
     period: Lookback period (default: 14)
 
   Returns:
-    PlusDMResult
+    IndicatorResult
   """
   high_arr = to_numpy(high)
   low_arr = to_numpy(low)
   close_arr = to_numpy(close)
 
-  from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
+  from indikator.numba.adx import compute_dms_numba  # noqa: PLC0415
 
   plus_dm_vals, _, _ = compute_dms_numba(high_arr, low_arr, close_arr, period)
-  return PlusDMResult(data_index=high.index, plus_dm=plus_dm_vals)
+  return IndicatorResult(data_index=high.index, value=plus_dm_vals, name="plus_dm")
 
 
 @configurable
@@ -152,7 +146,7 @@ def minus_dm(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> MinusDMResult:
+) -> IndicatorResult:
   """Calculate Minus Directional Movement (-DM).
 
   Returns the smoothed accumulated -DM over the period.
@@ -164,16 +158,16 @@ def minus_dm(
     period: Lookback period (default: 14)
 
   Returns:
-    MinusDMResult
+    IndicatorResult
   """
   high_arr = to_numpy(high)
   low_arr = to_numpy(low)
   close_arr = to_numpy(close)
 
-  from indikator._adx_numba import compute_dms_numba  # noqa: PLC0415
+  from indikator.numba.adx import compute_dms_numba  # noqa: PLC0415
 
   _, minus_dm_vals, _ = compute_dms_numba(high_arr, low_arr, close_arr, period)
-  return MinusDMResult(data_index=high.index, minus_dm=minus_dm_vals)
+  return IndicatorResult(data_index=high.index, value=minus_dm_vals, name="minus_dm")
 
 
 @configurable
@@ -183,7 +177,7 @@ def plus_di(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> PlusDIResult:
+) -> IndicatorResult:
   """Calculate Plus Directional Indicator (+DI).
 
   +DI = 100 * (+DM / TR) (Smoothed)
@@ -195,17 +189,17 @@ def plus_di(
     period: Lookback period (default: 14)
 
   Returns:
-    PlusDIResult
+    IndicatorResult
   """
   high_arr = to_numpy(high)
   low_arr = to_numpy(low)
   close_arr = to_numpy(close)
 
-  from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
+  from indikator.numba.adx import compute_di_numba  # noqa: PLC0415
 
   plus_di_vals, _ = compute_di_numba(high_arr, low_arr, close_arr, period)
 
-  return PlusDIResult(data_index=high.index, plus_di=plus_di_vals)
+  return IndicatorResult(data_index=high.index, value=plus_di_vals, name="plus_di")
 
 
 @configurable
@@ -215,7 +209,7 @@ def minus_di(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> MinusDIResult:
+) -> IndicatorResult:
   """Calculate Minus Directional Indicator (-DI).
 
   -DI = 100 * (-DM / TR) (Smoothed)
@@ -227,17 +221,17 @@ def minus_di(
     period: Lookback period (default: 14)
 
   Returns:
-    MinusDIResult
+    IndicatorResult
   """
   high_arr = to_numpy(high)
   low_arr = to_numpy(low)
   close_arr = to_numpy(close)
 
-  from indikator._adx_numba import compute_di_numba  # noqa: PLC0415
+  from indikator.numba.adx import compute_di_numba  # noqa: PLC0415
 
   _, minus_di_vals = compute_di_numba(high_arr, low_arr, close_arr, period)
 
-  return MinusDIResult(data_index=high.index, minus_di=minus_di_vals)
+  return IndicatorResult(data_index=high.index, value=minus_di_vals, name="minus_di")
 
 
 @configurable
@@ -247,7 +241,7 @@ def dx(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 14,
-) -> DXResult:
+) -> IndicatorResult:
   """Calculate Directional Movement Index (DX).
 
   DX = 100 * |+DI - -DI| / (+DI + -DI)
@@ -259,16 +253,16 @@ def dx(
     period: Lookback period (default: 14)
 
   Returns:
-    DXResult
+    IndicatorResult
   """
   high_arr = to_numpy(high)
   low_arr = to_numpy(low)
   close_arr = to_numpy(close)
 
-  from indikator._adx_numba import compute_dx_numba  # noqa: PLC0415
+  from indikator.numba.adx import compute_dx_numba  # noqa: PLC0415
 
   dx_vals = compute_dx_numba(high_arr, low_arr, close_arr, period)
-  return DXResult(data_index=high.index, dx=dx_vals)
+  return IndicatorResult(data_index=high.index, value=dx_vals, name="dx")
 
 
 @configurable
@@ -278,7 +272,7 @@ def adxr(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> ADXRResult:
+) -> IndicatorResult:
   """Calculate Average Directional Movement Rating (ADXR).
 
   ADXR = (ADX + ADX[i - period]) / 2
@@ -290,14 +284,14 @@ def adxr(
     period: Lookback period (default: 14)
 
   Returns:
-    ADXRResult
+    IndicatorResult
   """
   high_arr = to_numpy(high)
   low_arr = to_numpy(low)
   close_arr = to_numpy(close)
 
-  from indikator._adx_numba import compute_adxr_numba  # noqa: PLC0415
+  from indikator.numba.adx import compute_adxr_numba  # noqa: PLC0415
 
   adxr_vals = compute_adxr_numba(high_arr, low_arr, close_arr, period)
 
-  return ADXRResult(data_index=high.index, adxr=adxr_vals)
+  return IndicatorResult(data_index=high.index, value=adxr_vals, name="adxr")

@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import SMAResult
+from indikator._results import IndicatorResult
 
 class _sma_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _sma_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> SMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _sma_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for sma.
@@ -60,7 +60,7 @@ class _sma_Config(_NCMakeableModel[_sma_Bound]):
       period: Lookback period (default: 20)
 
     Returns:
-      SMAResult(index, sma)
+      IndicatorResult(index, sma)
 
     Raises:
       ValueError: If data contains NaN/Inf
@@ -93,4 +93,4 @@ class sma:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> SMAResult: ...
+  ) -> IndicatorResult: ...

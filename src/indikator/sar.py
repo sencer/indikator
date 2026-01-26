@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Gt, Hyper, Le, configurable
 import pandas as pd
 
-from indikator._results import SARResult
-from indikator._sar_numba import compute_sar_numba, compute_sarext_numba
+from indikator._results import IndicatorResult
+from indikator.numba.sar import compute_sar_numba, compute_sarext_numba
 from indikator.utils import to_numpy
 
 
@@ -24,7 +24,7 @@ def sar(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   acceleration: Hyper[float, Gt[0.0], Le[1.0]] = 0.02,
   maximum: Hyper[float, Gt[0.0], Le[1.0]] = 0.2,
-) -> SARResult:
+) -> IndicatorResult:
   """Calculate Parabolic SAR (Stop and Reverse).
 
   Parabolic SAR provides potential entry and exit points by trailing
@@ -53,7 +53,7 @@ def sar(
     maximum: Maximum AF (default: 0.2)
 
   Returns:
-    SARResult with SAR values
+    IndicatorResult with SAR values
 
   Example:
     >>> result = sar(high, low, acceleration=0.02, maximum=0.2)
@@ -63,7 +63,7 @@ def sar(
 
   sar_values = compute_sar_numba(h, low_np, acceleration, acceleration, maximum)
 
-  return SARResult(data_index=high.index, sar=sar_values)
+  return IndicatorResult(data_index=high.index, value=sar_values, name="sar")
 
 
 @configurable
@@ -79,7 +79,7 @@ def sarext(  # noqa: PLR0913, PLR0917
   acceleration_init_short: Hyper[float] = 0.02,
   acceleration_short: Hyper[float] = 0.02,
   acceleration_max_short: Hyper[float] = 0.2,
-) -> SARResult:
+) -> IndicatorResult:
   """Calculate Parabolic SAR Extended (SAREXT).
 
   More configurable version of the standard Parabolic SAR.
@@ -97,7 +97,7 @@ def sarext(  # noqa: PLR0913, PLR0917
     acceleration_max_short: Maximum acceleration for short (default 0.2).
 
   Returns:
-    SARResult(index, sar)
+    IndicatorResult(index, sar)
   """
   h = to_numpy(high)
   low_np = to_numpy(low)
@@ -115,4 +115,4 @@ def sarext(  # noqa: PLR0913, PLR0917
     acceleration_max_short,
   )
 
-  return SARResult(data_index=high.index, sar=sar_values)
+  return IndicatorResult(data_index=high.index, value=sar_values, name="sar")

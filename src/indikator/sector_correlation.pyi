@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import SectorCorrelationResult
+from indikator._results import IndicatorResult
 
 class _sector_correlation_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _sector_correlation_Bound(Protocol):
     self,
     stock_data: Validated[pd.Series[float], Finite, NotEmpty],
     sector_data: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> SectorCorrelationResult: ...
+  ) -> IndicatorResult: ...
 
 class _sector_correlation_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for sector_correlation.
@@ -49,7 +49,7 @@ class _sector_correlation_Config(_NCMakeableModel[_sector_correlation_Bound]):
     period: Rolling correlation window (default: 20)
 
   Returns:
-    SectorCorrelationResult(index, correlation)
+    IndicatorResult(index, correlation)
 
   Configuration:
       period (int)
@@ -76,4 +76,4 @@ class sector_correlation:
     stock_data: Validated[pd.Series[float], Finite, NotEmpty],
     sector_data: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
-  ) -> SectorCorrelationResult: ...
+  ) -> IndicatorResult: ...

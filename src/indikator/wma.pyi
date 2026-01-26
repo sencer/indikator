@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import WMAResult
+from indikator._results import IndicatorResult
 
 class _wma_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _wma_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> WMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _wma_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for wma.
@@ -53,7 +53,7 @@ class _wma_Config(_NCMakeableModel[_wma_Bound]):
     period: Lookback period (default: 20)
 
   Returns:
-    WMAResult with weighted moving average values
+    IndicatorResult with weighted moving average values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -81,4 +81,4 @@ class wma:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> WMAResult: ...
+  ) -> IndicatorResult: ...

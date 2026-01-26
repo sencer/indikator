@@ -13,11 +13,11 @@ from datawarden import (
 from nonfig import Ge, Gt, Hyper, configurable
 import pandas as pd
 
-from indikator._bollinger_numba import (
+from indikator._results import BollingerBandsResult, BollingerResult
+from indikator.numba.bollinger import (
   compute_bollinger_basic_numba,
   compute_bollinger_numba_fast,
 )
-from indikator._results import BollingerBandsResult, BollingerResult
 from indikator.utils import to_numpy
 
 

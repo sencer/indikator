@@ -12,8 +12,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import TEMAResult
-from indikator._tema_numba import compute_tema_numba
+from indikator._results import IndicatorResult
+from indikator.numba.tema import compute_tema_numba
 from indikator.utils import to_numpy
 
 
@@ -22,7 +22,7 @@ from indikator.utils import to_numpy
 def tema(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> TEMAResult:
+) -> IndicatorResult:
   """Calculate Triple Exponential Moving Average (TEMA).
 
   TEMA minimizes lag using a combination of single, double, and triple
@@ -50,7 +50,7 @@ def tema(
     period: Lookback period (default: 20)
 
   Returns:
-    TEMAResult with TEMA values
+    IndicatorResult with TEMA values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -60,4 +60,4 @@ def tema(
 
   tema_values = compute_tema_numba(values, period)
 
-  return TEMAResult(data_index=data.index, tema=tema_values)
+  return IndicatorResult(data_index=data.index, value=tema_values, name="tema")

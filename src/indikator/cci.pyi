@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import CCIResult
+from indikator._results import IndicatorResult
 
 class _cci_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -22,7 +22,7 @@ class _cci_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> CCIResult: ...
+  ) -> IndicatorResult: ...
 
 class _cci_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for cci.
@@ -71,7 +71,7 @@ class _cci_Config(_NCMakeableModel[_cci_Bound]):
     constant: Scaling constant (default: 0.015)
 
   Returns:
-    CCIResult(index, cci)
+    IndicatorResult(index, cci)
 
   Configuration:
       period (int)
@@ -104,4 +104,4 @@ class cci:
     close: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
     constant: float = ...,
-  ) -> CCIResult: ...
+  ) -> IndicatorResult: ...

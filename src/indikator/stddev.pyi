@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import STDDEVResult
+from indikator._results import IndicatorResult
 
 class _stddev_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -19,7 +19,7 @@ class _stddev_Bound(Protocol):
   def nbdev(self) -> float: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> STDDEVResult: ...
+  ) -> IndicatorResult: ...
 
 class _stddev_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for stddev.
@@ -43,7 +43,7 @@ class _stddev_Config(_NCMakeableModel[_stddev_Bound]):
     nbdev: Number of deviations (multiplier, default 1.0)
 
   Returns:
-    STDDEVResult
+    IndicatorResult
 
   Configuration:
       period (int)
@@ -74,4 +74,4 @@ class stddev:
     data: Validated[pd.Series[float], Finite, NotEmpty],
     period: int = ...,
     nbdev: float = ...,
-  ) -> STDDEVResult: ...
+  ) -> IndicatorResult: ...

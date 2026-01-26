@@ -14,8 +14,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import TRIXResult
-from indikator._trix_numba import compute_trix_numba
+from indikator._results import IndicatorResult
+from indikator.numba.trix import compute_trix_numba
 from indikator.utils import to_numpy
 
 
@@ -24,7 +24,7 @@ from indikator.utils import to_numpy
 def trix(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> TRIXResult:
+) -> IndicatorResult:
   """Calculate TRIX (Triple Exponential Average).
 
   TRIX is a momentum oscillator that displays the percent rate of change
@@ -55,7 +55,7 @@ def trix(
     period: Lookback period (default: 30)
 
   Returns:
-    TRIXResult(index, trix)
+    IndicatorResult(index, trix)
   """
   # Convert to numpy for Numba
   values = to_numpy(data)
@@ -63,4 +63,4 @@ def trix(
   # Calculate TRIX using Numba-optimized function
   trix_values = compute_trix_numba(values, period)
 
-  return TRIXResult(data_index=data.index, trix=trix_values)
+  return IndicatorResult(data_index=data.index, value=trix_values, name="trix")

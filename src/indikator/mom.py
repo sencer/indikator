@@ -9,8 +9,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._mom_numba import compute_mom_numba
-from indikator._results import MOMResult
+from indikator._results import IndicatorResult
+from indikator.numba.mom import compute_mom_numba
 from indikator.utils import to_numpy
 
 
@@ -19,7 +19,7 @@ from indikator.utils import to_numpy
 def mom(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[1]] = 10,
-) -> MOMResult:
+) -> IndicatorResult:
   """Calculate Momentum (MOM).
 
   Momentum measures the absolute price change over a specified period.
@@ -49,7 +49,7 @@ def mom(
     period: Lookback period (default: 10)
 
   Returns:
-    MOMResult with momentum values
+    IndicatorResult with momentum values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -60,4 +60,4 @@ def mom(
 
   mom_values = compute_mom_numba(values, period)
 
-  return MOMResult(data_index=data.index, mom=mom_values)
+  return IndicatorResult(data_index=data.index, value=mom_values, name="mom")

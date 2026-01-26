@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON
-from indikator._results import ChurnFactorResult
+from indikator._results import IndicatorResult
 from indikator.utils import to_numpy
 
 
@@ -26,7 +26,7 @@ def churn_factor(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   volume: Validated[pd.Series[float], Finite, NotEmpty],
   epsilon: Hyper[float, Gt[0.0]] = DEFAULT_EPSILON,
-) -> ChurnFactorResult:
+) -> IndicatorResult:
   """Calculate Churn Factor.
 
   Churn factor measures the efficiency of volume in moving the price.
@@ -46,7 +46,7 @@ def churn_factor(
     epsilon: Division by zero protection.
 
   Returns:
-    ChurnFactorResult(index, churn)
+    IndicatorResult(index, churn)
   """
   # Convert to numpy
   high_arr = to_numpy(high)
@@ -62,4 +62,4 @@ def churn_factor(
   valid_range = price_range > epsilon
   churn[valid_range] = vol_arr[valid_range] / price_range[valid_range]
 
-  return ChurnFactorResult(data_index=high.index, churn=churn)
+  return IndicatorResult(data_index=high.index, value=churn, name="churn")

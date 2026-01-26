@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import OBVResult
+from indikator._results import IndicatorResult
 
 class _obv_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _obv_Bound(Protocol):
     self,
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> OBVResult: ...
+  ) -> IndicatorResult: ...
 
 class _obv_ConfigDict(TypedDict, total=False):
   pass
@@ -73,4 +73,4 @@ class obv:
     cls,
     close: Validated[pd.Series[float], Finite, NotEmpty],
     volume: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> OBVResult: ...
+  ) -> IndicatorResult: ...

@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import KAMAResult
+from indikator._results import IndicatorResult
 
 class _kama_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -21,7 +21,7 @@ class _kama_Bound(Protocol):
   def slow_period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> KAMAResult: ...
+  ) -> IndicatorResult: ...
 
 class _kama_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for kama.
@@ -66,7 +66,7 @@ class _kama_Config(_NCMakeableModel[_kama_Bound]):
     slow_period: Slow smoothing period (default: 30)
 
   Returns:
-    KAMAResult with adaptive moving average values
+    IndicatorResult with adaptive moving average values
 
   Example:
     >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
@@ -108,4 +108,4 @@ class kama:
     period: int = ...,
     fast_period: int = ...,
     slow_period: int = ...,
-  ) -> KAMAResult: ...
+  ) -> IndicatorResult: ...

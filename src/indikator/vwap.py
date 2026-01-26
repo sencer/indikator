@@ -22,8 +22,8 @@ from indikator.utils import to_numpy
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
-from indikator._results import VWAPAnchoredResult, VWAPResult
-from indikator._vwap_numba import (
+from indikator._results import IndicatorResult
+from indikator.numba.vwap import (
   compute_anchored_vwap_numba,
   compute_vwap_numba,
   compute_vwap_parallel_numba,
@@ -40,7 +40,7 @@ def vwap(
   close: Validated[pd.Series[float], Finite, NotEmpty],
   volume: Validated[pd.Series[float], Finite, NotEmpty],
   anchor: Hyper[str | pd.Timedelta | int] = "D",
-) -> VWAPResult:
+) -> IndicatorResult:
   """Calculate Volume Weighted Average Price (VWAP).
 
   VWAP is a trading benchmark that gives the average price a security has
@@ -72,7 +72,7 @@ def vwap(
     anchor: Reset anchor (e.g. 'D', 'W', '1h') or int (bars). Default 'D'.
 
   Returns:
-    VWAPResult(index, vwap)
+    IndicatorResult(index, vwap)
   """
   # Align all inputs
   # Note: Validator ensures equal length and index alignment
@@ -110,7 +110,7 @@ def vwap(
   else:
     vwap_values = compute_vwap_numba(high_arr, low_arr, close_arr, vol_arr, reset_mask)
 
-  return VWAPResult(data_index=high.index, vwap=vwap_values)
+  return IndicatorResult(data_index=high.index, value=vwap_values, name="vwap")
 
 
 @configurable
@@ -124,7 +124,7 @@ def vwap_anchored(
   ],
   anchor_index: Hyper[int] | None = None,
   anchor_datetime: Hyper[pd.Timestamp | str] | None = None,
-) -> VWAPAnchoredResult:
+) -> IndicatorResult:
   """Calculate Anchored VWAP from a specific point in time.
 
     Anchored VWAP calculates VWAP starting from a specific bar forward,
@@ -224,4 +224,4 @@ def vwap_anchored(
   vwap_values = compute_anchored_vwap_numba(typical_prices, volumes, anchor_index)
 
   # Return only the indicator (minimal return philosophy)
-  return VWAPAnchoredResult(data_index=data.index, vwap_anchored=vwap_values)
+  return IndicatorResult(data_index=data.index, value=vwap_values, name="vwap_anchored")

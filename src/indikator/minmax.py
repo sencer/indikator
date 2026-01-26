@@ -9,7 +9,7 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._rolling_numba import (
+from indikator.numba.rolling import (
   compute_max_numba,
   compute_maxindex_numba,
   compute_min_numba,

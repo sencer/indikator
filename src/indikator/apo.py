@@ -9,7 +9,7 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import APOResult
+from indikator._results import IndicatorResult
 from indikator.ema import ema
 from indikator.sma import sma
 
@@ -21,7 +21,7 @@ def apo(
   fast_period: Hyper[int, Ge[2]] = 12,
   slow_period: Hyper[int, Ge[2]] = 26,
   matype: Hyper[int] = 0,  # 0=SMA, 1=EMA
-) -> APOResult:
+) -> IndicatorResult:
   """Calculate Absolute Price Oscillator (APO).
 
   APO = FastMA - SlowMA
@@ -33,20 +33,20 @@ def apo(
     matype: Moving Average type (0=SMA, 1=EMA). Default 0.
 
   Returns:
-    APOResult
+    IndicatorResult
   """
   # TA-Lib logic:
   # If matype=0, use SMA. If 1, use EMA.
 
   if matype == 1:
-    fast_ma = ema(data, period=fast_period).ema
-    slow_ma = ema(data, period=slow_period).ema
+    fast_ma = ema(data, period=fast_period).value
+    slow_ma = ema(data, period=slow_period).value
   else:
     # Default to SMA
-    fast_ma = sma(data, period=fast_period).sma
-    slow_ma = sma(data, period=slow_period).sma
+    fast_ma = sma(data, period=fast_period).value
+    slow_ma = sma(data, period=slow_period).value
 
   apo_values = fast_ma - slow_ma
   apo_np = apo_values
 
-  return APOResult(data_index=data.index, apo=apo_np)
+  return IndicatorResult(data_index=data.index, value=apo_np, name="apo")

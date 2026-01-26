@@ -9,7 +9,7 @@ from datawarden import (
 from nonfig import configurable
 import pandas as pd
 
-from indikator._cycle_numba import (
+from indikator.numba.cycle import (
   compute_ht_dcperiod_numba,
   compute_ht_dcphase_numba,
   compute_ht_master_numba,

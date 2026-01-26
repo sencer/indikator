@@ -46,7 +46,7 @@ class _ma_Config(_NCMakeableModel[_ma_Bound]):
     matype: Moving Average type (0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
 
   Returns:
-    IndicatorResult: Result object (SMAResult, EMAResult, etc.)
+    IndicatorResult: Result object (IndicatorResult, etc.)
 
   Configuration:
       period (int)

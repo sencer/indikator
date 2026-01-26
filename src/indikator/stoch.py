@@ -14,7 +14,7 @@ from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
 from indikator._results import StochResult
-from indikator._stoch_numba import compute_stoch_numba
+from indikator.numba.stoch import compute_stoch_numba
 from indikator.utils import to_numpy
 
 

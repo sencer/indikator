@@ -13,8 +13,8 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._momentum_numba import compute_willr_numba
-from indikator._results import WillRResult
+from indikator._results import IndicatorResult
+from indikator.numba.momentum import compute_willr_numba
 from indikator.utils import to_numpy
 
 
@@ -25,7 +25,7 @@ def willr(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 14,
-) -> WillRResult:
+) -> IndicatorResult:
   """Calculate Williams %R.
 
   Williams %R is a momentum indicator that measures overbought and oversold levels.
@@ -50,7 +50,7 @@ def willr(
     period: Lookback period (default: 14)
 
   Returns:
-    WillRResult(index, willr)
+    IndicatorResult(index, willr)
   """
   # Convert to numpy for Numba
   high_arr = to_numpy(high)
@@ -60,4 +60,4 @@ def willr(
   # Calculate WillR using Numba-optimized function
   willr_values = compute_willr_numba(high_arr, low_arr, close_arr, period)
 
-  return WillRResult(data_index=high.index, willr=willr_values)
+  return IndicatorResult(data_index=high.index, value=willr_values, name="willr")

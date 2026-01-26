@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import ULTOSCResult
+from indikator._results import IndicatorResult
 
 class _ultosc_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -24,7 +24,7 @@ class _ultosc_Bound(Protocol):
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> ULTOSCResult: ...
+  ) -> IndicatorResult: ...
 
 class _ultosc_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for ultosc.
@@ -70,7 +70,7 @@ class _ultosc_Config(_NCMakeableModel[_ultosc_Bound]):
     period3: Long period (default: 28, weight 1)
 
   Returns:
-    ULTOSCResult with oscillator values (0-100)
+    IndicatorResult with oscillator values (0-100)
 
   Example:
     >>> result = ultosc(high, low, close, period1=7, period2=14, period3=28)
@@ -113,4 +113,4 @@ class ultosc:
     period1: int = ...,
     period2: int = ...,
     period3: int = ...,
-  ) -> ULTOSCResult: ...
+  ) -> IndicatorResult: ...

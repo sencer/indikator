@@ -12,7 +12,7 @@ from datawarden import (
 from nonfig import Ge, Hyper, configurable
 import pandas as pd
 
-from indikator._results import SectorCorrelationResult
+from indikator._results import IndicatorResult
 from indikator.utils import to_numpy
 
 
@@ -22,7 +22,7 @@ def sector_correlation(
   stock_data: Validated[pd.Series[float], Finite, NotEmpty],
   sector_data: Validated[pd.Series[float], Finite, NotEmpty],
   period: Hyper[int, Ge[2]] = 20,
-) -> SectorCorrelationResult:
+) -> IndicatorResult:
   """Calculate rolling correlation between a stock and its sector/index.
 
   Formula:
@@ -39,7 +39,7 @@ def sector_correlation(
     period: Rolling correlation window (default: 20)
 
   Returns:
-    SectorCorrelationResult(index, correlation)
+    IndicatorResult(index, correlation)
   """
   # Ensure alignment
   # Using pandas operations handles alignment automatically on index
@@ -54,4 +54,6 @@ def sector_correlation(
 
   # Handle potential NaNs not from window (e.g. misalignment) - kept as NaN
 
-  return SectorCorrelationResult(data_index=corr_series.index, correlation=corr_arr)
+  return IndicatorResult(
+    data_index=corr_series.index, value=corr_arr, name="correlation"
+  )

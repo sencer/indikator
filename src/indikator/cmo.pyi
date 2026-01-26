@@ -9,7 +9,7 @@ from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
-from indikator._results import CMOResult
+from indikator._results import IndicatorResult
 
 class _cmo_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
@@ -17,7 +17,7 @@ class _cmo_Bound(Protocol):
   def period(self) -> int: ...
   def __call__(
     self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> CMOResult: ...
+  ) -> IndicatorResult: ...
 
 class _cmo_ConfigDict(TypedDict, total=False):
   """Configuration dictionary for cmo.
@@ -58,7 +58,7 @@ class _cmo_Config(_NCMakeableModel[_cmo_Bound]):
       period: Lookback period (default: 14)
 
     Returns:
-      CMOResult(index, cmo)
+      IndicatorResult(index, cmo)
 
     Raises:
       ValueError: If data contains NaN/Inf
@@ -92,4 +92,4 @@ class cmo:
   period: ClassVar[int]
   def __new__(
     cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> CMOResult: ...
+  ) -> IndicatorResult: ...
