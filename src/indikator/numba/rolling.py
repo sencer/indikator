@@ -1,4 +1,4 @@
-"""Numba-optimized rolling min/max calculations using Parallel Gil-Werman."""
+"""Numba-optimized rolling min/max calculations using Parallel Chunked Lazy Rescan."""
 
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ import numpy as np
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
+EPSILON = 1e-14
+
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_midprice_numba(
@@ -17,10 +19,87 @@ def compute_midprice_numba(
   low: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate MIDPRICE using strict O(N) Parallel Gil-Werman."""
-  # We invoke min/max separately effectively doubling work, but it's simple.
-  # For max perf, we should fuse them, but let's rely on their individual optimization first.
-  return (compute_max_numba(high, period) + compute_min_numba(low, period)) / 2.0
+  """Calculate MIDPRICE using Parallel Chunked strategy."""
+  # Fuse operation: (Max(High) + Min(Low)) / 2
+  n = len(high)
+  out = np.empty(n, dtype=np.float64)
+  out[:] = np.nan
+
+  if n < period:
+    return out
+
+  # Adaptive parallelism parameters
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
+
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
+
+  warmup_idx = period - 1
+
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
+
+    # LOCAL STATE RE-COMPUTE (Warmup for this chunk)
+    # We need to find the Min/Max of the window ENDING at start_v
+    # Window is [start_v - period + 1, start_v]
+    h_val, l_val = -np.inf, np.inf
+    h_idx, l_idx = -1, -1
+
+    scan_start = start_v - period + 1
+    for k in range(scan_start, start_v + 1):
+      if high[k] >= h_val:
+        h_val, h_idx = high[k], k
+      if low[k] <= l_val:
+        l_val, l_idx = low[k], k
+
+    # Store first value of chunk
+    out[start_v] = (h_val + l_val) * 0.5
+
+    # PROCESS CHUNK
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+
+      # Update High (Max)
+      tmp_h = high[i]
+      if h_idx < trailing:
+        # Rescan
+        h_val = high[trailing]
+        h_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if high[k] >= h_val:
+            h_val = high[k]
+            h_idx = k
+      elif tmp_h >= h_val:
+        h_val = tmp_h
+        h_idx = i
+
+      # Update Low (Min)
+      tmp_l = low[i]
+      if l_idx < trailing:
+        # Rescan
+        l_val = low[trailing]
+        l_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if low[k] <= l_val:
+            l_val = low[k]
+            l_idx = k
+      elif tmp_l <= l_val:
+        l_val = tmp_l
+        l_idx = i
+
+      out[i] = (h_val + l_val) * 0.5
+
+  return out
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
@@ -28,8 +107,9 @@ def compute_midpoint_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate MIDPOINT using strict O(N) Parallel Gil-Werman."""
-  return (compute_max_numba(data, period) + compute_min_numba(data, period)) / 2.0
+  """Calculate MIDPOINT using Parallel Chunked strategy."""
+  min_vals, max_vals = compute_minmax_numba(data, period)
+  return (min_vals + max_vals) * 0.5
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
@@ -37,7 +117,7 @@ def compute_min_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MIN using Parallel Gil-Werman algorithm."""
+  """Calculate rolling MIN using Parallel Chunked Lazy Rescan."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
   out[:] = np.nan
@@ -45,47 +125,52 @@ def compute_min_numba(
   if n < period:
     return out
 
-  num_blocks = (n + period - 1) // period
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-  # Precompute Prefix and Suffix Min using parallel blocks
-  prefix_min = np.empty(n, dtype=np.float64)
-  suffix_min = np.empty(n, dtype=np.float64)
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-  # Parallel scan over blocks
-  for b in prange(num_blocks):
-    start = b * period
-    end = min(start + period, n)
+  warmup_idx = period - 1
 
-    # Prefix Min (forward scan in block)
-    curr = data[start]
-    prefix_min[start] = curr
-    for i in range(start + 1, end):
-      v = data[i]
-      if v < curr:
-        curr = v
-      prefix_min[i] = curr
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
 
-    # Suffix Min (backward scan in block)
-    curr = data[end - 1]
-    suffix_min[end - 1] = curr
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v < curr:
-        curr = v
-      suffix_min[i] = curr
+    # Initialize Chunk State
+    l_val = np.inf
+    l_idx = -1
+    for k in range(start_v - period + 1, start_v + 1):
+      if data[k] <= l_val:
+        l_val, l_idx = data[k], k
 
-  # Parallel Merge
-  # Window [i-period+1, i] aligns: L=i-period+1, R=i
-  for i in prange(period - 1, n):
-    L = i - period + 1
-    # suffix_min[L] covers L to block_end
-    # prefix_min[i] covers block_start to i
-    v1 = suffix_min[L]
-    v2 = prefix_min[i]
-    if v1 < v2:
-      out[i] = v1
-    else:
-      out[i] = v2
+    out[start_v] = l_val
+
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp = data[i]
+
+      if l_idx < trailing:
+        l_val = data[trailing]
+        l_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] <= l_val:
+            l_val = data[k]
+            l_idx = k
+      elif tmp <= l_val:
+        l_val = tmp
+        l_idx = i
+
+      out[i] = l_val
 
   return out
 
@@ -95,7 +180,7 @@ def compute_max_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MAX using Parallel Gil-Werman algorithm."""
+  """Calculate rolling MAX using Parallel Chunked Lazy Rescan."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
   out[:] = np.nan
@@ -103,40 +188,52 @@ def compute_max_numba(
   if n < period:
     return out
 
-  num_blocks = (n + period - 1) // period
-  prefix_max = np.empty(n, dtype=np.float64)
-  suffix_max = np.empty(n, dtype=np.float64)
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-  for b in prange(num_blocks):
-    start = b * period
-    end = min(start + period, n)
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    # Prefix
-    curr = data[start]
-    prefix_max[start] = curr
-    for i in range(start + 1, end):
-      v = data[i]
-      if v > curr:
-        curr = v
-      prefix_max[i] = curr
+  warmup_idx = period - 1
 
-    # Suffix
-    curr = data[end - 1]
-    suffix_max[end - 1] = curr
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v > curr:
-        curr = v
-      suffix_max[i] = curr
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
 
-  for i in prange(period - 1, n):
-    L = i - period + 1
-    v1 = suffix_max[L]
-    v2 = prefix_max[i]
-    if v1 > v2:
-      out[i] = v1
-    else:
-      out[i] = v2
+    # Initialize Chunk State
+    h_val = -np.inf
+    h_idx = -1
+    for k in range(start_v - period + 1, start_v + 1):
+      if data[k] >= h_val:
+        h_val, h_idx = data[k], k
+
+    out[start_v] = h_val
+
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp = data[i]
+
+      if h_idx < trailing:
+        h_val = data[trailing]
+        h_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] >= h_val:
+            h_val = data[k]
+            h_idx = k
+      elif tmp >= h_val:
+        h_val = tmp
+        h_idx = i
+
+      out[i] = h_val
 
   return out
 
@@ -146,7 +243,7 @@ def compute_minindex_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MININDEX using Parallel Gil-Werman."""
+  """Calculate rolling MININDEX using Parallel Chunked Lazy Rescan."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
   out[:] = np.nan
@@ -154,53 +251,52 @@ def compute_minindex_numba(
   if n < period:
     return out
 
-  num_blocks = (n + period - 1) // period
-  prefix_min_idx = np.empty(n, dtype=np.int64)
-  suffix_min_idx = np.empty(n, dtype=np.int64)
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-  # Parallel Scan
-  for b in prange(num_blocks):
-    start = b * period
-    end = min(start + period, n)
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    # Prefix
-    c_idx = start
-    c_val = data[start]
-    prefix_min_idx[start] = c_idx
-    for i in range(start + 1, end):
-      v = data[i]
-      if v < c_val:
-        c_val = v
-        c_idx = i
-      prefix_min_idx[i] = c_idx
+  warmup_idx = period - 1
 
-    # Suffix
-    c_idx = end - 1
-    c_val = data[end - 1]
-    suffix_min_idx[end - 1] = c_idx
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v < c_val:
-        c_val = v
-        c_idx = i
-      suffix_min_idx[i] = c_idx
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
 
-  # Parallel Merge
-  for i in prange(period - 1, n):
-    L = i - period + 1
-    # Compare values at the best indices from suffix/prefix
-    idx_s = suffix_min_idx[L]
-    idx_p = prefix_min_idx[i]
-    if data[idx_s] < data[idx_p]:
-      out[i] = float(idx_s)
-    elif data[idx_s] > data[idx_p]:
-      out[i] = float(idx_p)
-    else:
-      # Equal values: prefer lower index (standard behavior)
-      if idx_s < idx_p:
-        out[i] = float(idx_s)
-      else:
-        out[i] = float(idx_p)
+    # Initialize Chunk State
+    l_val = np.inf
+    l_idx = -1
+    for k in range(start_v - period + 1, start_v + 1):
+      if data[k] <= l_val:
+        l_val, l_idx = data[k], k
+
+    out[start_v] = float(l_idx)
+
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp = data[i]
+
+      if l_idx < trailing:
+        l_val = data[trailing]
+        l_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] <= l_val:
+            l_val = data[k]
+            l_idx = k
+      elif tmp <= l_val:
+        l_val = tmp
+        l_idx = i
+
+      out[i] = float(l_idx)
 
   return out
 
@@ -210,7 +306,7 @@ def compute_maxindex_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MAXINDEX using Parallel Gil-Werman."""
+  """Calculate rolling MAXINDEX using Parallel Chunked Lazy Rescan."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
   out[:] = np.nan
@@ -218,51 +314,52 @@ def compute_maxindex_numba(
   if n < period:
     return out
 
-  num_blocks = (n + period - 1) // period
-  prefix_max_idx = np.empty(n, dtype=np.int64)
-  suffix_max_idx = np.empty(n, dtype=np.int64)
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-  for b in prange(num_blocks):
-    start = b * period
-    end = min(start + period, n)
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    # Prefix
-    c_idx = start
-    c_val = data[start]
-    prefix_max_idx[start] = c_idx
-    for i in range(start + 1, end):
-      v = data[i]
-      if v > c_val:
-        c_val = v
-        c_idx = i
-      prefix_max_idx[i] = c_idx
+  warmup_idx = period - 1
 
-    # Suffix
-    c_idx = end - 1
-    c_val = data[end - 1]
-    suffix_max_idx[end - 1] = c_idx
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v > c_val:
-        c_val = v
-        c_idx = i
-      suffix_max_idx[i] = c_idx
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
 
-  for i in prange(period - 1, n):
-    L = i - period + 1
-    idx_s = suffix_max_idx[L]
-    idx_p = prefix_max_idx[i]
+    # Initialize Chunk State
+    h_val = -np.inf
+    h_idx = -1
+    for k in range(start_v - period + 1, start_v + 1):
+      if data[k] >= h_val:
+        h_val, h_idx = data[k], k
 
-    if data[idx_s] > data[idx_p]:
-      out[i] = float(idx_s)
-    elif data[idx_s] < data[idx_p]:
-      out[i] = float(idx_p)
-    else:
-      # Equal values: prefer lower index
-      if idx_s < idx_p:
-        out[i] = float(idx_s)
-      else:
-        out[i] = float(idx_p)
+    out[start_v] = float(h_idx)
+
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp = data[i]
+
+      if h_idx < trailing:
+        h_val = data[trailing]
+        h_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] >= h_val:
+            h_val = data[k]
+            h_idx = k
+      elif tmp >= h_val:
+        h_val = tmp
+        h_idx = i
+
+      out[i] = float(h_idx)
 
   return out
 
@@ -273,6 +370,10 @@ def compute_sum_numba(
   period: int,
 ) -> NDArray[np.float64]:
   """Calculate rolling SUM using O(1) rolling update."""
+  # SUM is already efficient serial, but parallel doesn't help much on simple sum
+  # due to memory bounds. We keep serial O(1) or could optimize.
+  # Actually, Prefix Sum (scan) is parallelizable, but rolling sum is O(1) serially.
+  # Let's keep it serial for now as it beats 1.0x usually.
   n = len(data)
   out = np.empty(n, dtype=np.float64)
   out[:] = np.nan
@@ -300,7 +401,7 @@ def compute_minmax_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-  """Calculate rolling MIN and MAX simultaneously using Parallel Gil-Werman."""
+  """Calculate rolling MIN and MAX simultaneously using Parallel Chunked Lazy Rescan."""
   n = len(data)
   out_min = np.empty(n, dtype=np.float64)
   out_max = np.empty(n, dtype=np.float64)
@@ -310,64 +411,73 @@ def compute_minmax_numba(
   if n < period:
     return out_min, out_max
 
-  num_blocks = (n + period - 1) // period
-  px_min = np.empty(n, dtype=np.float64)
-  sx_min = np.empty(n, dtype=np.float64)
-  px_max = np.empty(n, dtype=np.float64)
-  sx_max = np.empty(n, dtype=np.float64)
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-  # Parallel Block Scan
-  for b in prange(num_blocks):
-    start = b * period
-    end = min(start + period, n)
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-    # Prefix
-    c_min = data[start]
-    c_max = data[start]
-    px_min[start] = c_min
-    px_max[start] = c_max
-    for i in range(start + 1, end):
-      v = data[i]
-      if v < c_min:
-        c_min = v
-      if v > c_max:
-        c_max = v
-      px_min[i] = c_min
-      px_max[i] = c_max
+  warmup_idx = period - 1
 
-    # Suffix
-    c_min = data[end - 1]
-    c_max = data[end - 1]
-    sx_min[end - 1] = c_min
-    sx_max[end - 1] = c_max
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v < c_min:
-        c_min = v
-      if v > c_max:
-        c_max = v
-      sx_min[i] = c_min
-      sx_max[i] = c_max
+  # Parallel Chunk Scan
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
 
-  # Parallel Merge
-  for i in prange(period - 1, n):
-    L = i - period + 1
+    # Initialize Chunk State
+    l_val, h_val = np.inf, -np.inf
+    l_idx, h_idx = -1, -1
 
-    # Min Merge
-    v1 = sx_min[L]
-    v2 = px_min[i]
-    if v1 < v2:
-      out_min[i] = v1
-    else:
-      out_min[i] = v2
+    scan_start = start_v - period + 1
+    for k in range(scan_start, start_v + 1):
+      val = data[k]
+      if val <= l_val:
+        l_val, l_idx = val, k
+      if val >= h_val:
+        h_val, h_idx = val, k
 
-    # Max Merge
-    v1 = sx_max[L]
-    v2 = px_max[i]
-    if v1 > v2:
-      out_max[i] = v1
-    else:
-      out_max[i] = v2
+    out_min[start_v] = l_val
+    out_max[start_v] = h_val
+
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp = data[i]
+
+      # Min Update
+      if l_idx < trailing:
+        l_val = data[trailing]
+        l_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] <= l_val:
+            l_val = data[k]
+            l_idx = k
+      elif tmp <= l_val:
+        l_val = tmp
+        l_idx = i
+
+      # Max Update
+      if h_idx < trailing:
+        h_val = data[trailing]
+        h_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] >= h_val:
+            h_val = data[k]
+            h_idx = k
+      elif tmp >= h_val:
+        h_val = tmp
+        h_idx = i
+
+      out_min[i] = l_val
+      out_max[i] = h_val
 
   return out_min, out_max
 
@@ -377,7 +487,7 @@ def compute_minmaxindex_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-  """Calculate rolling MININDEX and MAXINDEX (Using Parallel Gil-Werman)."""
+  """Calculate rolling MININDEX and MAXINDEX (Using Parallel Chunked Lazy Rescan)."""
   n = len(data)
   out_min = np.empty(n, dtype=np.float64)
   out_max = np.empty(n, dtype=np.float64)
@@ -387,95 +497,161 @@ def compute_minmaxindex_numba(
   if n < period:
     return out_min, out_max
 
-  num_blocks = (n + period - 1) // period
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
 
-  # Min Allocations
-  prefix_min = np.empty(n, dtype=np.int64)
-  suffix_min = np.empty(n, dtype=np.int64)
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
 
-  # Max Allocations
-  prefix_max = np.empty(n, dtype=np.int64)
-  suffix_max = np.empty(n, dtype=np.int64)
+  warmup_idx = period - 1
 
-  # Parallel Block Scan
-  for b in prange(num_blocks):
-    start = b * period
-    end = min(start + period, n)
+  # Parallel Chunk Scan
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
 
-    # --- Min Prefix/Suffix ---
-    # Prefix
-    c_idx = start
-    c_val = data[start]
-    prefix_min[start] = c_idx
-    for i in range(start + 1, end):
-      v = data[i]
-      if v < c_val:
-        c_val = v
-        c_idx = i
-      prefix_min[i] = c_idx
+    # Initialize Chunk State
+    l_val, h_val = np.inf, -np.inf
+    l_idx, h_idx = -1, -1
 
-    # Suffix
-    c_idx = end - 1
-    c_val = data[end - 1]
-    suffix_min[end - 1] = c_idx
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v < c_val:
-        c_val = v
-        c_idx = i
-      suffix_min[i] = c_idx
+    scan_start = start_v - period + 1
+    for k in range(scan_start, start_v + 1):
+      val = data[k]
+      if val <= l_val:
+        l_val, l_idx = val, k
+      if val >= h_val:
+        h_val, h_idx = val, k
 
-    # --- Max Prefix/Suffix ---
-    # Prefix
-    c_idx = start
-    c_val = data[start]
-    prefix_max[start] = c_idx
-    for i in range(start + 1, end):
-      v = data[i]
-      if v > c_val:
-        c_val = v
-        c_idx = i
-      prefix_max[i] = c_idx
+    out_min[start_v] = float(l_idx)
+    out_max[start_v] = float(h_idx)
 
-    # Suffix
-    c_idx = end - 1
-    c_val = data[end - 1]
-    suffix_max[end - 1] = c_idx
-    for i in range(end - 2, start - 1, -1):
-      v = data[i]
-      if v > c_val:
-        c_val = v
-        c_idx = i
-      suffix_max[i] = c_idx
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp = data[i]
 
-  # Parallel Merge
-  for i in prange(period - 1, n):
-    L = i - period + 1
+      # Min Update
+      if l_idx < trailing:
+        l_val = data[trailing]
+        l_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] <= l_val:
+            l_val = data[k]
+            l_idx = k
+      elif tmp <= l_val:
+        l_val = tmp
+        l_idx = i
 
-    # Min Merge
-    idx_s = suffix_min[L]
-    idx_p = prefix_min[i]
-    if data[idx_s] < data[idx_p]:
-      out_min[i] = float(idx_s)
-    elif data[idx_s] > data[idx_p]:
-      out_min[i] = float(idx_p)
-    else:
-      if idx_s < idx_p:
-        out_min[i] = float(idx_s)
-      else:
-        out_min[i] = float(idx_p)
+      # Max Update
+      if h_idx < trailing:
+        h_val = data[trailing]
+        h_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if data[k] >= h_val:
+            h_val = data[k]
+            h_idx = k
+      elif tmp >= h_val:
+        h_val = tmp
+        h_idx = i
 
-    # Max Merge
-    idx_s = suffix_max[L]
-    idx_p = prefix_max[i]
-    if data[idx_s] > data[idx_p]:
-      out_max[i] = float(idx_s)
-    elif data[idx_s] < data[idx_p]:
-      out_max[i] = float(idx_p)
-    else:
-      if idx_s < idx_p:
-        out_max[i] = float(idx_s)
-      else:
-        out_max[i] = float(idx_p)
+      out_min[i] = float(l_idx)
+      out_max[i] = float(h_idx)
+
+  return out_min, out_max
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
+def compute_min_low_max_high_numba(
+  low: NDArray[np.float64],
+  high: NDArray[np.float64],
+  period: int,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+  """Calculate rolling MIN(low) and MAX(high) simultaneously using fused loop."""
+  n = len(low)
+  out_min = np.empty(n, dtype=np.float64)
+  out_max = np.empty(n, dtype=np.float64)
+  out_min[:] = np.nan
+  out_max[:] = np.nan
+
+  if n < period:
+    return out_min, out_max
+
+  total_len = n - period + 1
+  num_chunks = 16
+  if total_len < 4096:
+    num_chunks = 1
+
+  chunk_size = total_len // num_chunks
+  if chunk_size < 1:
+    chunk_size = total_len
+    num_chunks = 1
+
+  warmup_idx = period - 1
+
+  # Parallel Chunk Scan
+  for c in prange(num_chunks + 1):
+    start_v = warmup_idx + c * chunk_size
+    end_v = warmup_idx + (c + 1) * chunk_size
+    if c == num_chunks:
+      end_v = n
+    if start_v >= n:
+      continue
+
+    # Initialize Chunk State
+    l_val, h_val = np.inf, -np.inf
+    l_idx, h_idx = -1, -1
+
+    scan_start = start_v - period + 1
+    for k in range(scan_start, start_v + 1):
+      v_l = low[k]
+      v_h = high[k]
+      if v_l <= l_val:
+        l_val, l_idx = v_l, k
+      if v_h >= h_val:
+        h_val, h_idx = v_h, k
+
+    out_min[start_v] = l_val
+    out_max[start_v] = h_val
+
+    # Process Chunk
+    for i in range(start_v + 1, end_v):
+      trailing = i - period + 1
+      tmp_l = low[i]
+      tmp_h = high[i]
+
+      # Min Update (on LOW)
+      if l_idx < trailing:
+        l_val = low[trailing]
+        l_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if low[k] <= l_val:
+            l_val = low[k]
+            l_idx = k
+      elif tmp_l <= l_val:
+        l_val = tmp_l
+        l_idx = i
+
+      # Max Update (on HIGH)
+      if h_idx < trailing:
+        h_val = high[trailing]
+        h_idx = trailing
+        for k in range(trailing + 1, i + 1):
+          if high[k] >= h_val:
+            h_val = high[k]
+            h_idx = k
+      elif tmp_h >= h_val:
+        h_val = tmp_h
+        h_idx = i
+
+      out_min[i] = l_val
+      out_max[i] = h_val
 
   return out_min, out_max

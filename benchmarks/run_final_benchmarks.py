@@ -34,8 +34,8 @@ from datawarden import config
 print("Importing Indikator modules (validation disabled)...")
 with config.Overrides(skip_validation=True):
   from indikator import (
-    ad,
     acos,
+    ad,
     adosc,
     adx,
     adxr,
@@ -113,8 +113,8 @@ with config.Overrides(skip_validation=True):
     cdl_unique_3river,
     cdl_upside_gap_two_crows,
     cdl_xsidegap3methods,
-    churn_factor,
     ceil,
+    churn_factor,
     cmo,
     correl,
     cos,
@@ -159,10 +159,10 @@ with config.Overrides(skip_validation=True):
     natr,
     obv,
     opening_range,
+    pivots,
     plus_di,
     plus_dm,
     ppo,
-    pivots,
     roc,
     rocp,
     rocr,

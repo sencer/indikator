@@ -1,111 +1,33 @@
 """Math Transform indicators."""
 
-from typing import TYPE_CHECKING, cast
-
 from datawarden import NotEmpty, Validated, validate
 from nonfig import configurable
-from numba import jit
-import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
 
+from indikator.numba.math_transform import (
+  acos_impl,
+  asin_impl,
+  atan_impl,
+  ceil_impl,
+  ceil_impl_serial,
+  cos_impl,
+  cosh_impl,
+  exp_impl,
+  floor_impl,
+  floor_impl_serial,
+  ln_impl,
+  log10_impl,
+  sin_impl,
+  sinh_impl,
+  sqrt_impl,
+  sqrt_impl_serial,
+  tan_impl,
+  tanh_impl,
+)
 from indikator.utils import to_numpy
 
-
-# --- Optimized Kernels (Parallel) ---
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _sin_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.sin(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _cos_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.cos(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _tan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.tan(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _sinh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.sinh(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _cosh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.cosh(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _tanh_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.tanh(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _ceil_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.ceil(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _floor_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.floor(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _exp_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.exp(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _ln_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.log(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _log10_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.log10(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _sqrt_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.sqrt(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _acos_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.arccos(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _asin_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.arcsin(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
-def _atan_impl(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.arctan(data)
-
-
-# --- Serial Kernels (Low Overhead) ---
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=False)
-def _ceil_impl_serial(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.ceil(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=False)
-def _floor_impl_serial(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.floor(data)
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=False)
-def _sqrt_impl_serial(data: NDArray[np.float64]) -> NDArray[np.float64]:
-  return np.sqrt(data)
+# Constants
+PARALLEL_THRESHOLD = 4096
 
 
 # --- Public API ---
@@ -118,7 +40,7 @@ def sin(
 ) -> pd.Series:
   """Vector Trigonometric Sin."""
   arr = to_numpy(data)
-  return pd.Series(_sin_impl(arr), index=data.index, name="sin")
+  return pd.Series(sin_impl(arr), index=data.index, name="sin")
 
 
 @configurable
@@ -128,7 +50,7 @@ def cos(
 ) -> pd.Series:
   """Vector Trigonometric Cos."""
   arr = to_numpy(data)
-  return pd.Series(_cos_impl(arr), index=data.index, name="cos")
+  return pd.Series(cos_impl(arr), index=data.index, name="cos")
 
 
 @configurable
@@ -138,7 +60,7 @@ def tan(
 ) -> pd.Series:
   """Vector Trigonometric Tan."""
   arr = to_numpy(data)
-  return pd.Series(_tan_impl(arr), index=data.index, name="tan")
+  return pd.Series(tan_impl(arr), index=data.index, name="tan")
 
 
 @configurable
@@ -148,7 +70,7 @@ def sinh(
 ) -> pd.Series:
   """Vector Hyperbolic Sin."""
   arr = to_numpy(data)
-  return pd.Series(_sinh_impl(arr), index=data.index, name="sinh")
+  return pd.Series(sinh_impl(arr), index=data.index, name="sinh")
 
 
 @configurable
@@ -158,7 +80,7 @@ def cosh(
 ) -> pd.Series:
   """Vector Hyperbolic Cos."""
   arr = to_numpy(data)
-  return pd.Series(_cosh_impl(arr), index=data.index, name="cosh")
+  return pd.Series(cosh_impl(arr), index=data.index, name="cosh")
 
 
 @configurable
@@ -168,7 +90,7 @@ def tanh(
 ) -> pd.Series:
   """Vector Hyperbolic Tan."""
   arr = to_numpy(data)
-  return pd.Series(_tanh_impl(arr), index=data.index, name="tanh")
+  return pd.Series(tanh_impl(arr), index=data.index, name="tanh")
 
 
 @configurable
@@ -178,10 +100,7 @@ def ceil(
 ) -> pd.Series:
   """Vector Ceil."""
   arr = to_numpy(data)
-  if len(arr) < 4096:
-    res = _ceil_impl_serial(arr)
-  else:
-    res = _ceil_impl(arr)
+  res = ceil_impl_serial(arr) if len(arr) < PARALLEL_THRESHOLD else ceil_impl(arr)
   return pd.Series(res, index=data.index, name="ceil")
 
 
@@ -192,10 +111,7 @@ def floor(
 ) -> pd.Series:
   """Vector Floor."""
   arr = to_numpy(data)
-  if len(arr) < 4096:
-    res = _floor_impl_serial(arr)
-  else:
-    res = _floor_impl(arr)
+  res = floor_impl_serial(arr) if len(arr) < PARALLEL_THRESHOLD else floor_impl(arr)
   return pd.Series(res, index=data.index, name="floor")
 
 
@@ -206,7 +122,7 @@ def exp(
 ) -> pd.Series:
   """Vector Exponential."""
   arr = to_numpy(data)
-  return pd.Series(_exp_impl(arr), index=data.index, name="exp")
+  return pd.Series(exp_impl(arr), index=data.index, name="exp")
 
 
 @configurable
@@ -216,7 +132,7 @@ def ln(
 ) -> pd.Series:
   """Vector Natural Log."""
   arr = to_numpy(data)
-  return pd.Series(_ln_impl(arr), index=data.index, name="ln")
+  return pd.Series(ln_impl(arr), index=data.index, name="ln")
 
 
 @configurable
@@ -226,7 +142,7 @@ def log10(
 ) -> pd.Series:
   """Vector Log Base 10."""
   arr = to_numpy(data)
-  return pd.Series(_log10_impl(arr), index=data.index, name="log10")
+  return pd.Series(log10_impl(arr), index=data.index, name="log10")
 
 
 @configurable
@@ -236,10 +152,7 @@ def sqrt(
 ) -> pd.Series:
   """Vector Square Root."""
   arr = to_numpy(data)
-  if len(arr) < 4096:
-    res = _sqrt_impl_serial(arr)
-  else:
-    res = _sqrt_impl(arr)
+  res = sqrt_impl_serial(arr) if len(arr) < PARALLEL_THRESHOLD else sqrt_impl(arr)
   return pd.Series(res, index=data.index, name="sqrt")
 
 
@@ -250,7 +163,7 @@ def acos(
 ) -> pd.Series:
   """Vector Arccos."""
   arr = to_numpy(data)
-  return pd.Series(_acos_impl(arr), index=data.index, name="acos")
+  return pd.Series(acos_impl(arr), index=data.index, name="acos")
 
 
 @configurable
@@ -260,7 +173,7 @@ def asin(
 ) -> pd.Series:
   """Vector Arcsin."""
   arr = to_numpy(data)
-  return pd.Series(_asin_impl(arr), index=data.index, name="asin")
+  return pd.Series(asin_impl(arr), index=data.index, name="asin")
 
 
 @configurable
@@ -270,4 +183,4 @@ def atan(
 ) -> pd.Series:
   """Vector Arctan."""
   arr = to_numpy(data)
-  return pd.Series(_atan_impl(arr), index=data.index, name="atan")
+  return pd.Series(atan_impl(arr), index=data.index, name="atan")

@@ -9,6 +9,8 @@ from datawarden import NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
 import pandas as pd
 
+PARALLEL_THRESHOLD: ...
+
 class _sin_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(self, data: Validated[pd.Series[float], NotEmpty]) -> pd.Series: ...
