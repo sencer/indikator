@@ -1,259 +1,142 @@
-"""Numba-optimized rolling min/max calculations."""
+"""Numba-optimized rolling min/max calculations using Parallel Gil-Werman."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numba import jit
+from numba import jit, prange
 import numpy as np
 
 if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_midprice_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate MIDPRICE using amortized O(n) lazy rescan.
-
-  MIDPRICE = (highest high + lowest low) / 2 over period.
-
-  Uses lazy rescan: tracks index of current max/min and only rescans
-  when that index falls outside the sliding window.
-  """
-  n = len(high)
-  out = np.empty(n, dtype=np.float64)
-
-  if n < period:
-    for i in range(n):
-      out[i] = np.nan
-    return out
-
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
-
-  # Initialize trackers with first window
-  h_idx = 0
-  h_val = high[0]
-  l_idx = 0
-  l_val = low[0]
-
-  for k in range(1, period):
-    if high[k] >= h_val:
-      h_val = high[k]
-      h_idx = k
-    if low[k] <= l_val:
-      l_val = low[k]
-      l_idx = k
-
-  out[period - 1] = (h_val + l_val) / 2.0
-
-  # Main loop with lazy rescan
-  for i in range(period, n):
-    trailing = i - period + 1
-
-    # Update high - lazy rescan
-    if h_idx < trailing:
-      # Max fell out of window, rescan
-      h_idx = trailing
-      h_val = high[trailing]
-      for k in range(trailing + 1, i + 1):
-        if high[k] >= h_val:
-          h_val = high[k]
-          h_idx = k
-    elif high[i] >= h_val:
-      h_val = high[i]
-      h_idx = i
-
-    # Update low - lazy rescan
-    if l_idx < trailing:
-      # Min fell out of window, rescan
-      l_idx = trailing
-      l_val = low[trailing]
-      for k in range(trailing + 1, i + 1):
-        if low[k] <= l_val:
-          l_val = low[k]
-          l_idx = k
-    elif low[i] <= l_val:
-      l_val = low[i]
-      l_idx = i
-
-    out[i] = (h_val + l_val) / 2.0
-
-  return out
+  """Calculate MIDPRICE using strict O(N) Parallel Gil-Werman."""
+  # We invoke min/max separately effectively doubling work, but it's simple.
+  # For max perf, we should fuse them, but let's rely on their individual optimization first.
+  return (compute_max_numba(high, period) + compute_min_numba(low, period)) / 2.0
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_midpoint_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate MIDPOINT using amortized O(n) lazy rescan.
-
-  MIDPOINT = (highest + lowest) / 2 over period.
-
-  Uses lazy rescan: tracks index of current max/min and only rescans
-  when that index falls outside the sliding window.
-  """
-  n = len(data)
-  out = np.empty(n, dtype=np.float64)
-
-  if n < period:
-    for i in range(n):
-      out[i] = np.nan
-    return out
-
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
-
-  # Initialize trackers with first window
-  max_idx = 0
-  max_val = data[0]
-  min_idx = 0
-  min_val = data[0]
-
-  for k in range(1, period):
-    if data[k] >= max_val:
-      max_val = data[k]
-      max_idx = k
-    if data[k] <= min_val:
-      min_val = data[k]
-      min_idx = k
-
-  out[period - 1] = (max_val + min_val) / 2.0
-
-  # Main loop with lazy rescan
-  for i in range(period, n):
-    trailing = i - period + 1
-
-    # Update max - lazy rescan
-    if max_idx < trailing:
-      max_idx = trailing
-      max_val = data[trailing]
-      for k in range(trailing + 1, i + 1):
-        if data[k] >= max_val:
-          max_val = data[k]
-          max_idx = k
-    elif data[i] >= max_val:
-      max_val = data[i]
-      max_idx = i
-
-    # Update min - lazy rescan
-    if min_idx < trailing:
-      min_idx = trailing
-      min_val = data[trailing]
-      for k in range(trailing + 1, i + 1):
-        if data[k] <= min_val:
-          min_val = data[k]
-          min_idx = k
-    elif data[i] <= min_val:
-      min_val = data[i]
-      min_idx = i
-
-    out[i] = (max_val + min_val) / 2.0
-
-  return out
+  """Calculate MIDPOINT using strict O(N) Parallel Gil-Werman."""
+  return (compute_max_numba(data, period) + compute_min_numba(data, period)) / 2.0
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_min_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MIN using amortized O(n) lazy rescan."""
+  """Calculate rolling MIN using Parallel Gil-Werman algorithm."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
+  out[:] = np.nan
 
   if n < period:
-    for i in range(n):
-      out[i] = np.nan
     return out
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
+  num_blocks = (n + period - 1) // period
 
-  # First window
-  l_idx = 0
-  l_val = data[0]
-  for k in range(1, period):
-    if data[k] <= l_val:
-      l_val = data[k]
-      l_idx = k
-  out[period - 1] = l_val
+  # Precompute Prefix and Suffix Min using parallel blocks
+  prefix_min = np.empty(n, dtype=np.float64)
+  suffix_min = np.empty(n, dtype=np.float64)
 
-  # Lazy rescan
-  for i in range(period, n):
-    trailing = i - period + 1
+  # Parallel scan over blocks
+  for b in prange(num_blocks):
+    start = b * period
+    end = min(start + period, n)
 
-    # Update low
-    if l_idx < trailing:
-      # Rescan
-      l_idx = trailing
-      l_val = data[trailing]
-      for k in range(trailing + 1, i + 1):
-        if data[k] <= l_val:
-          l_val = data[k]
-          l_idx = k
-    elif data[i] <= l_val:
-      l_val = data[i]
-      l_idx = i
+    # Prefix Min (forward scan in block)
+    curr = data[start]
+    prefix_min[start] = curr
+    for i in range(start + 1, end):
+      v = data[i]
+      if v < curr:
+        curr = v
+      prefix_min[i] = curr
 
-    out[i] = l_val
+    # Suffix Min (backward scan in block)
+    curr = data[end - 1]
+    suffix_min[end - 1] = curr
+    for i in range(end - 2, start - 1, -1):
+      v = data[i]
+      if v < curr:
+        curr = v
+      suffix_min[i] = curr
+
+  # Parallel Merge
+  # Window [i-period+1, i] aligns: L=i-period+1, R=i
+  for i in prange(period - 1, n):
+    L = i - period + 1
+    # suffix_min[L] covers L to block_end
+    # prefix_min[i] covers block_start to i
+    v1 = suffix_min[L]
+    v2 = prefix_min[i]
+    if v1 < v2:
+      out[i] = v1
+    else:
+      out[i] = v2
 
   return out
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_max_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MAX using amortized O(n) lazy rescan."""
+  """Calculate rolling MAX using Parallel Gil-Werman algorithm."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
+  out[:] = np.nan
 
   if n < period:
-    for i in range(n):
-      out[i] = np.nan
     return out
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
+  num_blocks = (n + period - 1) // period
+  prefix_max = np.empty(n, dtype=np.float64)
+  suffix_max = np.empty(n, dtype=np.float64)
 
-  # First window
-  h_idx = 0
-  h_val = data[0]
-  for k in range(1, period):
-    if data[k] >= h_val:
-      h_val = data[k]
-      h_idx = k
-  out[period - 1] = h_val
+  for b in prange(num_blocks):
+    start = b * period
+    end = min(start + period, n)
 
-  # Lazy rescan
-  for i in range(period, n):
-    trailing = i - period + 1
+    # Prefix
+    curr = data[start]
+    prefix_max[start] = curr
+    for i in range(start + 1, end):
+      v = data[i]
+      if v > curr:
+        curr = v
+      prefix_max[i] = curr
 
-    # Update high
-    if h_idx < trailing:
-      # Rescan
-      h_idx = trailing
-      h_val = data[trailing]
-      for k in range(trailing + 1, i + 1):
-        if data[k] >= h_val:
-          h_val = data[k]
-          h_idx = k
-    elif data[i] >= h_val:
-      h_val = data[i]
-      h_idx = i
+    # Suffix
+    curr = data[end - 1]
+    suffix_max[end - 1] = curr
+    for i in range(end - 2, start - 1, -1):
+      v = data[i]
+      if v > curr:
+        curr = v
+      suffix_max[i] = curr
 
-    out[i] = h_val
+  for i in prange(period - 1, n):
+    L = i - period + 1
+    v1 = suffix_max[L]
+    v2 = prefix_max[i]
+    if v1 > v2:
+      out[i] = v1
+    else:
+      out[i] = v2
 
   return out
 
@@ -263,20 +146,21 @@ def compute_minindex_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MININDEX (index relative to start of array)."""
+  """Calculate rolling MININDEX using lazy rescan (Indices are harder with GW).
+
+  Note: Gil-Werman for Indices requires tracking index in prefix/suffix.
+  Reverting to Lazy Rescan for indices as it's often simpler/equivalent.
+
+  However, to match performance, we can improve Lazy Rescan logic slightly.
+  """
   n = len(data)
   out = np.empty(n, dtype=np.float64)
+  out[:] = np.nan
 
   if n < period:
-    for i in range(n):
-      out[i] = np.nan
     return out
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
-
-  # First window
+  # Warmup
   l_idx = 0
   l_val = data[0]
   for k in range(1, period):
@@ -288,7 +172,6 @@ def compute_minindex_numba(
   # Lazy rescan
   for i in range(period, n):
     trailing = i - period + 1
-
     if l_idx < trailing:
       # Rescan
       l_idx = trailing
@@ -300,9 +183,7 @@ def compute_minindex_numba(
     elif data[i] <= l_val:
       l_val = data[i]
       l_idx = i
-
     out[i] = float(l_idx)
-
   return out
 
 
@@ -311,20 +192,13 @@ def compute_maxindex_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> NDArray[np.float64]:
-  """Calculate rolling MAXINDEX (index relative to start of array)."""
+  """Calculate rolling MAXINDEX using lazy rescan."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
-
+  out[:] = np.nan
   if n < period:
-    for i in range(n):
-      out[i] = np.nan
     return out
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
-
-  # First window
   h_idx = 0
   h_val = data[0]
   for k in range(1, period):
@@ -333,12 +207,9 @@ def compute_maxindex_numba(
       h_idx = k
   out[period - 1] = float(h_idx)
 
-  # Lazy rescan
   for i in range(period, n):
     trailing = i - period + 1
-
     if h_idx < trailing:
-      # Rescan
       h_idx = trailing
       h_val = data[trailing]
       for k in range(trailing + 1, i + 1):
@@ -348,9 +219,7 @@ def compute_maxindex_numba(
     elif data[i] >= h_val:
       h_val = data[i]
       h_idx = i
-
     out[i] = float(h_idx)
-
   return out
 
 
@@ -362,89 +231,99 @@ def compute_sum_numba(
   """Calculate rolling SUM using O(1) rolling update."""
   n = len(data)
   out = np.empty(n, dtype=np.float64)
+  out[:] = np.nan
 
   if n < period:
-    for i in range(n):
-      out[i] = np.nan
     return out
 
-  # NaN for warmup
-  for i in range(period - 1):
-    out[i] = np.nan
-
-  # First window sum
   current_sum = 0.0
+  # Warmup
   for i in range(period):
     current_sum += data[i]
 
   out[period - 1] = current_sum
 
-  # Rolling update
+  # Rolling
   for i in range(period, n):
-    old_val = data[i - period]
-    new_val = data[i]
-    current_sum = current_sum - old_val + new_val
+    current_sum += data[i] - data[i - period]
     out[i] = current_sum
 
   return out
 
 
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+@jit(nopython=True, cache=True, nogil=True, fastmath=True, parallel=True)
 def compute_minmax_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-  """Calculate rolling MIN and MAX simultaneously."""
+  """Calculate rolling MIN and MAX simultaneously using Parallel Gil-Werman."""
   n = len(data)
-  out_min = np.full(n, np.nan, dtype=np.float64)
-  out_max = np.full(n, np.nan, dtype=np.float64)
+  out_min = np.empty(n, dtype=np.float64)
+  out_max = np.empty(n, dtype=np.float64)
+  out_min[:] = np.nan
+  out_max[:] = np.nan
 
   if n < period:
     return out_min, out_max
 
-  # Initialize
-  l_idx = 0
-  l_val = data[0]
-  h_idx = 0
-  h_val = data[0]
-  for k in range(1, period):
-    if data[k] <= l_val:
-      l_val = data[k]
-      l_idx = k
-    if data[k] >= h_val:
-      h_val = data[k]
-      h_idx = k
-  out_min[period - 1] = l_val
-  out_max[period - 1] = h_val
+  num_blocks = (n + period - 1) // period
+  px_min = np.empty(n, dtype=np.float64)
+  sx_min = np.empty(n, dtype=np.float64)
+  px_max = np.empty(n, dtype=np.float64)
+  sx_max = np.empty(n, dtype=np.float64)
 
-  # Lazy rescan
-  for i in range(period, n):
-    trailing = i - period + 1
+  # Parallel Block Scan
+  for b in prange(num_blocks):
+    start = b * period
+    end = min(start + period, n)
 
-    if l_idx < trailing:
-      l_idx = trailing
-      l_val = data[trailing]
-      for k in range(trailing + 1, i + 1):
-        if data[k] <= l_val:
-          l_val = data[k]
-          l_idx = k
-    elif data[i] <= l_val:
-      l_val = data[i]
-      l_idx = i
+    # Prefix
+    c_min = data[start]
+    c_max = data[start]
+    px_min[start] = c_min
+    px_max[start] = c_max
+    for i in range(start + 1, end):
+      v = data[i]
+      if v < c_min:
+        c_min = v
+      if v > c_max:
+        c_max = v
+      px_min[i] = c_min
+      px_max[i] = c_max
 
-    if h_idx < trailing:
-      h_idx = trailing
-      h_val = data[trailing]
-      for k in range(trailing + 1, i + 1):
-        if data[k] >= h_val:
-          h_val = data[k]
-          h_idx = k
-    elif data[i] >= h_val:
-      h_val = data[i]
-      h_idx = i
+    # Suffix
+    c_min = data[end - 1]
+    c_max = data[end - 1]
+    sx_min[end - 1] = c_min
+    sx_max[end - 1] = c_max
+    for i in range(end - 2, start - 1, -1):
+      v = data[i]
+      if v < c_min:
+        c_min = v
+      if v > c_max:
+        c_max = v
+      sx_min[i] = c_min
+      sx_max[i] = c_max
 
-    out_min[i] = l_val
-    out_max[i] = h_val
+  # Parallel Merge
+  for i in prange(period - 1, n):
+    L = i - period + 1
+
+    # Min
+    v1 = sx_min[L]
+    v2 = px_min[i]
+    if v1 < v2:
+      out_min[i] = v1
+    else:
+      out_min[i] = v2
+
+    # Max
+    v1 = sx_max[L]
+    v2 = px_max[i]
+    if v1 > v2:
+      out_max[i] = v1
+    else:
+      out_max[i] = v2
 
   return out_min, out_max
 
@@ -454,7 +333,8 @@ def compute_minmaxindex_numba(
   data: NDArray[np.float64],
   period: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-  """Calculate rolling MININDEX and MAXINDEX simultaneously."""
+  """Calculate rolling MININDEX and MAXINDEX (Using Lazy Rescan)."""
+  # Reverting to Lazy Rescan for indices simplicity
   n = len(data)
   out_min = np.full(n, np.nan, dtype=np.float64)
   out_max = np.full(n, np.nan, dtype=np.float64)
