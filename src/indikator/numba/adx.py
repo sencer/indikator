@@ -710,16 +710,14 @@ def compute_adxr_numba(
 
   # First, compute ADX (pure)
   adx = compute_adx_numba_pure(high, low, close, period)
-
   adxr = np.full(n, np.nan)
 
-  start_idx = period * 3 - 1
-  if n <= start_idx:
+  lookback = period * 3 - 2
+  if n <= lookback:
     return adxr
 
-  # Vectorized calculation on the array is efficient in Numba
-  # ADXR[i] = (ADX[i] + ADX[i-period]) / 2
-  for i in range(start_idx, n):
-    adxr[i] = (adx[i] + adx[i - period]) / 2.0
+  # ADXR[i] = (ADX[i] + ADX[i-(period-1)]) / 2
+  for i in range(lookback, n):
+    adxr[i] = (adx[i] + adx[i - (period - 1)]) / 2.0
 
   return adxr

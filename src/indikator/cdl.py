@@ -13,7 +13,7 @@ from datawarden import (
   Validated,
   validate,
 )
-from nonfig import configurable
+from nonfig import Ge, Hyper, Le, configurable
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
@@ -46,7 +46,6 @@ from indikator.numba.cdl import (
   detect_identical_three_crows_numba,
   detect_in_neck_numba,
   detect_inverted_hammer_numba,
-  detect_kicking_by_length_numba,
   detect_kicking_numba,
   detect_ladder_bottom_numba,
   detect_long_legged_doji_numba,
@@ -92,16 +91,14 @@ def cdl_doji(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Doji pattern.
+  """Detect Doji pattern using TA-Lib stateful logic."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  Returns 100 if detected, 0 otherwise.
-  """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  rng = h - low_arr
+  avg_ref = _rolling_sma_prev(rng, 10)  # Doji uses SMA(Total Range)
+  avg_body_doji = avg_ref * 0.1
 
-  result = detect_doji_numba(o, h, low_arr, c)
+  result = detect_doji_numba(o, h, low_arr, c, avg_body_doji=avg_body_doji)
   return pd.Series(result, index=open_.index, name="cdl_doji")
 
 
@@ -113,16 +110,30 @@ def cdl_hammer(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Hammer pattern.
+  """Detect Hammer pattern."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  Returns 100 (Bullish) if detected, 0 otherwise.
-  """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  # BodyShort: SMA 10, factor 1.0, ref RealBody
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+  # ShadowLong: factor 1.0, ref Current RealBody
+  avg_shadow_long = real_body * 1.0
+  # ShadowVeryShort: SMA 10, factor 0.1, ref HighLow
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+  # Near: SMA 5, factor 0.2, ref HighLow
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
 
-  result = detect_hammer_numba(o, h, low_arr, c)
+  result = detect_hammer_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_short=avg_body_short,
+    avg_shadow_long=avg_shadow_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+    avg_near=avg_near,
+  )
   return pd.Series(result, index=open_.index, name="cdl_hammer")
 
 
@@ -165,12 +176,17 @@ def cdl_harami(
   - -100: Bearish Harami
   - 0: None
   """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  result = detect_harami_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  # TA-Lib defaults: BodyLong 10, factor 1.0; BodyShort 10, factor 1.0
+  avg_body = _rolling_sma_prev(real_body, 10)
+  avg_body_long = avg_body * 1.0
+  avg_body_short = avg_body * 1.0
+
+  result = detect_harami_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_harami")
 
 
@@ -182,18 +198,27 @@ def cdl_shooting_star(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Shooting Star pattern.
+  """Detect Shooting Star pattern."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  Returns:
-  - -100: Bearish Shooting Star
-  - 0: None
-  """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  # BodyShort: SMA 10, factor 1.0, ref RealBody
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+  # ShadowLong: factor 1.0, ref Current RealBody
+  avg_shadow_long = real_body * 1.0
+  # ShadowVeryShort: SMA 10, factor 0.1, ref HighLow
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
 
-  result = detect_shooting_star_numba(o, h, low_arr, c)
+  result = detect_shooting_star_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_short=avg_body_short,
+    avg_shadow_long=avg_shadow_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_shooting_star")
 
 
@@ -205,18 +230,27 @@ def cdl_inverted_hammer(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Inverted Hammer pattern.
+  """Detect Inverted Hammer pattern."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  Returns:
-  - 100: Bullish Inverted Hammer
-  - 0: None
-  """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  # BodyShort: SMA 10, factor 1.0, ref RealBody
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+  # ShadowLong: factor 1.0, ref Current RealBody
+  avg_shadow_long = real_body * 1.0
+  # ShadowVeryShort: SMA 10, factor 0.1, ref HighLow
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
 
-  result = detect_inverted_hammer_numba(o, h, low_arr, c)
+  result = detect_inverted_hammer_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_short=avg_body_short,
+    avg_shadow_long=avg_shadow_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_inverted_hammer")
 
 
@@ -228,18 +262,30 @@ def cdl_hanging_man(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Hanging Man pattern.
+  """Detect Hanging Man pattern."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  Returns:
-  - -100: Bearish Hanging Man
-  - 0: None
-  """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  # BodyShort: SMA 10, factor 1.0, ref RealBody
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+  # ShadowLong: factor 1.0, ref Current RealBody
+  avg_shadow_long = real_body * 1.0
+  # ShadowVeryShort: SMA 10, factor 0.1, ref HighLow
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+  # Near: SMA 5, factor 0.2, ref HighLow
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
 
-  result = detect_hanging_man_numba(o, h, low_arr, c)
+  result = detect_hanging_man_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_short=avg_body_short,
+    avg_shadow_long=avg_shadow_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+    avg_near=avg_near,
+  )
   return pd.Series(result, index=open_.index, name="cdl_hanging_man")
 
 
@@ -251,19 +297,21 @@ def cdl_marubozu(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Marubozu pattern.
+  """Detect Marubozu pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
 
-  Returns:
-  - 100: Bullish (White) Marubozu
-  - -100: Bearish (Black) Marubozu
-  - 0: None
-  """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  real_body = np.abs(c - o)
+  rng = h - l
+  # Exclusive averages
+  avg_body_ref = _rolling_sma_prev(real_body, 10)
+  avg_shadow_ref = _rolling_sma_prev(rng, 10)
 
-  result = detect_marubozu_numba(o, h, low_arr, c)
+  avg_body_long = avg_body_ref * 1.0
+  avg_shadow_very_short = avg_shadow_ref * 0.1
+
+  result = detect_marubozu_numba(
+    o, h, l, c, avg_body_long=avg_body_long, avg_shadow_very_short=avg_shadow_very_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_marubozu")
 
 
@@ -274,6 +322,7 @@ def cdl_morning_star(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Morning Star pattern.
 
@@ -281,12 +330,20 @@ def cdl_morning_star(
   - 100: Bullish Morning Star
   - 0: None
   """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
 
-  result = detect_morning_star_numba(o, h, low_arr, c)
+  result = detect_morning_star_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_body_short=avg_body_short,
+    penetration=penetration,
+  )
   return pd.Series(result, index=open_.index, name="cdl_morning_star")
 
 
@@ -297,6 +354,7 @@ def cdl_evening_star(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Evening Star pattern.
 
@@ -304,12 +362,20 @@ def cdl_evening_star(
   - -100: Bearish Evening Star
   - 0: None
   """
-  o = to_numpy(open_)
-  h = to_numpy(high)
-  low_arr = to_numpy(low)
-  c = to_numpy(close)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
 
-  result = detect_evening_star_numba(o, h, low_arr, c)
+  result = detect_evening_star_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_body_short=avg_body_short,
+    penetration=penetration,
+  )
   return pd.Series(result, index=open_.index, name="cdl_evening_star")
 
 
@@ -328,7 +394,13 @@ def cdl_3black_crows(
   - 0: None
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_three_black_crows_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_three_black_crows_numba(
+    o, h, low_arr, c, avg_shadow_very_short=avg_shadow_very_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_3black_crows")
 
 
@@ -347,7 +419,25 @@ def cdl_3white_soldiers(
   - 0: None
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_three_white_soldiers_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  real_body = np.abs(c - o)
+
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
+  avg_far = _rolling_sma_prev(rng, 5) * 0.6
+  avg_body_short = _rolling_sma_prev(real_body, 10)
+
+  result = detect_three_white_soldiers_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_shadow_very_short=avg_shadow_very_short,
+    avg_near=avg_near,
+    avg_far=avg_far,
+    avg_body_short=avg_body_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_3white_soldiers")
 
 
@@ -366,7 +456,13 @@ def cdl_3inside(
   - -100: Three Inside Down (Bearish)
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_three_inside_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_three_inside_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_3inside")
 
 
@@ -404,8 +500,30 @@ def cdl_3line_strike(
   - -100: Bearish Strike
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_three_line_strike_numba(o, h, low_arr, c)
+
+  # TA-Lib 'Near' defaults: Period=5, Factor=0.2, Type=HighLow
+  rng = h - low_arr
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
+
+  result = detect_three_line_strike_numba(o, h, low_arr, c, avg_near=avg_near)
   return pd.Series(result, index=open_.index, name="cdl_3line_strike")
+
+
+@configurable
+@validate
+def cdl_tristar(
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Tristar."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  rng = h - l
+  avg_body_doji = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_tristar_numba(o, h, l, c, avg_body_doji=avg_body_doji)
+  return pd.Series(result, index=open_.index, name="cdl_tristar")
 
 
 @configurable
@@ -416,14 +534,12 @@ def cdl_piercing(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Piercing Pattern.
+  """Detect Piercing Pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
 
-  Returns:
-  - 100: Bullish Piercing
-  - 0: None
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_piercing_numba(o, h, low_arr, c)
+  result = detect_piercing_numba(o, h, l, c, avg_body_long=avg_body_long)
   return pd.Series(result, index=open_.index, name="cdl_piercing")
 
 
@@ -434,15 +550,16 @@ def cdl_dark_cloud_cover(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.5,
 ) -> pd.Series:
-  """Detect Dark Cloud Cover Pattern.
+  """Detect Dark Cloud Cover."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
 
-  Returns:
-  - -100: Bearish Dark Cloud Cover
-  - 0: None
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_dark_cloud_cover_numba(o, h, low_arr, c)
+  result = detect_dark_cloud_cover_numba(
+    o, h, l, c, avg_body_long=avg_body_long, penetration=penetration
+  )
   return pd.Series(result, index=open_.index, name="cdl_dark_cloud_cover")
 
 
@@ -454,15 +571,113 @@ def cdl_kicking(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Kicking Pattern.
+  """Detect Kicking Pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
 
-  Returns:
-  - 100: Bullish Kicking
-  - -100: Bearish Kicking
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_kicking_numba(o, h, low_arr, c)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_kicking_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+    by_length=False,
+  )
   return pd.Series(result, index=open_.index, name="cdl_kicking")
+
+
+@configurable
+@validate
+def cdl_kicking_by_length(
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Kicking - bull/bear determined by the longer marubozu."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
+
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_kicking_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+    by_length=True,
+  )
+  return pd.Series(result, index=open_.index, name="cdl_kicking_by_length")
+
+
+def _rolling_sma_prev(
+  series: pd.Series | NDArray[np.float64], period: int
+) -> NDArray[np.float64]:
+  """Calculate rolling SMA of previous 'period' elements."""
+  if isinstance(series, np.ndarray):
+    series = pd.Series(series)
+  return series.rolling(period).mean().shift(1).to_numpy(dtype=np.float64)
+
+
+def _rolling_sma(
+  series: pd.Series | NDArray[np.float64], period: int
+) -> NDArray[np.float64]:
+  """Calculate rolling SMA of 'period' elements (inclusive of current)."""
+  if isinstance(series, np.ndarray):
+    series = pd.Series(series)
+  return series.rolling(period).mean().to_numpy(dtype=np.float64)
+
+
+@configurable
+@validate
+def cdl_short_line(
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Short Line."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+
+  # Calculate features
+  real_body = np.abs(c - o)
+  shadows = (h - low_arr) - real_body
+
+  # TA-Lib settings: BodyShort (factor 1.0, ref RealBody), ShadowShort (factor 0.5, ref Shadows)
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_shadow_short = _rolling_sma_prev(shadows, 10) * 0.5
+
+  result = detect_short_line_numba(
+    o, h, low_arr, c, avg_body_short=avg_body_short, avg_shadow_short=avg_shadow_short
+  )
+  return pd.Series(result, index=open_.index, name="cdl_short_line")
+
+
+@configurable
+@validate
+def cdl_spinning_top(
+  open_: Validated[pd.Series[float], Finite, NotEmpty],
+  high: Validated[pd.Series[float], Finite, NotEmpty],
+  low: Validated[pd.Series[float], Finite, NotEmpty],
+  close: Validated[pd.Series[float], Finite, NotEmpty],
+) -> pd.Series:
+  """Detect Spinning Top pattern using TA-Lib stateful logic."""
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+
+  real_body = np.abs(c - o)
+  avg_body_short = _rolling_sma_prev(real_body, 10)  # SpinningTop uses SMA(RealBody)
+
+  result = detect_spinning_top_numba(o, h, low_arr, c, avg_body=avg_body_short)
+  return pd.Series(result, index=open_.index, name="cdl_spinning_top")
 
 
 @configurable
@@ -480,45 +695,13 @@ def cdl_matching_low(
   - 0: None
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_matching_low_numba(o, h, low_arr, c)
+
+  # TA-Lib 'Equal' defaults: Period=5, Factor=0.05, Type=HighLow
+  rng = h - low_arr
+  avg_equal = _rolling_sma(rng, 5) * 0.05
+
+  result = detect_matching_low_numba(o, h, low_arr, c, avg_equal=avg_equal)
   return pd.Series(result, index=open_.index, name="cdl_matching_low")
-
-
-@configurable
-@validate
-def cdl_spinning_top(
-  open_: Validated[pd.Series[float], Finite, NotEmpty],
-  high: Validated[pd.Series[float], Finite, NotEmpty],
-  low: Validated[pd.Series[float], Finite, NotEmpty],
-  close: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
-  """Detect Spinning Top pattern.
-
-  Returns:
-  - 100: Bullish/Neutral Spinning Top
-  - -100: Bearish/Neutral Spinning Top
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_spinning_top_numba(o, h, low_arr, c)
-  return pd.Series(result, index=open_.index, name="cdl_spinning_top")
-
-
-@configurable
-@validate
-def cdl_rickshaw_man(
-  open_: Validated[pd.Series[float], Finite, NotEmpty],
-  high: Validated[pd.Series[float], Finite, NotEmpty],
-  low: Validated[pd.Series[float], Finite, NotEmpty],
-  close: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
-  """Detect Rickshaw Man pattern.
-
-  Returns:
-  - 100: Detected
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_rickshaw_man_numba(o, h, low_arr, c)
-  return pd.Series(result, index=open_.index, name="cdl_rickshaw_man")
 
 
 @configurable
@@ -529,14 +712,21 @@ def cdl_high_wave(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect High Wave pattern.
-
-  Returns:
-  - 100: Bullish High Wave
-  - -100: Bearish High Wave
-  """
+  """Detect High Wave pattern using TA-Lib logic."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_high_wave_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  avg_ref = _rolling_sma_prev(real_body, 10)
+
+  # TA-Lib settings for HighWave:
+  # BodyShort (1.0), ShadowLong (1.0)
+  # BodyShort (1.0), ShadowLong (1.0)
+  avg_body = avg_ref * 1.0
+  avg_shadow = real_body * 2.0
+
+  result = detect_high_wave_numba(
+    o, h, low_arr, c, avg_body=avg_body, avg_shadow=avg_shadow
+  )
   return pd.Series(result, index=open_.index, name="cdl_high_wave")
 
 
@@ -548,33 +738,36 @@ def cdl_long_legged_doji(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Long Legged Doji pattern.
-
-  Returns:
-  - 100: Detected
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_long_legged_doji_numba(o, h, low_arr, c)
+  """Detect Long Legged Doji pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  rng = h - l
+  avg_body_doji = _rolling_sma_prev(rng, 10) * 0.1
+  result = detect_long_legged_doji_numba(o, h, l, c, avg_body_doji=avg_body_doji)
   return pd.Series(result, index=open_.index, name="cdl_long_legged_doji")
 
 
 @configurable
 @validate
-def cdl_tristar(
+def cdl_rickshaw_man(
   open_: Validated[pd.Series[float], Finite, NotEmpty],
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Tristar pattern.
+  """Detect Rickshaw Man."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  rng = h - l
+  real_body = np.abs(c - o)
 
-  Returns:
-  - 100: Bullish Tristar
-  - -100: Bearish Tristar
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_tristar_numba(o, h, low_arr, c)
-  return pd.Series(result, index=open_.index, name="cdl_tristar")
+  avg_body = _rolling_sma_prev(rng, 10) * 0.1
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
+
+  # ShadowLong period 0 means RealBody of the candle itself
+  # Passing real_body directly to the kernel
+  result = detect_rickshaw_man_numba(
+    o, h, l, c, avg_body=avg_body, avg_shadow=real_body, avg_near=avg_near
+  )
+  return pd.Series(result, index=open_.index, name="cdl_rickshaw_man")
 
 
 @configurable
@@ -585,14 +778,12 @@ def cdl_tasuki_gap(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Tasuki Gap pattern.
+  """Detect Tasuki Gap."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  rng = h - l
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
 
-  Returns:
-  - 100: Upside Tasuki Gap
-  - -100: Downside Tasuki Gap
-  """
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_tasuki_gap_numba(o, h, low_arr, c)
+  result = detect_tasuki_gap_numba(o, h, l, c, avg_near=avg_near)
   return pd.Series(result, index=open_.index, name="cdl_tasuki_gap")
 
 
@@ -611,7 +802,27 @@ def cdl_separating_lines(
   - -100: Bearish
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_separating_lines_numba(o, h, low_arr, c)
+
+  # TA-Lib 'Equal' defaults: Period=5, Factor=0.05, Type=HighLow
+  rng = h - low_arr
+  # SepLines requires Average Equal calculated at i-1 (Start of Pattern)
+  # But wrapper provides P=5. Kernel will shift index.
+  avg_equal = _rolling_sma(rng, 5) * 0.05
+
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  # ShadowVeryShort: Period 10, Factor 0.1, Ref HighLow
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_separating_lines_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_equal=avg_equal,
+    avg_body_long=avg_body_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_separating_lines")
 
 
@@ -630,7 +841,18 @@ def cdl_gap_side_by_side_white(
   - -100: Bearish
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_gap_side_by_side_white_numba(o, h, low_arr, c)
+
+  # TA-Lib 'Near' defaults: Period=5, Factor=0.2, Type=HighLow
+  # TA-Lib 'Equal' defaults: Period=5, Factor=0.05, Type=HighLow
+  rng = h - low_arr
+  avg_rng_5 = _rolling_sma_prev(rng, 5)
+
+  avg_near = avg_rng_5 * 0.2
+  avg_equal = avg_rng_5 * 0.05
+
+  result = detect_gap_side_by_side_white_numba(
+    o, h, low_arr, c, avg_near=avg_near, avg_equal=avg_equal
+  )
   return pd.Series(result, index=open_.index, name="cdl_gap_side_by_side_white")
 
 
@@ -648,7 +870,10 @@ def cdl_2crows(
   - -100: Bearish Two Crows
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_two_crows_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_two_crows_numba(o, h, low_arr, c, avg_body_long=avg_body_long)
   return pd.Series(result, index=open_.index, name="cdl_2crows")
 
 
@@ -666,7 +891,13 @@ def cdl_upside_gap_two_crows(
   - -100: Bearish Upside Gap Two Crows
   """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_upside_gap_two_crows_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_upside_gap_two_crows_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_upside_gap_two_crows")
 
 
@@ -677,10 +908,26 @@ def cdl_abandoned_baby(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Abandoned Baby."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_abandoned_baby_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 25)
+  avg_body_doji = _rolling_sma_prev(h - low_arr, 10) * 0.1
+  avg_body_short = _rolling_sma_prev(real_body, 10)
+
+  result = detect_abandoned_baby_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_long=avg_body_long,
+    avg_body_doji=avg_body_doji,
+    avg_body_short=avg_body_short,
+    penetration=penetration,
+  )
   return pd.Series(result, index=open_.index, name="cdl_abandoned_baby")
 
 
@@ -693,8 +940,30 @@ def cdl_advance_block(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Advance Block."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_advance_block_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+
+  real_body = np.abs(c - o)
+  rng = h - l
+
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  # ShadowShort: Period 10, Factor 1.0.
+  # Analysis suggests TA-Lib effectively compares UpperShadow against ~50% of the Sum of Shadows
+  # (or UpperShadow against UpperShadow average, but 0.5*Sum matches edge cases better).
+  avg_shadow_short = _rolling_sma_prev(rng - real_body, 10) * 0.5
+  avg_far = _rolling_sma_prev(rng, 5) * 0.6
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
+
+  result = detect_advance_block_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_shadow_short=avg_shadow_short,
+    avg_shadow_long=avg_body_long,  # ShadowLong ref RealBody (avg_body_long is same calc)
+    avg_far=avg_far,
+    avg_near=avg_near,
+  )
   return pd.Series(result, index=open_.index, name="cdl_advance_block")
 
 
@@ -708,7 +977,23 @@ def cdl_belt_hold(
 ) -> pd.Series:
   """Detect Belt Hold."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_belt_hold_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  avg_body_ref = _rolling_sma_prev(real_body, 10)
+  avg_shadow_ref = _rolling_sma_prev(rng, 10)
+
+  avg_body_long = avg_body_ref * 1.0
+  avg_shadow_very_short = avg_shadow_ref * 0.1
+
+  result = detect_belt_hold_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_long=avg_body_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_belt_hold")
 
 
@@ -722,7 +1007,11 @@ def cdl_breakaway(
 ) -> pd.Series:
   """Detect Breakaway."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_breakaway_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 25)
+
+  result = detect_breakaway_numba(o, h, low_arr, c, avg_body_long=avg_body_long)
   return pd.Series(result, index=open_.index, name="cdl_breakaway")
 
 
@@ -736,7 +1025,23 @@ def cdl_closing_marubozu(
 ) -> pd.Series:
   """Detect Closing Marubozu."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_closing_marubozu_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  avg_body_ref = _rolling_sma_prev(real_body, 10)
+  avg_shadow_ref = _rolling_sma_prev(rng, 10)
+
+  avg_body_long = avg_body_ref * 1.0
+  avg_shadow_very_short = avg_shadow_ref * 0.1
+
+  result = detect_closing_marubozu_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_long=avg_body_long,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_closing_marubozu")
 
 
@@ -748,9 +1053,23 @@ def cdl_dragonfly_doji(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Dragonfly Doji."""
+  """Detect Dragonfly Doji using TA-Lib stateful logic."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_dragonfly_doji_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  avg_ref = _rolling_sma_prev(rng, 10)  # Dragonfly uses SMA(Total Range)
+
+  avg_body_doji = avg_ref * 0.1
+  avg_shadow_very_short = avg_ref * 0.1
+
+  result = detect_dragonfly_doji_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_doji=avg_body_doji,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_dragonfly_doji")
 
 
@@ -762,9 +1081,23 @@ def cdl_gravestone_doji(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Gravestone Doji."""
+  """Detect Gravestone Doji using TA-Lib stateful logic."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_gravestone_doji_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  avg_ref = _rolling_sma_prev(rng, 10)  # Gravestone uses SMA(Total Range)
+
+  avg_body_doji = avg_ref * 0.1
+  avg_shadow_very_short = avg_ref * 0.1
+
+  result = detect_gravestone_doji_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_doji=avg_body_doji,
+    avg_shadow_very_short=avg_shadow_very_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_gravestone_doji")
 
 
@@ -790,9 +1123,16 @@ def cdl_homing_pigeon(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Homing Pigeon."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_homing_pigeon_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  # TA-Lib defaults: BodyLong 10, factor 1.0; BodyShort 10, factor 1.0
+  avg_body = _rolling_sma_prev(real_body, 10)
+  avg_body_long = avg_body * 1.0
+  avg_body_short = avg_body * 1.0
+
+  result = detect_homing_pigeon_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_homing_pigeon")
 
 
@@ -805,8 +1145,15 @@ def cdl_identical_3crows(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Identical Three Crows."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_identical_three_crows_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  rng = h - l
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+  # Equal defaults to HighLow Ref, Period 5, Factor 0.05
+  avg_equal = _rolling_sma_prev(rng, 5) * 0.05
+
+  result = detect_identical_three_crows_numba(
+    o, h, l, c, avg_shadow_very_short=avg_shadow_very_short, avg_equal=avg_equal
+  )
   return pd.Series(result, index=open_.index, name="cdl_identical_3crows")
 
 
@@ -819,8 +1166,15 @@ def cdl_in_neck(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect In-Neck."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_in_neck_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_equal = _rolling_sma_prev(rng, 5) * 0.05
+
+  result = detect_in_neck_numba(
+    o, h, l, c, avg_body_long=avg_body_long, avg_equal=avg_equal
+  )
   return pd.Series(result, index=open_.index, name="cdl_in_neck")
 
 
@@ -834,7 +1188,13 @@ def cdl_ladder_bottom(
 ) -> pd.Series:
   """Detect Ladder Bottom."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_ladder_bottom_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_ladder_bottom_numba(
+    o, h, low_arr, c, avg_shadow_very_short=avg_shadow_very_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_ladder_bottom")
 
 
@@ -848,7 +1208,17 @@ def cdl_long_line(
 ) -> pd.Series:
   """Detect Long Line."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_long_line_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  shadows = (h - low_arr) - real_body
+
+  # TA-Lib settings: BodyLong (factor 1.0, ref RealBody), ShadowShort (factor 0.5, ref Shadows)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_shadow_short = _rolling_sma_prev(shadows, 10) * 0.5
+
+  result = detect_long_line_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_shadow_short=avg_shadow_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_long_line")
 
 
@@ -859,10 +1229,27 @@ def cdl_mat_hold(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.5,
 ) -> pd.Series:
-  """Detect Mat Hold."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_mat_hold_numba(o, h, low_arr, c)
+  """Detect Mat Hold pattern.
+
+  Returns:
+  - 100: Bullish
+  """
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_mat_hold_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_short=avg_body_short,
+    avg_body_long=avg_body_long,
+    penetration=penetration,
+  )
   return pd.Series(result, index=open_.index, name="cdl_mat_hold")
 
 
@@ -875,8 +1262,15 @@ def cdl_on_neck(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect On-Neck."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_on_neck_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_equal = _rolling_sma_prev(rng, 5) * 0.05
+
+  result = detect_on_neck_numba(
+    o, h, l, c, avg_body_long=avg_body_long, avg_equal=avg_equal
+  )
   return pd.Series(result, index=open_.index, name="cdl_on_neck")
 
 
@@ -888,24 +1282,21 @@ def cdl_rise_fall_3methods(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Rise/Fall Three Methods."""
+  """Detect Rise/Fall Three Methods pattern.
+
+  Returns:
+  - 100: Rising Three Methods (Bullish)
+  - -100: Falling Three Methods (Bearish)
+  """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_rise_fall_three_methods_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_rise_fall_three_methods_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_rise_fall_3methods")
-
-
-@configurable
-@validate
-def cdl_short_line(
-  open_: Validated[pd.Series[float], Finite, NotEmpty],
-  high: Validated[pd.Series[float], Finite, NotEmpty],
-  low: Validated[pd.Series[float], Finite, NotEmpty],
-  close: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
-  """Detect Short Line."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_short_line_numba(o, h, low_arr, c)
-  return pd.Series(result, index=open_.index, name="cdl_short_line")
 
 
 @configurable
@@ -917,8 +1308,26 @@ def cdl_stalled_pattern(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Stalled Pattern."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_stalled_pattern_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+
+  real_body = np.abs(c - o)
+  rng = h - l
+
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
+
+  result = detect_stalled_pattern_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_body_short=avg_body_short,
+    avg_shadow_very_short=avg_shadow_very_short,
+    avg_near=avg_near,
+  )
   return pd.Series(result, index=open_.index, name="cdl_stalled_pattern")
 
 
@@ -932,7 +1341,15 @@ def cdl_stick_sandwich(
 ) -> pd.Series:
   """Detect Stick Sandwich."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_stick_sandwich_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  # Stick Sandwich uses exclusive average for Equal (High-Low)
+  avg_equal = _rolling_sma_prev(rng, 5) * 0.05
+  avg_body_short = _rolling_sma_prev(np.abs(c - o), 10) * 1.0
+
+  result = detect_stick_sandwich_numba(
+    o, h, low_arr, c, avg_equal=avg_equal, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_stick_sandwich")
 
 
@@ -944,9 +1361,33 @@ def cdl_takuri(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Takuri."""
+  """Detect Takuri pattern using TA-Lib stateful logic.
+
+  TA-Lib Settings:
+  - BodyDoji: factor 0.1, ref HighLow
+  - ShadowVeryShort: factor 0.1, ref HighLow
+  - ShadowVeryLong: factor 3.0, ref RealBody
+  """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_takuri_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+
+  avg_rng_ref = _rolling_sma_prev(rng, 10)
+
+  avg_body_doji = avg_rng_ref * 0.1
+  avg_shadow_very_short = avg_rng_ref * 0.1
+  avg_shadow_very_long = real_body * 2.0
+
+  result = detect_takuri_numba(
+    o,
+    h,
+    low_arr,
+    c,
+    avg_body_doji=avg_body_doji,
+    avg_shadow_very_short=avg_shadow_very_short,
+    avg_shadow_very_long=avg_shadow_very_long,
+  )
   return pd.Series(result, index=open_.index, name="cdl_takuri")
 
 
@@ -959,8 +1400,15 @@ def cdl_thrusting(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Thrusting."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_thrusting_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_equal = _rolling_sma_prev(rng, 5) * 0.05
+
+  result = detect_thrusting_numba(
+    o, h, l, c, avg_body_long=avg_body_long, avg_equal=avg_equal
+  )
   return pd.Series(result, index=open_.index, name="cdl_thrusting")
 
 
@@ -972,9 +1420,19 @@ def cdl_unique_3river(
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
-  """Detect Unique 3 River."""
+  """Detect Unique 3 River pattern.
+
+  Returns:
+  - 100: Bullish
+  """
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_unique_three_river_numba(o, h, low_arr, c)
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_unique_three_river_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_short=avg_body_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_unique_3river")
 
 
@@ -988,7 +1446,16 @@ def cdl_counterattack(
 ) -> pd.Series:
   """Detect Counterattack."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_counterattack_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  avg_equal = _rolling_sma_prev(rng, 5) * 0.05
+
+  real_body = np.abs(c - o)
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_counterattack_numba(
+    o, h, low_arr, c, avg_equal=avg_equal, avg_body_long=avg_body_long
+  )
   return pd.Series(result, index=open_.index, name="cdl_counterattack")
 
 
@@ -1002,7 +1469,17 @@ def cdl_doji_star(
 ) -> pd.Series:
   """Detect Doji Star."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_doji_star_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  # BodyLong: SMA 10, factor 1.0, ref RealBody
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  # BodyDoji: SMA 10, factor 0.1, ref HighLow
+  avg_body_doji = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_doji_star_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_doji=avg_body_doji
+  )
   return pd.Series(result, index=open_.index, name="cdl_doji_star")
 
 
@@ -1016,7 +1493,13 @@ def cdl_conceal_baby_swallow(
 ) -> pd.Series:
   """Detect Concealing Baby Swallow."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_conceal_baby_swallow_numba(o, h, low_arr, c)
+
+  rng = h - low_arr
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+
+  result = detect_conceal_baby_swallow_numba(
+    o, h, low_arr, c, avg_shadow_very_short=avg_shadow_very_short
+  )
   return pd.Series(result, index=open_.index, name="cdl_conceal_baby_swallow")
 
 
@@ -1027,10 +1510,21 @@ def cdl_harami_cross(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  body_doji_ratio: Hyper[float, Ge[0.0], Le[1.0]] = 0.1,
 ) -> pd.Series:
   """Detect Harami Cross."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_harami_cross_numba(o, h, low_arr, c)
+
+  real_body = np.abs(c - o)
+  rng = h - low_arr
+  # 1st candle is BodyLong
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  # 2nd candle is BodyDoji (factor 0.1, ref HighLow)
+  avg_body_doji = _rolling_sma_prev(rng, 10) * body_doji_ratio
+
+  result = detect_harami_cross_numba(
+    o, h, low_arr, c, avg_body_long=avg_body_long, avg_body_doji=avg_body_doji
+  )
   return pd.Series(result, index=open_.index, name="cdl_harami_cross")
 
 
@@ -1044,7 +1538,12 @@ def cdl_hikkake_mod(
 ) -> pd.Series:
   """Detect Modified Hikkake."""
   o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_hikkake_modified_numba(o, h, low_arr, c)
+
+  # TA-Lib 'Near' defaults: Period=5, Factor=0.2, Type=HighLow
+  rng = h - low_arr
+  avg_near = _rolling_sma_prev(rng, 5) * 0.2
+
+  result = detect_hikkake_modified_numba(o, h, low_arr, c, avg_near=avg_near)
   return pd.Series(result, index=open_.index, name="cdl_hikkake_mod")
 
 
@@ -1055,10 +1554,26 @@ def cdl_morning_doji_star(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
-  """Detect Morning Doji Star."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_morning_doji_star_numba(o, h, low_arr, c)
+  """Detect Morning Doji Star pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_doji = _rolling_sma_prev(rng, 10) * 0.1
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_morning_doji_star_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_body_doji=avg_body_doji,
+    avg_body_short=avg_body_short,
+    penetration=penetration,
+  )
   return pd.Series(result, index=open_.index, name="cdl_morning_doji_star")
 
 
@@ -1069,27 +1584,31 @@ def cdl_evening_doji_star(
   high: Validated[pd.Series[float], Finite, NotEmpty],
   low: Validated[pd.Series[float], Finite, NotEmpty],
   close: Validated[pd.Series[float], Finite, NotEmpty],
+  penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
-  """Detect Evening Doji Star."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_evening_doji_star_numba(o, h, low_arr, c)
+  """Detect Evening Doji Star pattern."""
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  real_body = np.abs(c - o)
+  rng = h - l
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_body_doji = _rolling_sma_prev(rng, 10) * 0.1
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_evening_doji_star_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_body_doji=avg_body_doji,
+    avg_body_short=avg_body_short,
+    penetration=penetration,
+  )
   return pd.Series(result, index=open_.index, name="cdl_evening_doji_star")
 
 
 @configurable
 @validate
-def cdl_kicking_by_length(
-  open_: Validated[pd.Series[float], Finite, NotEmpty],
-  high: Validated[pd.Series[float], Finite, NotEmpty],
-  low: Validated[pd.Series[float], Finite, NotEmpty],
-  close: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
-  """Detect Kicking By Length."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_kicking_by_length_numba(o, h, low_arr, c)
-  return pd.Series(result, index=open_.index, name="cdl_kicking_by_length")
-
-
 @configurable
 @validate
 def cdl_3stars_in_south(
@@ -1099,8 +1618,25 @@ def cdl_3stars_in_south(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Stars In The South."""
-  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_three_stars_in_south_numba(o, h, low_arr, c)
+  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+
+  real_body = np.abs(c - o)
+  rng = h - l
+
+  avg_body_long = _rolling_sma_prev(real_body, 10) * 1.0
+  avg_shadow_very_short = _rolling_sma_prev(rng, 10) * 0.1
+  avg_body_short = _rolling_sma_prev(real_body, 10) * 1.0
+
+  result = detect_three_stars_in_south_numba(
+    o,
+    h,
+    l,
+    c,
+    avg_body_long=avg_body_long,
+    avg_shadow_long=real_body * 1.0,
+    avg_shadow_very_short=avg_shadow_very_short,
+    avg_body_short=avg_body_short,
+  )
   return pd.Series(result, index=open_.index, name="cdl_3stars_in_south")
 
 

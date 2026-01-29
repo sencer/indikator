@@ -26,15 +26,15 @@ def compute_stoch_numba(
   k_slowing: int,
   d_period: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-  """Numba JIT-compiled Stochastic Oscillator (Parallel Chunked)."""
+  """Numba JIT-compiled Stochastic Oscillator (Ratio of Sums)."""
   n = len(close)
 
   stoch_k = np.empty(n, dtype=np.float64)
   stoch_d = np.empty(n, dtype=np.float64)
+  stoch_k[:] = np.nan
+  stoch_d[:] = np.nan
 
   if n < k_period:
-    stoch_k[:] = np.nan
-    stoch_d[:] = np.nan
     return stoch_k, stoch_d
 
   # 1. Raw Stoch with Parallel Chunked Lazy Rescan
@@ -44,20 +44,12 @@ def compute_stoch_numba(
   start_v = k_period - 1
   total_len = n - start_v
 
-  num_chunks = 16
-  if total_len < 4096:
-    num_chunks = 1
-
-  chunk_size = total_len // num_chunks
-  if chunk_size < 1:
-    chunk_size = total_len
-    num_chunks = 1
+  num_chunks = 16 if total_len >= 4096 else 1
+  chunk_size = total_len // num_chunks if num_chunks > 1 else total_len
 
   for c in prange(num_chunks + 1):
     idx_start = start_v + c * chunk_size
-    idx_end = start_v + (c + 1) * chunk_size
-    if c == num_chunks:
-      idx_end = n
+    idx_end = min(start_v + (c + 1) * chunk_size, n)
     if idx_start >= n:
       continue
 
@@ -86,8 +78,7 @@ def compute_stoch_numba(
         l_idx, l_val = trailing, low[trailing]
         for k in range(trailing + 1, i + 1):
           if low[k] <= l_val:
-            l_val = low[k]
-            l_idx = k
+            l_val, l_idx = low[k], k
       elif low[i] <= l_val:
         l_val, l_idx = low[i], i
 
@@ -95,30 +86,21 @@ def compute_stoch_numba(
       if div > EPSILON:
         raw_stoch[i] = 100.0 * (close[i] - l_val) / div
       else:
-        raw_stoch[i] = 50.0
+        raw_stoch[i] = 0.0
 
   # 2. %K = SMA(raw_stoch, k_slowing) - Parallel Chunked
-  stoch_k[:] = np.nan
-  start_k_calc = k_period - 1 + k_slowing - 1
+  start_k_calc = start_v + k_slowing - 1
 
   if n > start_k_calc:
     len_k = n - start_k_calc
-    num_chunks_k = 16
-    if len_k < 4096:
-      num_chunks_k = 1
-
-    chunk_size_k = len_k // num_chunks_k
-    if chunk_size_k < 1:
-      chunk_size_k = len_k
-      num_chunks_k = 1
+    num_chunks_k = 16 if len_k >= 4096 else 1
+    chunk_size_k = len_k // num_chunks_k if num_chunks_k > 1 else len_k
 
     inv_k = 1.0 / k_slowing
 
     for c in prange(num_chunks_k + 1):
       idx_start = start_k_calc + c * chunk_size_k
-      idx_end = start_k_calc + (c + 1) * chunk_size_k
-      if c == num_chunks_k:
-        idx_end = n
+      idx_end = min(start_k_calc + (c + 1) * chunk_size_k, n)
       if idx_start >= n:
         continue
 
@@ -133,27 +115,18 @@ def compute_stoch_numba(
         stoch_k[i] = curr_sum * inv_k
 
   # 3. %D = SMA(stoch_k, d_period) - Parallel Chunked
-  stoch_d[:] = np.nan
   start_d_calc = start_k_calc + d_period - 1
 
   if n > start_d_calc:
     len_d = n - start_d_calc
-    num_chunks_d = 16
-    if len_d < 4096:
-      num_chunks_d = 1
-
-    chunk_size_d = len_d // num_chunks_d
-    if chunk_size_d < 1:
-      chunk_size_d = len_d
-      num_chunks_d = 1
+    num_chunks_d = 16 if len_d >= 4096 else 1
+    chunk_size_d = len_d // num_chunks_d if num_chunks_d > 1 else len_d
 
     inv_d = 1.0 / d_period
 
     for c in prange(num_chunks_d + 1):
       idx_start = start_d_calc + c * chunk_size_d
-      idx_end = start_d_calc + (c + 1) * chunk_size_d
-      if c == num_chunks_d:
-        idx_end = n
+      idx_end = min(start_d_calc + (c + 1) * chunk_size_d, n)
       if idx_start >= n:
         continue
 
@@ -166,5 +139,15 @@ def compute_stoch_numba(
       for i in range(idx_start + 1, idx_end):
         curr_sum = curr_sum + stoch_k[i] - stoch_k[i - d_period]
         stoch_d[i] = curr_sum * inv_d
+
+  # 4. Final alignment of NaNs to match TA-Lib behavior
+  # Both outputs should be NaN until the total lookback is reached.
+  max_lookback = start_d_calc
+  if max_lookback < n:
+    stoch_k[:max_lookback] = np.nan
+    stoch_d[:max_lookback] = np.nan
+  else:
+    stoch_k[:] = np.nan
+    stoch_d[:] = np.nan
 
   return stoch_k, stoch_d

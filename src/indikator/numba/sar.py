@@ -133,7 +133,7 @@ def compute_sarext_numba(
 ) -> NDArray[np.float64]:
   """Compute SAREXT - Parabolic SAR Extended.
 
-  Matches TA-Lib SAREXT logic.
+  Matches TA-Lib SAREXT logic. Returns negative values when in short position.
   """
   n = len(high)
   sar = np.empty(n, dtype=np.float64)
@@ -142,16 +142,12 @@ def compute_sarext_numba(
     sar[:] = np.nan
     return sar
 
-  # Initialization logic from TA-Lib:
-  # If start_value > 0, use it. If < 0, use high-start.
-  # For simplicity, we assume start_value logic is handled in wrapper or match standard.
-
   h0 = high[0]
   h1 = high[1]
   l0 = low[0]
   l1 = low[1]
 
-  # Determine initial trend (Standard logic for now)
+  # Determine initial trend
   if h1 > h0:
     is_long = True
     ep = h1
@@ -167,7 +163,8 @@ def compute_sarext_numba(
 
   af = acceleration_init_long if is_long else acceleration_init_short
   sar[0] = np.nan
-  sar[1] = sar_val
+  # Output with sign: positive for long, negative for short
+  sar[1] = sar_val if is_long else -sar_val
 
   for i in range(2, n):
     hi = high[i]
@@ -179,14 +176,12 @@ def compute_sarext_numba(
 
     if is_long:
       if i > 2:
-        hi_p2 = high[i - 2]
         li_p2 = low[i - 2]
         sar_val = min(sar_val, li_p1, li_p2)
       else:
         sar_val = min(sar_val, li_p1)
     elif i > 2:
       hi_p2 = high[i - 2]
-      li_p2 = low[i - 2]
       sar_val = max(sar_val, hi_p1, hi_p2)
     else:
       sar_val = max(sar_val, hi_p1)
@@ -195,7 +190,6 @@ def compute_sarext_numba(
       if li < sar_val:
         # Reversal to short
         is_long = False
-        # Adjustment on reversal
         sar_val = ep + offset_on_reversal if offset_on_reversal != 0 else ep
         ep = li
         af = acceleration_init_short
@@ -212,6 +206,7 @@ def compute_sarext_numba(
       ep = li
       af = min(af + acceleration_short, acceleration_max_short)
 
-    sar[i] = sar_val
+    # Output with sign: positive for long, negative for short
+    sar[i] = sar_val if is_long else -sar_val
 
   return sar

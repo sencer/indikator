@@ -437,7 +437,12 @@ def run_benchmarks() -> None:
     (
       "ATR_INTRA",
       atr_intraday,
-      lambda d: (d["high"], d["low"], d["close"]),
+      lambda d: (
+        pd.DataFrame(
+          {"high": d["high"], "low": d["low"], "close": d["close"]},
+          index=d["high"].index,
+        ),
+      ),
       None,
       None,
     ),

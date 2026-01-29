@@ -14,9 +14,7 @@ if TYPE_CHECKING:
   from numpy.typing import NDArray
 
 
-@jit(
-  nopython=True, cache=True, nogil=True, fastmath=True, parallel=True
-)  # pragma: no cover
+@jit(nopython=True, cache=True, nogil=True, parallel=True)  # pragma: no cover
 def compute_sma_numba(
   prices: NDArray[np.float64],
   period: int,
@@ -160,7 +158,32 @@ def compute_sma_numba(
     # Rolling loop for the rest of the chunk
     current_sum = chunk_sum
     for i in range(start + 1, end):
+      # Optimistic update
       current_sum = current_sum + prices[i] - prices[i - period]
-      sma[i] = current_sum * inv_period
+
+      # If sum is valid, use it. If NaN, it means:
+      # 1. We were already NaN and didn't recover yet
+      # 2. A new NaN entered the window
+      # 3. An old NaN left the window (but sum remains NaN until we re-scan)
+
+      if not np.isnan(current_sum):
+        sma[i] = current_sum * inv_period
+      else:
+        # Try to recover by valid scan
+        # This is expensive but only runs when NaNs are present/clearing
+        valid_sum = 0.0
+        is_valid = True
+        for k in range(i - period + 1, i + 1):
+          val = prices[k]
+          if np.isnan(val):
+            is_valid = False
+            break
+          valid_sum += val
+
+        if is_valid:
+          current_sum = valid_sum
+          sma[i] = current_sum * inv_period
+        else:
+          sma[i] = np.nan
 
   return sma

@@ -26,20 +26,18 @@ def detect_doji_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Doji pattern (Branchless)."""
+  """Detect Doji pattern (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
+    if np.isnan(avg_body_doji[i]):
+      continue
     body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-
-    # Branchless logic:
-    # (rng > 0) & (body <= rng * 0.1)
-    mask = (rng > 0) & (body <= (rng * 0.1))
-    out[i] = mask * 100
-
+    if body < avg_body_doji[i]:
+      out[i] = 100
   return out
 
 
@@ -49,35 +47,38 @@ def detect_hammer_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_shadow_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Hammer pattern (Branchless)."""
+  """Detect Hammer pattern (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
-  for i in range(10, n):
-    o = open_[i]
-    c = close[i]
-    h = high[i]
-    l = low[i]
+  for i in range(1, n):
+    if np.isnan(avg_body_short[i]) or np.isnan(avg_near[i - 1]):
+      continue
 
+    o, c, h, l = open_[i], close[i], high[i], low[i]
     body_top = o if o > c else c
     body_bot = o if o < c else c
     real_body = body_top - body_bot
     upper_shadow = h - body_top
     lower_shadow = body_bot - l
-    rng = h - l
 
-    body_val = real_body if real_body > 0 else 1e-9
-
-    # Hammer: Long lower shadow, small upper shadow, small body
-    c1 = lower_shadow >= (2.0 * body_val)
-    c2 = upper_shadow <= (0.1 * rng)
-    c3 = real_body < (0.3 * rng)  # Liberal body check
-    c4 = rng > 0
-
-    is_hammer = c1 & c2 & c3 & c4
-    out[i] = is_hammer * 100
-
+    # TA-Lib logic:
+    # 1. small real body
+    # 2. long lower shadow
+    # 3. no, or very short, upper shadow
+    # 4. body below or near the lows of the previous candle
+    if (
+      real_body < avg_body_short[i]
+      and lower_shadow > avg_shadow_long[i]
+      and upper_shadow < avg_shadow_very_short[i]
+      and body_bot <= low[i - 1] + avg_near[i - 1]
+    ):
+      out[i] = 100
   return out
 
 
@@ -98,13 +99,32 @@ def detect_engulfing_numba(
     cc = close[i]
     co = open_[i]
 
-    # Bullish: Prev Red, Curr Green, Engulfs
-    is_bull = (po > pc) & (cc > co) & (co <= pc) & (cc >= po)
+    # Bullish: Prev Red or Doji, Curr Green, Engulfs
+    # Full Engulfment: (co < pc) & (cc > po) -> 100
+    # One side equal: ((co == pc) & (cc > po)) | ((co < pc) & (cc == po)) -> 80
 
-    # Bearish: Prev Green, Curr Red, Engulfs
-    is_bear = (pc > po) & (co > cc) & (co >= pc) & (cc <= po)
+    is_bull_full = (po >= pc) & (cc > co) & (co < pc) & (cc > po)
+    is_bull_partial = (
+      (po >= pc) & (cc > co) & (((co == pc) & (cc > po)) | ((co < pc) & (cc == po)))
+    )
 
-    out[i] = (is_bull * 100) - (is_bear * 100)
+    # Bearish: Prev Green or Doji, Curr Red, Engulfs
+    is_bear_full = (pc >= po) & (co > cc) & (co > pc) & (cc < po)
+    is_bear_partial = (
+      (pc >= po) & (co > cc) & (((co == pc) & (cc < po)) | ((co > pc) & (cc == po)))
+    )
+
+    val = 0
+    if is_bull_full:
+      val = 100
+    elif is_bull_partial:
+      val = 80
+    elif is_bear_full:
+      val = -100
+    elif is_bear_partial:
+      val = -80
+
+    out[i] = val
 
   return out
 
@@ -115,6 +135,8 @@ def detect_harami_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Harami pattern (Branchless)."""
   n = len(close)
@@ -126,20 +148,30 @@ def detect_harami_numba(
     cc = close[i]
     co = open_[i]
 
+    # 1. Body size checks
+    prev_body = abs(pc - po)
+    curr_body = abs(cc - co)
+    if not (prev_body >= avg_body_long[i - 1] and curr_body <= avg_body_short[i]):
+      continue
+
+    # Signal based on FIRST candle color
+    # Prev is Bullish (Green) -> Bearish Harami (result -100/-80)
+    # Prev is Bearish (Red) -> Bullish Harami (result 100/80)
+    is_bull = pc < po
+    is_bear = pc > po
+
     prev_top = po if po > pc else pc
     prev_bot = po if po < pc else pc
     curr_top = co if co > cc else cc
     curr_bot = co if co < cc else cc
 
-    is_inside = (curr_top < prev_top) & (curr_bot > prev_bot)
-
-    # Bullish Harami: Prev is Bearish (Red)
-    is_prev_bear = pc < po
-    # Bearish Harami: Prev is Bullish (Green)
-    is_prev_bull = pc >= po
-
-    val = (is_prev_bear * 100) - (is_prev_bull * 100)
-    out[i] = is_inside * val
+    # 3. Containment
+    # Grade 100: Strictly inside
+    # Grade 80: Semi-strict (allow matching edges)
+    if (curr_top < prev_top) and (curr_bot > prev_bot):
+      out[i] = 100 if is_bull else -100
+    elif (curr_top <= prev_top) and (curr_bot >= prev_bot):
+      out[i] = 80 if is_bull else -80
 
   return out
 
@@ -150,41 +182,39 @@ def detect_shooting_star_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_shadow_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Shooting Star (Branchless).
-
-  Bearish reversal. Inverse of Hammer.
-  - Small body near bottom.
-  - Long upper shadow (>= 2 * body).
-  - Short lower shadow.
-  """
+  """Detect Shooting Star pattern (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(1, n):
+    if np.isnan(avg_body_short[i]):
+      continue
+
     o, c, h, l = open_[i], close[i], high[i], low[i]
+    po, pc = open_[i - 1], close[i - 1]
 
     body_top = o if o > c else c
     body_bot = o if o < c else c
     real_body = body_top - body_bot
     upper_shadow = h - body_top
     lower_shadow = body_bot - l
-    rng = h - l
 
-    body_val = real_body if real_body > 0 else 1e-9
-
-    # Criteria
-    c1 = upper_shadow >= (2.0 * body_val)
-    c2 = lower_shadow <= (0.1 * rng)  # Small lower shadow
-    c3 = real_body < (0.3 * rng)
-    c4 = rng > 0
-
-    # Gap up validation? TA-Lib Shooting Star often checks if body gaps up from previous.
-    # Simplified here: just shape.
-
-    is_star = c1 & c2 & c3 & c4
-    out[i] = is_star * -100  # Bearish
-
+    # TA-Lib logic:
+    # 1. small real body
+    # 2. long upper shadow
+    # 3. no, or very short, lower shadow
+    # 4. gap up from prior real body
+    if (
+      real_body < avg_body_short[i]
+      and upper_shadow > avg_shadow_long[i]
+      and lower_shadow < avg_shadow_very_short[i]
+      and body_bot > (po if po > pc else pc)
+    ):
+      out[i] = -100
   return out
 
 
@@ -194,35 +224,39 @@ def detect_inverted_hammer_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_shadow_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Inverted Hammer (Branchless).
-
-  Bullish reversal. Same shape as Shooting Star, but found in downtrend.
-  For pure pattern recognition, we return 100 if shape matches.
-  """
+  """Detect Inverted Hammer pattern (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(1, n):
+    if np.isnan(avg_body_short[i]):
+      continue
+
     o, c, h, l = open_[i], close[i], high[i], low[i]
+    po, pc = open_[i - 1], close[i - 1]
 
     body_top = o if o > c else c
     body_bot = o if o < c else c
     real_body = body_top - body_bot
     upper_shadow = h - body_top
     lower_shadow = body_bot - l
-    rng = h - l
 
-    body_val = real_body if real_body > 0 else 1e-9
-
-    c1 = upper_shadow >= (2.0 * body_val)
-    c2 = lower_shadow <= (0.1 * rng)
-    c3 = real_body < (0.3 * rng)
-    c4 = rng > 0
-
-    is_inv_hammer = c1 & c2 & c3 & c4
-    out[i] = is_inv_hammer * 100  # Bullish
-
+    # TA-Lib logic:
+    # 1. small real body
+    # 2. long upper shadow
+    # 3. no, or very short, lower shadow
+    # 4. gap down from prior real body
+    if (
+      real_body < avg_body_short[i]
+      and upper_shadow > avg_shadow_long[i]
+      and lower_shadow < avg_shadow_very_short[i]
+      and body_top < (po if po < pc else pc)
+    ):
+      out[i] = 100
   return out
 
 
@@ -232,34 +266,38 @@ def detect_hanging_man_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_shadow_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Hanging Man (Branchless).
-
-  Bearish reversal. Same shape as Hammer.
-  """
+  """Detect Hanging Man pattern (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(1, n):
-    o, c, h, l = open_[i], close[i], high[i], low[i]
+    if np.isnan(avg_body_short[i]) or np.isnan(avg_near[i - 1]):
+      continue
 
+    o, c, h, l = open_[i], close[i], high[i], low[i]
     body_top = o if o > c else c
     body_bot = o if o < c else c
     real_body = body_top - body_bot
     upper_shadow = h - body_top
     lower_shadow = body_bot - l
-    rng = h - l
 
-    body_val = real_body if real_body > 0 else 1e-9
-
-    c1 = lower_shadow >= (2.0 * body_val)
-    c2 = upper_shadow <= (0.1 * rng)
-    c3 = real_body < (0.3 * rng)
-    c4 = rng > 0
-
-    is_hanging = c1 & c2 & c3 & c4
-    out[i] = is_hanging * -100  # Bearish
-
+    # TA-Lib logic:
+    # 1. small real body
+    # 2. long lower shadow
+    # 3. no, or very short, upper shadow
+    # 4. body above or near the highs of the previous candle
+    if (
+      real_body < avg_body_short[i]
+      and lower_shadow > avg_shadow_long[i]
+      and upper_shadow < avg_shadow_very_short[i]
+      and body_bot >= high[i - 1] - avg_near[i - 1]
+    ):
+      out[i] = -100
   return out
 
 
@@ -269,25 +307,16 @@ def detect_marubozu_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Marubozu (Branchless).
-
-  Long body, very small shadows (<= 5% of body or range).
-  Bullish (White) Marubozu: Close > Open (100)
-  Bearish (Black) Marubozu: Open > Close (-100)
-  """
+  """Detect Marubozu."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
     o, c, h, l = open_[i], close[i], high[i], low[i]
-
     body = abs(c - o)
-    rng = h - l
-
-    # Avoid zero body or range issues
-    if body < 1e-9:
-      continue
 
     body_top = o if o > c else c
     body_bot = o if o < c else c
@@ -295,18 +324,17 @@ def detect_marubozu_numba(
     upper_shadow = h - body_top
     lower_shadow = body_bot - l
 
-    # Shadows must be tiny (e.g. < 5% of body)
-    c1 = upper_shadow < (0.05 * body)
-    c2 = lower_shadow < (0.05 * body)
-    c3 = body > (0.5 * rng)  # Body dominates range
+    # 1. Body must be Long
+    c1 = body > avg_body_long[i]
+    # 2. Shadows must be Very Short
+    c2 = upper_shadow < avg_shadow_very_short[i]
+    c3 = lower_shadow < avg_shadow_very_short[i]
 
-    is_marubozu = c1 & c2 & c3
-
-    # Direction
-    is_bull = c > o
-    val = (is_bull * 100) - ((1 - is_bull) * 100)  # 100 if bull, -100 if bear
-
-    out[i] = is_marubozu * val
+    if c1 & c2 & c3:
+      if c > o:
+        out[i] = 100
+      else:
+        out[i] = -100
 
   return out
 
@@ -317,47 +345,45 @@ def detect_morning_star_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  penetration: float = 0.3,
 ) -> NDArray[np.int32]:
-  """Detect Morning Star (3-candle Bullish Reversal).
-
-  1. Long Bearish candle
-  2. Small candle (gap down) - Star
-  3. Long Bullish candle (closes well inside first body)
-
-  Returns: 100 (Bullish)
-  """
+  """Detect Morning Star."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    # Candle 1 (i-2): Long Bearish
-    c1 = close[i - 2]
-    o1 = open_[i - 2]
-    body1 = abs(c1 - o1)
-    is_bear1 = c1 < o1
-    is_long1 = body1 > (high[i - 2] - low[i - 2]) * 0.6  # Body > 60% range
+    if (
+      np.isnan(avg_body_long[i - 2])
+      or np.isnan(avg_body_short[i - 1])
+      or np.isnan(avg_body_short[i])
+    ):
+      continue
 
-    # Candle 2 (i-1): Small Body, Gap Down
-    c2 = close[i - 1]
-    o2 = open_[i - 1]
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    # TA-Lib logic:
+    # 1st: Long Black
+    # 2nd: Short, Gap Down (Real Body)
+    # 3rd: Longer than Short, White
+    # 3rd closes well within 1st RB (at least penetration %)
+
     body2 = abs(c2 - o2)
-    is_small2 = body2 < body1 * 0.3  # Significantly smaller
-    # Gap Down: Body 2 below Body 1
-    body1_bot = c1  # Bearish, so Close is bottom
-    body2_top = max(o2, c2)
-    is_gap_down = body2_top < body1_bot
+    body1 = abs(c1 - o1)
+    body0 = abs(c0 - o0)
 
-    # Candle 3 (i): Long Bullish
-    c3 = close[i]
-    o3 = open_[i]
-    is_bull3 = c3 > o3
-    # Closes inside body of Candle 1 (above midpoint usually)
-    midpoint1 = (o1 + c1) * 0.5
-    closes_inside = c3 > midpoint1
-
-    if is_bear1 & is_long1 & is_small2 & is_gap_down & is_bull3 & closes_inside:
+    if (
+      body2 > avg_body_long[i - 2]
+      and c2 < o2
+      and body1 <= avg_body_short[i - 1]
+      and max(o1, c1) < min(o2, c2)
+      and body0 > avg_body_short[i]
+      and c0 > o0
+      and c0 > c2 + body2 * penetration
+    ):
       out[i] = 100
-
   return out
 
 
@@ -367,47 +393,45 @@ def detect_evening_star_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  penetration: float = 0.3,
 ) -> NDArray[np.int32]:
-  """Detect Evening Star (3-candle Bearish Reversal).
-
-  1. Long Bullish candle
-  2. Small candle (gap up)
-  3. Long Bearish candle (closes well inside first body)
-
-  Returns: -100 (Bearish)
-  """
+  """Detect Evening Star."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    # Candle 1 (i-2): Long Bullish
-    c1 = close[i - 2]
-    o1 = open_[i - 2]
-    body1 = abs(c1 - o1)
-    is_bull1 = c1 > o1
-    is_long1 = body1 > (high[i - 2] - low[i - 2]) * 0.6
+    if (
+      np.isnan(avg_body_long[i - 2])
+      or np.isnan(avg_body_short[i - 1])
+      or np.isnan(avg_body_short[i])
+    ):
+      continue
 
-    # Candle 2 (i-1): Small Body, Gap Up
-    c2 = close[i - 1]
-    o2 = open_[i - 1]
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    # TA-Lib logic:
+    # 1st: Long White
+    # 2nd: Short, Gap Up (Real Body)
+    # 3rd: Longer than Short, Black
+    # 3rd closes well within 1st RB (at least penetration %)
+
     body2 = abs(c2 - o2)
-    is_small2 = body2 < body1 * 0.3
-    # Gap Up: Body 2 above Body 1
-    body1_top = c1
-    body2_bot = min(o2, c2)
-    is_gap_up = body2_bot > body1_top
+    body1 = abs(c1 - o1)
+    body0 = abs(c0 - o0)
 
-    # Candle 3 (i): Long Bearish
-    c3 = close[i]
-    o3 = open_[i]
-    is_bear3 = c3 < o3
-    # Closes inside body of Candle 1 (below midpoint)
-    midpoint1 = (o1 + c1) * 0.5
-    closes_inside = c3 < midpoint1
-
-    if is_bull1 & is_long1 & is_small2 & is_gap_up & is_bear3 & closes_inside:
+    if (
+      body2 > avg_body_long[i - 2]
+      and c2 > o2
+      and body1 <= avg_body_short[i - 1]
+      and min(o1, c1) > max(o2, c2)
+      and body0 > avg_body_short[i]
+      and c0 < o0
+      and c0 < c2 - body2 * penetration
+    ):
       out[i] = -100
-
   return out
 
 
@@ -417,32 +441,58 @@ def detect_three_black_crows_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Three Black Crows (Branchless)."""
+  """Detect Three Black Crows."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(3, n):
-    is_bear1 = close[i - 2] < open_[i - 2]
-    is_bear2 = close[i - 1] < open_[i - 1]
-    is_bear3 = close[i] < open_[i]
+    if np.isnan(avg_shadow_very_short[i]):
+      continue
 
-    lower_close1 = close[i - 1] < close[i - 2]
-    lower_close2 = close[i] < close[i - 1]
+    c1, o1 = close[i - 2], open_[i - 2]  # 1st Black
+    c2, o2 = close[i - 1], open_[i - 1]  # 2nd Black
+    c3, o3 = close[i], open_[i]  # 3rd Black
 
-    open_in_body1 = (open_[i - 1] < open_[i - 2]) & (open_[i - 1] > close[i - 2])
-    open_in_body2 = (open_[i] < open_[i - 1]) & (open_[i] > close[i - 1])
+    c0, o0 = close[i - 3], open_[i - 3]  # Prior
 
-    if (
-      is_bear1
-      & is_bear2
-      & is_bear3
-      & lower_close1
-      & lower_close2
-      & open_in_body1
-      & open_in_body2
-    ):
-      out[i] = -100
+    # 1. Prior White
+    if not (c0 > o0):
+      continue
+
+    # 2. 3 Blacks
+    if not ((c1 < o1) & (c2 < o2) & (c3 < o3)):
+      continue
+
+    # 3. Very Short Lower Shadows
+    ls1 = c1 - low[i - 2]
+    ls2 = c2 - low[i - 1]
+    ls3 = c3 - low[i]
+
+    # TA-Lib alignment? i=3rd.
+    if not (ls1 < avg_shadow_very_short[i - 2]):
+      continue
+    if not (ls2 < avg_shadow_very_short[i - 1]):
+      continue
+    if not (ls3 < avg_shadow_very_short[i]):
+      continue
+
+    # 4. Opens within previous Real Body
+    if not ((o2 < o1) & (o2 > c1)):
+      continue
+    if not ((o3 < o2) & (o3 > c2)):
+      continue
+
+    # 5. Declining Closes
+    if not ((c1 > c2) & (c2 > c3)):
+      continue
+
+    # 6. 1st Black closes under prior High
+    if not (c1 < high[i - 3]):
+      continue
+
+    out[i] = -100
 
   return out
 
@@ -453,32 +503,62 @@ def detect_three_white_soldiers_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
+  avg_far: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Three White Soldiers (Branchless)."""
+  """Detect Three White Soldiers."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
-  for i in range(3, n):
-    is_bull1 = close[i - 2] > open_[i - 2]
-    is_bull2 = close[i - 1] > open_[i - 1]
-    is_bull3 = close[i] > open_[i]
-
-    higher_close1 = close[i - 1] > close[i - 2]
-    higher_close2 = close[i] > close[i - 1]
-
-    open_in_body1 = (open_[i - 1] > open_[i - 2]) & (open_[i - 1] < close[i - 2])
-    open_in_body2 = (open_[i] > open_[i - 1]) & (open_[i] < close[i - 1])
-
+  for i in range(2, n):
     if (
-      is_bull1
-      & is_bull2
-      & is_bull3
-      & higher_close1
-      & higher_close2
-      & open_in_body1
-      & open_in_body2
+      np.isnan(avg_shadow_very_short[i])
+      or np.isnan(avg_near[i])
+      or np.isnan(avg_far[i])
+      or np.isnan(avg_body_short[i])
     ):
-      out[i] = 100
+      continue
+
+    c1, o1 = close[i - 2], open_[i - 2]
+    c2, o2 = close[i - 1], open_[i - 1]
+    c3, o3 = close[i], open_[i]
+
+    if not ((c1 > o1) & (c2 > o2) & (c3 > o3)):
+      continue
+
+    us1 = high[i - 2] - c1
+    us2 = high[i - 1] - c2
+    us3 = high[i] - c3
+
+    if not (us1 < avg_shadow_very_short[i - 2]):
+      continue
+    if not (us2 < avg_shadow_very_short[i - 1]):
+      continue
+    if not (us3 < avg_shadow_very_short[i]):
+      continue
+
+    if not ((c2 > c1) & (c3 > c2)):
+      continue
+
+    if not ((o2 > o1) & (o2 <= c1 + avg_near[i - 2])):
+      continue
+    if not ((o3 > o2) & (o3 <= c2 + avg_near[i - 1])):
+      continue
+
+    body1 = c1 - o1
+    body2 = c2 - o2
+    body3 = c3 - o3
+
+    if not (body2 > body1 - avg_far[i - 2]):
+      continue
+    if not (body3 > body2 - avg_far[i - 1]):
+      continue
+    if not (body3 > avg_body_short[i]):
+      continue
+
+    out[i] = 100
 
   return out
 
@@ -489,34 +569,41 @@ def detect_three_inside_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Three Inside Up/Down (Branchless)."""
+  """Detect Three Inside Up/Down."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(2, n):
-    o1, c1 = open_[i - 2], close[i - 2]
-    o2, c2 = open_[i - 1], close[i - 1]
-    o3, c3 = open_[i], close[i]
-
-    top1, bot1 = max(o1, c1), min(o1, c1)
-    top2, bot2 = max(o2, c2), min(o2, c2)
-
-    is_harami = (top2 < top1) & (bot2 > bot1)
-
-    if not is_harami:
+    if np.isnan(avg_body_long[i - 2]) or np.isnan(avg_body_short[i - 1]):
       continue
 
-    is_bull1 = c1 > o1
-    is_bear1 = c1 < o1
-    is_bull3 = c3 > o3
-    is_bear3 = c3 < o3
+    o1, c1 = open_[i - 2], close[i - 2]
+    o2, c2 = open_[i - 1], close[i - 1]
+    c3 = close[i]
 
-    is_inside_up = is_bear1 & (c2 > o2) & is_bull3 & (c3 > c2)
-    is_inside_down = is_bull1 & (c2 < o2) & is_bear3 & (c3 < c2)
+    body1 = abs(c1 - o1)
+    body2 = abs(c2 - o2)
+    top1, bot1 = (o1, c1) if o1 > c1 else (c1, o1)
+    top2, bot2 = (o2, c2) if o2 > c2 else (c2, o2)
 
-    out[i] = (is_inside_up * 100) - (is_inside_down * 100)
-
+    # 1st candle: long
+    # 2nd candle: short and strictly engulfed by 1st
+    if (
+      body1 > avg_body_long[i - 2]
+      and body2 <= avg_body_short[i - 1]
+      and top2 < top1
+      and bot2 > bot1
+    ):
+      # 3rd candle color is opposite to 1st and closes outside 1st candle's OPEN
+      # Bullish case (Three Inside Up): 1st is Black, 3rd is White and Close > 1st Open
+      if c1 < o1 and c3 > open_[i] and c3 > o1:
+        out[i] = 100
+      # Bearish case (Three Inside Down): 1st is White, 3rd is Black and Close < 1st Open
+      elif c1 > o1 and c3 < open_[i] and c3 < o1:
+        out[i] = -100
   return out
 
 
@@ -549,7 +636,12 @@ def detect_three_outside_numba(
     is_up = is_bear1 & is_bull2 & engulfs_up & confirm_up
     is_down = is_bull1 & is_bear2 & engulfs_down & confirm_down
 
-    out[i] = (is_up * 100) - (is_down * 100)
+    val = 0
+    if is_up:
+      val = 100
+    elif is_down:
+      val = -100
+    out[i] = val
 
   return out
 
@@ -560,30 +652,74 @@ def detect_three_line_strike_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Three Line Strike (Branchless)."""
+  """Detect Three Line Strike."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(4, n):
+    if np.isnan(avg_near[i]):
+      continue
+
     c1, o1 = close[i - 3], open_[i - 3]
     c2, o2 = close[i - 2], open_[i - 2]
     c3, o3 = close[i - 1], open_[i - 1]
     c4, o4 = close[i], open_[i]
 
-    is_3_bears = (c1 < o1) & (c2 < o2) & (c3 < o3)
-    is_stairs_down = (c2 < c1) & (c3 < c2)
-    is_bull_strike = (c4 > o4) & (c4 > o1)
+    # Check colors: 3 same, 4th opposite
+    is_white1 = c1 > o1
+    is_white2 = c2 > o2
+    is_white3 = c3 > o3
+    is_white4 = c4 > o4
 
-    strike_up = is_3_bears & is_stairs_down & is_bull_strike
+    # 3 Must be same color
+    if not ((is_white1 == is_white2) & (is_white2 == is_white3)):
+      continue
 
-    is_3_bulls = (c1 > o1) & (c2 > o2) & (c3 > o3)
-    is_stairs_up = (c2 > c1) & (c3 > c2)
-    is_bear_strike = (c4 < o4) & (c4 < o1)
+    # 4th must be opposite
+    if is_white3 == is_white4:
+      continue
 
-    strike_down = is_3_bulls & is_stairs_up & is_bear_strike
+    # Check 2nd opens near 1st body
+    # min(o1, c1) - near <= o2 <= max(o1, c1) + near
+    bot1 = min(o1, c1)
+    top1 = max(o1, c1)
+    if not ((o2 >= bot1 - avg_near[i]) & (o2 <= top1 + avg_near[i])):
+      continue
 
-    out[i] = (strike_up * 100) - (strike_down * 100)
+    # Check 3rd opens near 2nd body
+    bot2 = min(o2, c2)
+    top2 = max(o2, c2)
+    if not ((o3 >= bot2 - avg_near[i]) & (o3 <= top2 + avg_near[i])):
+      continue
+
+    if is_white1:
+      # Bullish Strike logic (3 White, 1 Black)
+      # TA-Lib returns 100 for Bullish Strike?
+      # "3 Line Strike": If 3 Green then 1 Red engulfing -> Signal is usually continuation of trend?
+      # TA-Lib returns `TA_CANDLECOLOR(i-1) * 100`. So if 3 Whites, returns 100.
+
+      # Consecutive higher closes
+      stairs = (c2 > c1) & (c3 > c2)
+      # 4th opens above prior close (gap up)
+      gap_up_start = o4 > c3
+      # 4th closes below 1st open (engulfs all)
+      engulfs = c4 < o1
+
+      if stairs & gap_up_start & engulfs:
+        out[i] = 100
+
+    else:  # 3 Black
+      # Consecutive lower closes
+      stairs = (c2 < c1) & (c3 < c2)
+      # 4th opens below prior close (gap down)
+      gap_down_start = o4 < c3
+      # 4th closes above 1st open (engulfs all)
+      engulfs = c4 > o1
+
+      if stairs & gap_down_start & engulfs:
+        out[i] = -100
 
   return out
 
@@ -594,28 +730,32 @@ def detect_piercing_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Piercing Pattern (Bullish Reversal)."""
+  """Detect Piercing Pattern."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(1, n):
-    o1, c1 = open_[i - 1], close[i - 1]
-    is_bear1 = c1 < o1
-    body1 = o1 - c1
+    if np.isnan(avg_body_long[i - 1]) or np.isnan(avg_body_long[i]):
+      continue
 
-    o2, c2 = open_[i], close[i]
-    is_bull2 = c2 > o2
+    o1, c1, l1 = open_[i - 1], close[i - 1], low[i - 1]
+    o0, c0 = open_[i], close[i]
 
-    gap_down = o2 < low[i - 1]
-
-    midpoint1 = c1 + (body1 * 0.5)
-    closes_high_enough = c2 > midpoint1
-    closes_within_open = c2 < o1
-
-    if is_bear1 & is_bull2 & gap_down & closes_high_enough & closes_within_open:
+    # 1st: long black
+    # 2nd: long white
+    # opens below prior low
+    # closes within prior body, above midpoint
+    if (
+      c1 < o1
+      and (o1 - c1) > avg_body_long[i - 1]
+      and c0 > o0
+      and (c0 - o0) > avg_body_long[i]
+      and o0 < l1
+      and c0 < o1
+      and c0 > c1 + (o1 - c1) * 0.5
+    ):
       out[i] = 100
-
   return out
 
 
@@ -625,28 +765,32 @@ def detect_dark_cloud_cover_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  penetration: float,
 ) -> NDArray[np.int32]:
-  """Detect Dark Cloud Cover (Bearish Reversal)."""
+  """Detect Dark Cloud Cover."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(1, n):
-    o1, c1 = open_[i - 1], close[i - 1]
-    is_bull1 = c1 > o1
-    body1 = c1 - o1
+    if np.isnan(avg_body_long[i - 1]):
+      continue
 
-    o2, c2 = open_[i], close[i]
-    is_bear2 = c2 < o2
+    o1, h1, c1 = open_[i - 1], high[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
 
-    gap_up = o2 > high[i - 1]
-
-    midpoint1 = o1 + (body1 * 0.5)
-    produces_cover = c2 < midpoint1
-    stays_within = c2 > o1
-
-    if is_bull1 & is_bear2 & gap_up & produces_cover & stays_within:
+    # 1st: long white
+    # 2nd: black
+    # opens above prior high
+    # closes within prior body, deeply enough
+    if (
+      c1 > o1
+      and (c1 - o1) > avg_body_long[i - 1]
+      and c0 < o0
+      and o0 > h1
+      and c0 > o1
+      and c0 < c1 - (c1 - o1) * penetration
+    ):
       out[i] = -100
-
   return out
 
 
@@ -656,40 +800,51 @@ def detect_kicking_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  by_length: bool = False,
 ) -> NDArray[np.int32]:
-  """Detect Kicking Pattern."""
+  """Detect Kicking Pattern (stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(1, n):
+    if np.isnan(avg_body_long[i]):
+      continue
+
     o1, c1 = open_[i - 1], close[i - 1]
-    o2, c2 = open_[i], close[i]
+    o0, c0 = open_[i], close[i]
 
     body1 = abs(c1 - o1)
-    rng1 = high[i - 1] - low[i - 1]
-    is_maru1 = body1 > (rng1 * 0.9)
+    body0 = abs(c0 - o0)
 
-    body2 = abs(c2 - o2)
-    rng2 = high[i] - low[i]
-    is_maru2 = body2 > (rng2 * 0.9)
+    # 1st marubozu
+    is_maru1 = (
+      body1 > avg_body_long[i - 1]
+      and (high[i - 1] - max(o1, c1)) < avg_shadow_very_short[i - 1]
+      and (min(o1, c1) - low[i - 1]) < avg_shadow_very_short[i - 1]
+    )
 
-    if not (is_maru1 & is_maru2):
-      continue
+    # 2nd marubozu
+    is_maru2 = (
+      body0 > avg_body_long[i]
+      and (high[i] - max(o0, c0)) < avg_shadow_very_short[i]
+      and (min(o0, c0) - low[i]) < avg_shadow_very_short[i]
+    )
 
-    is_bear1 = c1 < o1
-    is_bull2 = c2 > o2
-    gap_up = o2 > o1
-
-    if is_bear1 & is_bull2 & gap_up:
-      out[i] = 100
-      continue
-
-    is_bull1 = c1 > o1
-    is_bear2 = c2 < o2
-    gap_down = o2 < o1
-
-    if is_bull1 & is_bear2 & gap_down:
-      out[i] = -100
+    if is_maru1 and is_maru2 and (c1 > o1) != (c0 > o0):
+      # Gap check per TA-Lib:
+      # If Black then White: low(i) > high(i-1) (Gap Up)
+      # If White then Black: high(i) < low(i-1) (Gap Down)
+      if (c1 < o1 and low[i] > high[i - 1]) or (c1 > o1 and high[i] < low[i - 1]):
+        if by_length:
+          # TA_CANDLECOLOR( ( body0 >= body1 ? i : i-1 ) ) * 100
+          if body0 >= body1:
+            out[i] = 100 if c0 > o0 else -100
+          else:
+            out[i] = 100 if c1 > o1 else -100
+        else:
+          out[i] = 100 if c0 > o0 else -100
 
   return out
 
@@ -700,21 +855,29 @@ def detect_matching_low_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Matching Low (Bullish Reversal)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(1, n):
+    if np.isnan(avg_equal[i - 1]):
+      continue
+
     c1, o1 = close[i - 1], open_[i - 1]
     c2, o2 = close[i], open_[i]
 
-    is_bear1 = c1 < o1
-    is_bear2 = c2 < o2
-
-    same_close = abs(c1 - c2) < 1e-5
-
-    if is_bear1 & is_bear2 & same_close:
+    # TA-Lib logic:
+    # 1. 1st Black
+    # 2. 2nd Black
+    # 3. Same Close (within Equal tolerance)
+    if (
+      c1 < o1
+      and c2 < o2
+      and c2 <= c1 + avg_equal[i - 2]
+      and c2 >= c1 - avg_equal[i - 2]
+    ):
       out[i] = 100
 
   return out
@@ -726,12 +889,16 @@ def detect_spinning_top_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Spinning Top (Indecision)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
+    if np.isnan(avg_body[i]):
+      continue
+
     body = abs(close[i] - open_[i])
     rng = high[i] - low[i]
 
@@ -741,7 +908,7 @@ def detect_spinning_top_numba(
     upper_shadow = high[i] - max(open_[i], close[i])
     lower_shadow = min(open_[i], close[i]) - low[i]
 
-    is_small_body = body < (rng * 0.3)
+    is_small_body = body < avg_body[i]
     has_upper = upper_shadow > body
     has_lower = lower_shadow > body
 
@@ -757,22 +924,37 @@ def detect_rickshaw_man_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body: NDArray[np.float64],
+  avg_shadow: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Rickshaw Man (Doji with long shadows)."""
+  """Detect Rickshaw Man (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
+    if np.isnan(avg_body[i]):
+      continue
+
     body = abs(close[i] - open_[i])
     rng = high[i] - low[i]
 
-    is_doji = body <= (rng * 0.1)
+    upper_shadow = high[i] - max(open_[i], close[i])
+    lower_shadow = min(open_[i], close[i]) - low[i]
 
-    midpoint = (high[i] + low[i]) * 0.5
-    body_mid = (open_[i] + close[i]) * 0.5
-    near_mid = abs(body_mid - midpoint) < (rng * 0.1)
+    is_doji = body <= avg_body[i]
+    long_upper = upper_shadow > avg_shadow[i]
+    long_lower = lower_shadow > avg_shadow[i]
 
-    if is_doji & near_mid & (rng > 0):
+    # TA-Lib Rickshaw Man midpoint check:
+    # min(o, c) <= low + range/2 + near_avg AND max(o, c) >= low + range/2 - near_avg
+    midpoint = low[i] + rng * 0.5
+    near_mid = (
+      min(open_[i], close[i]) <= midpoint + avg_near[i]
+      and max(open_[i], close[i]) >= midpoint - avg_near[i]
+    )
+
+    if is_doji & long_upper & long_lower & near_mid:
       out[i] = 100
 
   return out
@@ -784,21 +966,24 @@ def detect_high_wave_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body: NDArray[np.float64],
+  avg_shadow: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect High Wave (Extreme Indecision)."""
+  """Detect High Wave (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
-    body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
+    if np.isnan(avg_body[i]):
+      continue
 
+    body = abs(close[i] - open_[i])
     upper_shadow = high[i] - max(open_[i], close[i])
     lower_shadow = min(open_[i], close[i]) - low[i]
 
-    is_small_body = body < (rng * 0.2)
-    long_upper = upper_shadow > (rng * 0.3)
-    long_lower = lower_shadow > (rng * 0.3)
+    is_small_body = body < avg_body[i]
+    long_upper = upper_shadow > avg_shadow[i]
+    long_lower = lower_shadow > avg_shadow[i]
 
     if is_small_body & long_upper & long_lower:
       out[i] = 100 if close[i] >= open_[i] else -100
@@ -812,20 +997,24 @@ def detect_long_legged_doji_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Long Legged Doji."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(n):
-    body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
+    if np.isnan(avg_body_doji[i]):
+      continue
+    o, c, h, l = open_[i], close[i], high[i], low[i]
+    body = abs(c - o)
 
-    is_doji = body <= (rng * 0.1)
-
-    if is_doji & (rng > body * 5):
-      out[i] = 100
-
+    # Doji body
+    if body <= avg_body_doji[i]:
+      # Long shadows: TA-Lib compares either shadow to RealBody * 1.0 (ShadowLong)
+      upper = h - (o if o > c else c)
+      lower = (o if o < c else c) - l
+      if upper > body or lower > body:
+        out[i] = 100
   return out
 
 
@@ -835,38 +1024,31 @@ def detect_tristar_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Tristar Pattern."""
+  """Detect Tristar pattern."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    b1 = abs(close[i - 2] - open_[i - 2])
-    r1 = high[i - 2] - low[i - 2]
-    d1 = b1 <= (r1 * 0.1)
-
-    b2 = abs(close[i - 1] - open_[i - 1])
-    r2 = high[i - 1] - low[i - 1]
-    d2 = b2 <= (r2 * 0.1)
-
-    b3 = abs(close[i] - open_[i])
-    r3 = high[i] - low[i]
-    d3 = b3 <= (r3 * 0.1)
-
-    if not (d1 & d2 & d3):
+    if np.isnan(avg_body_doji[i]):
       continue
 
-    mid1 = (open_[i - 2] + close[i - 2]) * 0.5
-    mid2 = (open_[i - 1] + close[i - 1]) * 0.5
-    mid3 = (open_[i] + close[i]) * 0.5
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
 
-    is_top = (mid2 > mid1) & (mid2 > mid3)
-    is_bot = (mid2 < mid1) & (mid2 < mid3)
+    # TA-Lib uses same average (calculated at starting candle-1) for all three dojis
+    # Loop i refers to 3rd candle. startIdx-2 in C corresponds to i-2 here.
+    # Total summed in C up to (i-2)-1 = i-3.
+    avg_ref = avg_body_doji[i - 2]
 
-    if is_top:
-      out[i] = -100
-    if is_bot:
-      out[i] = 100
+    if abs(c2 - o2) <= avg_ref and abs(c1 - o1) <= avg_ref and abs(c0 - o0) <= avg_ref:
+      # Bearish: 2nd gaps up (Bodies), 3rd top not higher than 2nd top
+      if min(o1, c1) > max(o2, c2) and max(o0, c0) < max(o1, c1):
+        out[i] = -100
+      # Bullish: 2nd gaps down (Bodies), 3rd bot not lower than 2nd bot
+      elif max(o1, c1) < min(o2, c2) and min(o0, c0) > min(o1, c1):
+        out[i] = 100
 
   return out
 
@@ -877,58 +1059,46 @@ def detect_tasuki_gap_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Tasuki Gap."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    bull1 = close[i - 2] > open_[i - 2]
-    bull2 = close[i - 1] > open_[i - 1]
-    gap_up = open_[i - 1] > close[i - 2]
-    bear3 = close[i] < open_[i]
-    opens_in_2 = (open_[i] < high[i - 1]) & (open_[i] > low[i - 1])
-    closes_in_gap = (close[i] < open_[i - 1]) & (close[i] > close[i - 2])
-
-    if bull1 & bull2 & gap_up & bear3 & opens_in_2 & closes_in_gap:
-      out[i] = 100
+    if np.isnan(avg_near[i - 1]):
       continue
 
-    bear1 = close[i - 2] < open_[i - 2]
-    bear2 = close[i - 1] < open_[i - 1]
-    gap_down = open_[i - 1] < close[i - 2]
-    bull3 = close[i] > open_[i]
-    opens_in_2d = (open_[i] > low[i - 1]) & (open_[i] < high[i - 1])
-    closes_in_gapd = (close[i] > open_[i - 1]) & (close[i] < close[i - 2])
-
-    if bear1 & bear2 & gap_down & bull3 & opens_in_2d & closes_in_gapd:
-      out[i] = -100
-
-  return out
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
-def detect_separating_lines_numba(
-  open_: NDArray[np.float64],
-  high: NDArray[np.float64],
-  low: NDArray[np.float64],
-  close: NDArray[np.float64],
-) -> NDArray[np.int32]:
-  """Detect Separating Lines."""
-  n = len(close)
-  out = np.zeros(n, dtype=np.int32)
-
-  for i in range(1, n):
+    o2, c2 = open_[i - 2], close[i - 2]
     o1, c1 = open_[i - 1], close[i - 1]
-    o2, c2 = open_[i], close[i]
+    o0, c0 = open_[i], close[i]
 
-    same_open = abs(o1 - o2) < 1e-5
-    if not same_open:
+    # Upside Gap
+    # 1. Gap Up (Body Gap)
+    # 2. 2nd White, 3rd Black
+    if (
+      (min(o1, c1) > max(o2, c2))
+      and (c1 > o1)
+      and (c0 < o0)
+      and (o0 < c1)
+      and (o0 > o1)
+      and (c0 < o1)
+      and (c0 > max(c2, o2))
+      and (abs(abs(c1 - o1) - abs(c0 - o0)) < avg_near[i - 1])
+    ):
+      out[i] = 100
       continue
 
-    if (c1 < o1) & (c2 > o2):
-      out[i] = 100
-    if (c1 > o1) & (c2 < o2):
+    # Downside Gap
+    if (
+      (max(o1, c1) < min(o2, c2))
+      and (c1 < o1)
+      and (c0 > o0)
+      and (o0 < o1)
+      and (o0 > c1)
+      and (c0 > o1)
+      and (c0 < min(c2, o2))
+      and (abs(abs(o1 - c1) - abs(c0 - o0)) < avg_near[i - 1])
+    ):
       out[i] = -100
 
   return out
@@ -940,24 +1110,58 @@ def detect_gap_side_by_side_white_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Gap Side-by-Side White."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(2, n):
-    bull2 = close[i - 1] > open_[i - 1]
-    bull3 = close[i] > open_[i]
-    if not (bull2 & bull3):
+    if np.isnan(avg_near[i]) or np.isnan(avg_equal[i]):
       continue
 
-    gap_up = open_[i - 1] > close[i - 2]
-    if (close[i - 2] > open_[i - 2]) & gap_up:
-      out[i] = 100
+    # Gap Logic
+    # Upside gap: open(i-1) > high(i-2) (Strict) or close(i-2)?
+    # TA-Lib uses RealBodyGap. RealBodyGapUp(i-1, i-2) => BodyBottom(i-1) > BodyTop(i-2)
 
-    gap_down = open_[i - 1] < close[i - 2]
-    if (close[i - 2] < open_[i - 2]) & gap_down:
-      out[i] = -100
+    c1, o1 = close[i - 2], open_[i - 2]
+    c2, o2 = close[i - 1], open_[i - 1]
+    c3, o3 = close[i], open_[i]
+
+    top1 = max(o1, c1)
+    bot1 = min(o1, c1)
+    top2 = max(o2, c2)
+    bot2 = min(o2, c2)
+    top3 = max(o3, c3)
+    bot3 = min(o3, c3)
+
+    # 2nd and 3rd must be White (Bullish)
+    is_white2 = c2 > o2
+    is_white3 = c3 > o3
+
+    if not (is_white2 & is_white3):
+      continue
+
+    # Real Body Gap Up: Bottom of 2 and 3 > Top of 1
+    # Note: TA-Lib checks separate gaps for both candles against i-2
+    gap_up = (bot2 > top1) & (bot3 > top1)
+    gap_down = (top2 < bot1) & (top3 < bot1)
+
+    if not (gap_up or gap_down):
+      continue
+
+    # Size check: Body3 within "Near" of Body2
+    # TA-Lib: TA_CANDLEAVERAGE( Near, ..., i-1 ) where total summed up to i-2.
+    body2 = abs(c2 - o2)
+    body3 = abs(c3 - o3)
+    size_ok = abs(body3 - body2) < avg_near[i - 1]
+
+    # Open check: Open3 within "Equal" of Open2
+    open_ok = abs(o3 - o2) < avg_equal[i - 1]
+
+    if size_ok & open_ok:
+      out[i] = 100 if gap_up else -100
 
   return out
 
@@ -968,25 +1172,31 @@ def detect_two_crows_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Two Crows."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    if close[i - 2] <= open_[i - 2]:
-      continue
-    if close[i - 1] >= open_[i - 1]:
-      continue
-    if close[i - 1] <= close[i - 2]:
-      continue
-    if close[i] >= open_[i]:
+    if np.isnan(avg_body_long[i]):
       continue
 
-    opens_in_2 = (open_[i] < open_[i - 1]) & (open_[i] > close[i - 1])
-    closes_in_1 = (close[i] < close[i - 2]) & (close[i] > open_[i - 2])
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
 
-    if opens_in_2 & closes_in_1:
+    # white, black, black
+    if (
+      c2 > o2
+      and (c2 - o2) > avg_body_long[i - 2]
+      and c1 < o1
+      and min(o1, c1) > max(o2, c2)
+      and c0 < o0
+      and o0 < o1
+      and o0 > c1
+      and c0 < c2
+      and c0 > o2
+    ):
       out[i] = -100
 
   return out
@@ -998,23 +1208,40 @@ def detect_upside_gap_two_crows_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Upside Gap Two Crows."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(2, n):
-    if not (close[i - 2] > open_[i - 2]):
-      continue
-    if not (close[i - 1] < open_[i - 1]):
-      continue
-    if not (close[i] < open_[i]):
+    if np.isnan(avg_body_long[i - 2]) or np.isnan(avg_body_short[i - 1]):
       continue
 
-    gap_up = close[i - 1] > close[i - 2]
-    engulfs_2 = (open_[i] > open_[i - 1]) & (close[i] < close[i - 1])
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
 
-    if gap_up & engulfs_2:
+    # TA-Lib logic:
+    # 1st: White Long
+    # 2nd: Black Short, RealBodyGapUp
+    # 3rd: Black Engulfing 2nd's Real Body, closing above 1st's Close
+
+    body2 = abs(c2 - o2)
+    body1 = abs(c1 - o1)
+
+    if (
+      c2 > o2
+      and body2 > avg_body_long[i - 2]
+      and c1 < o1
+      and body1 <= avg_body_short[i - 1]
+      and min(o1, c1) > c2
+      and c0 < o0
+      and o0 > o1
+      and c0 < c1
+      and c0 > c2
+    ):
       out[i] = -100
 
   return out
@@ -1037,29 +1264,62 @@ def detect_abandoned_baby_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  penetration: float = 0.3,
 ) -> NDArray[np.int32]:
   """Detect Abandoned Baby."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    bear1 = close[i - 2] < open_[i - 2]
-    doji2 = abs(close[i - 1] - open_[i - 1]) <= (high[i - 1] - low[i - 1]) * 0.1
-    bull3 = close[i] > open_[i]
+    if (
+      np.isnan(avg_body_long[i])
+      or np.isnan(avg_body_doji[i])
+      or np.isnan(avg_body_short[i])
+    ):
+      continue
 
-    if bear1 & doji2 & bull3:
-      gap1 = low[i - 2] > high[i - 1]
-      gap2 = low[i] > high[i - 1]
-      if gap1 & gap2:
-        out[i] = 100
+    # 1. 1st Candle Long
+    body1 = abs(close[i - 2] - open_[i - 2])
+    if not (body1 > avg_body_long[i - 2]):
+      continue
 
-    bull1_ = close[i - 2] > open_[i - 2]
-    bear3_ = close[i] < open_[i]
-    if bull1_ & doji2 & bear3_:
-      gap1_ = high[i - 2] < low[i - 1]
-      gap2_ = high[i] < low[i - 1]
-      if gap1_ & gap2_:
+    # 2. 2nd Candle Doji
+    body2 = abs(close[i - 1] - open_[i - 1])
+    if not (body2 <= avg_body_doji[i - 1]):
+      continue
+
+    # 3. 3rd Candle Longer than Short
+    body3 = abs(close[i] - open_[i])
+    if not (body3 > avg_body_short[i]):
+      continue
+
+    c1, o1 = close[i - 2], open_[i - 2]
+    c2, o2 = close[i - 1], open_[i - 1]
+    c3, o3 = close[i], open_[i]
+    h1, l1 = high[i - 2], low[i - 2]
+    h2, l2 = high[i - 1], low[i - 1]
+    h3, l3 = high[i], low[i]
+
+    is_white1 = c1 > o1
+    is_white3 = c3 > o3
+
+    # Bearish Abandoned Baby (Top)
+    if is_white1 and (not is_white3):
+      gap_up = l2 > h1
+      gap_down = h3 < l2
+      penetrate = c3 < (c1 - body1 * penetration)
+      if gap_up and gap_down and penetrate:
         out[i] = -100
+
+    # Bullish Abandoned Baby (Bottom)
+    elif (not is_white1) and is_white3:
+      gap_down = h2 < l1
+      gap_up = l3 > h2
+      penetrate = c3 > (c1 + body1 * penetration)
+      if gap_down and gap_up and penetrate:
+        out[i] = 100
 
   return out
 
@@ -1070,32 +1330,60 @@ def detect_advance_block_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_short: NDArray[np.float64],
+  avg_shadow_long: NDArray[np.float64],
+  avg_far: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Advance Block (Bearish Reversal)."""
+  """Detect Advance Block."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
   for i in range(2, n):
-    if not (
-      (close[i - 2] > open_[i - 2])
-      & (close[i - 1] > open_[i - 1])
-      & (close[i] > open_[i])
+    if np.isnan(avg_body_long[i]):
+      continue
+
+    o2, h2, c2 = open_[i - 2], high[i - 2], close[i - 2]
+    o1, h1, c1 = open_[i - 1], high[i - 1], close[i - 1]
+    o0, h0, c0 = open_[i], high[i], close[i]
+
+    body2 = c2 - o2
+    body1 = c1 - o1
+    body0 = c0 - o0
+
+    if (
+      c2 > o2
+      and c1 > o1
+      and c0 > o0
+      and c0 > c1
+      and c1 > c2
+      and o1 > o2
+      and o1 <= c2 + avg_near[i - 2]
+      and o0 > o1
+      and o0 <= c1 + avg_near[i - 1]
+      and body2 > avg_body_long[i - 2]
+      and (h2 - c2) < avg_shadow_short[i - 2]
     ):
-      continue
+      blocked = False
+      # ( 2 far smaller than 1 && 3 not longer than 2 )
+      if body1 < body2 - avg_far[i - 2] and body0 < body1 + avg_near[i - 1]:
+        blocked = True
+      # 3 far smaller than 2
+      elif body0 < body1 - avg_far[i - 1]:
+        blocked = True
+      # ( 3 smaller than 2 && 2 smaller than 1 && (3 or 2 not short upper shadow) )
+      elif (
+        body0 < body1
+        and body1 < body2
+        and ((h1 - c1) > avg_shadow_short[i - 1] or (h0 - c0) > avg_shadow_short[i])
+      ):
+        blocked = True
+      # ( 3 smaller than 2 && 3 long upper shadow )
+      elif body0 < body1 and (h0 - c0) > body0:  # TA-Lib ShadowLong P=0 uses RealBody
+        blocked = True
 
-    if not ((open_[i - 1] > open_[i - 2]) & (open_[i - 1] < close[i - 2])):
-      continue
-    if not ((open_[i] > open_[i - 1]) & (open_[i] < close[i - 1])):
-      continue
-
-    u1 = high[i - 2] - close[i - 2]
-    u2 = high[i - 1] - close[i - 1]
-    u3 = high[i] - close[i]
-
-    weakening = (u2 > u1) & (u3 > u2)
-
-    if weakening:
-      out[i] = -100
+      if blocked:
+        out[i] = -100
 
   return out
 
@@ -1106,24 +1394,29 @@ def detect_belt_hold_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Belt Hold."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
-    body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-    if rng < 1e-9:
+    if np.isnan(avg_body_long[i]):
       continue
 
-    if close[i] > open_[i]:  # Bull
-      no_lower = (open_[i] - low[i]) < (body * 0.05)
-      if no_lower:
+    body = abs(close[i] - open_[i])
+    # Must be Long Body
+    if body <= avg_body_long[i]:
+      continue
+
+    if close[i] > open_[i]:  # Bull (White Opening Marubozu)
+      # No lower shadow
+      if (open_[i] - low[i]) < avg_shadow_very_short[i]:
         out[i] = 100
-    else:  # Bear
-      no_upper = (high[i] - open_[i]) < (body * 0.05)
-      if no_upper:
+    else:  # Bear (Black Opening Marubozu)
+      # No upper shadow
+      if (high[i] - open_[i]) < avg_shadow_very_short[i]:
         out[i] = -100
 
   return out
@@ -1135,10 +1428,86 @@ def detect_breakaway_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Breakaway."""
   n = len(close)
-  return np.zeros(n, dtype=np.int32)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(4, n):
+    if np.isnan(avg_body_long[i]):
+      continue
+
+    c1, o1 = close[i - 4], open_[i - 4]
+
+    # 1. First Candle Long
+    body1 = abs(c1 - o1)
+    if not (body1 > avg_body_long[i - 4]):
+      continue
+
+    c2, o2 = close[i - 3], open_[i - 3]
+    c3, o3 = close[i - 2], open_[i - 2]
+    c4, o4 = close[i - 1], open_[i - 1]
+    c5, o5 = close[i], open_[i]
+
+    h2, l2 = high[i - 3], low[i - 3]
+    h3, l3 = high[i - 2], low[i - 2]
+    h4, l4 = high[i - 1], low[i - 1]
+
+    is_white1 = c1 > o1
+    is_white2 = c2 > o2
+    is_white4 = c4 > o4
+    is_white5 = c5 > o5
+
+    # Check Colors: 1, 2, 4 same. 5 opposite.
+    if (is_white1 != is_white2) or (is_white2 != is_white4):
+      continue
+
+    # Bearish Breakaway (1st White) -> Expects 5th Black
+    if is_white1:
+      if is_white5:
+        continue
+
+      # 2nd gaps up (Real Body Gap)
+      gap_up = min(o2, c2) > max(o1, c1)
+      if not gap_up:
+        continue
+
+      # 3rd higher High/Low than 2nd
+      if not ((h3 > h2) & (l3 > l2)):
+        continue
+
+      # 4th higher High/Low than 3rd
+      if not ((h4 > h3) & (l4 > l3)):
+        continue
+
+      # 5th closes inside gap (Close < Open2, Close > Close1)
+      if (c5 < o2) & (c5 > c1):
+        out[i] = -100
+
+    # Bullish Breakaway (1st Black) -> Expects 5th White
+    else:
+      if not is_white5:
+        continue
+
+      # 2nd gaps down (Body Gap)
+      gap_down = max(o2, c2) < min(o1, c1)
+      if not gap_down:
+        continue
+
+      # 3rd lower High/Low than 2nd
+      if not ((h3 < h2) & (l3 < l2)):
+        continue
+
+      # 4th lower High/Low than 3rd
+      if not ((h4 < h3) & (l4 < l3)):
+        continue
+
+      # 5th closes inside gap (Close > Open2, Close < Close1)
+      if (c5 > o2) & (c5 < c1):
+        out[i] = 100
+
+  return out
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
@@ -1147,21 +1516,37 @@ def detect_closing_marubozu_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Closing Marubozu."""
+  """Detect Closing Marubozu.
+
+  Definition:
+  - Body is Long ( > avg_body_long)
+  - No shadow at the closing end ( < avg_shadow_very_short)
+  """
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
-    body = abs(close[i] - open_[i])
-    if body < 1e-9:
+    if np.isnan(avg_body_long[i]):
       continue
 
+    body = abs(close[i] - open_[i])
+
+    # Check 1: Long Body
+    if body <= avg_body_long[i]:
+      continue
+
+    # Check 2: No shadow at closing end
     if close[i] > open_[i]:  # Bull
-      if (high[i] - close[i]) < (body * 0.05):
+      upper_shadow = high[i] - close[i]
+      if upper_shadow < avg_shadow_very_short[i]:
         out[i] = 100
-    elif (close[i] - low[i]) < (body * 0.05):
-      out[i] = -100
+    else:  # Bear
+      lower_shadow = close[i] - low[i]
+      if lower_shadow < avg_shadow_very_short[i]:
+        out[i] = -100
 
   return out
 
@@ -1172,22 +1557,26 @@ def detect_dragonfly_doji_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Dragonfly Doji (T-shape)."""
+  """Detect Dragonfly Doji (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
+    if np.isnan(avg_body_doji[i]):
+      continue
+
     body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-    is_doji = body <= (rng * 0.1)
+    upper_shadow = high[i] - max(open_[i], close[i])
+    lower_shadow = min(open_[i], close[i]) - low[i]
 
-    upper = high[i] - max(open_[i], close[i])
-    lower = min(open_[i], close[i]) - low[i]
-
-    is_dragonfly = is_doji & (upper < rng * 0.1) & (lower > rng * 0.6)
-
-    if is_dragonfly:
+    if (
+      (body < avg_body_doji[i])
+      and (upper_shadow < avg_shadow_very_short[i])
+      and (lower_shadow > avg_shadow_very_short[i])
+    ):
       out[i] = 100
 
   return out
@@ -1199,22 +1588,26 @@ def detect_gravestone_doji_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Gravestone Doji (Inverted T)."""
+  """Detect Gravestone Doji (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(n):
+    if np.isnan(avg_body_doji[i]):
+      continue
+
     body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-    is_doji = body <= (rng * 0.1)
+    upper_shadow = high[i] - max(open_[i], close[i])
+    lower_shadow = min(open_[i], close[i]) - low[i]
 
-    upper = high[i] - max(open_[i], close[i])
-    lower = min(open_[i], close[i]) - low[i]
-
-    is_gravestone = is_doji & (lower < rng * 0.1) & (upper > rng * 0.6)
-
-    if is_gravestone:
+    if (
+      (body < avg_body_doji[i])
+      and (lower_shadow < avg_shadow_very_short[i])
+      and (upper_shadow > avg_shadow_very_short[i])
+    ):
       out[i] = 100
 
   return out
@@ -1227,36 +1620,39 @@ def detect_hikkake_numba(
   low: NDArray[np.float64],
   close: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Hikkake pattern.
-
-  Three stages:
-  1. Harami (Internal Bar).
-  2. False Breakout.
-  3. Reversal.
-  """
+  """Detect Hikkake pattern."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
 
-  for i in range(5, n):
-    # Harami at i-2, i-3
-    h3, l3 = high[i - 3], low[i - 3]
-    h2, l2 = high[i - 2], low[i - 2]
+  pattern_idx = 0
+  pattern_result = 0
 
-    is_harami = (h2 < h3) & (l2 > l3)
-    if not is_harami:
-      continue
-
-    # Breakout candle at i-1
-    h1, l1 = high[i - 1], low[i - 1]
-
-    # Bullish Hikkake: i-1 breaks low, current i breaks high of harami window
-    # Actually TA-Lib often returns at the moment of breakout reversal
-    if (l1 < l3) & (close[i] > h3):
-      out[i] = 100
-
-    # Bearish Hikkake: i-1 breaks high, current i breaks low
-    if (h1 > h3) & (close[i] < l3):
-      out[i] = -100
+  for i in range(2, n):
+    # New breakout check
+    if (
+      high[i - 1] < high[i - 2]
+      and low[i - 1] > low[i - 2]
+      and (
+        (high[i] < high[i - 1] and low[i] < low[i - 1])
+        or (high[i] > high[i - 1] and low[i] > low[i - 1])
+      )
+    ):
+      pattern_result = 100 if high[i] < high[i - 1] else -100
+      pattern_idx = i
+      out[i] = pattern_result
+    else:
+      # Confirmation check
+      if pattern_idx != 0 and i <= pattern_idx + 3:
+        if (pattern_result > 0 and close[i] > high[pattern_idx - 1]) or (
+          pattern_result < 0 and close[i] < low[pattern_idx - 1]
+        ):
+          # Confirmed: return +/- 200
+          out[i] = pattern_result + (100 if pattern_result > 0 else -100)
+          pattern_idx = 0
+        else:
+          out[i] = 0
+      else:
+        out[i] = 0
 
   return out
 
@@ -1267,6 +1663,8 @@ def detect_homing_pigeon_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Homing Pigeon. Both candles black, second inside first."""
   n = len(close)
@@ -1274,7 +1672,15 @@ def detect_homing_pigeon_numba(
   for i in range(1, n):
     o1, c1 = open_[i - 1], close[i - 1]
     o2, c2 = open_[i], close[i]
-    if (c1 < o1) & (c2 < o2) and (o2 < o1) & (c2 > c1):
+
+    # 1. Body check
+    b1 = o1 - c1
+    b2 = o2 - c2
+    if not (b1 > avg_body_long[i - 1] and b2 > 0 and b2 < avg_body_short[i]):
+      continue
+
+    # 2. Containment (strict for Homing Pigeon)
+    if (o2 < o1) and (c2 > c1):
       out[i] = 100
   return out
 
@@ -1285,20 +1691,38 @@ def detect_identical_three_crows_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Identical Three Crows."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(2, n):
-    o1, c1 = open_[i - 2], close[i - 2]
-    o2, c2 = open_[i - 1], close[i - 1]
-    o3, c3 = open_[i], close[i]
+    if np.isnan(avg_shadow_very_short[i]) or np.isnan(avg_equal[i - 1]):
+      continue
 
-    # All black
-    if (c1 < o1) & (c2 < o2) & (c3 < o3):
-      # Identical opening (near previous close)
-      if (abs(o2 - c1) < 1e-5) & (abs(o3 - c2) < 1e-5):
-        out[i] = -100
+    o2, c2, l2 = open_[i - 2], close[i - 2], low[i - 2]
+    o1, c1, l1 = open_[i - 1], close[i - 1], low[i - 1]
+    o0, c0, l0 = open_[i], close[i], low[i]
+
+    # All black, declining closes
+    if c2 < o2 and c1 < o1 and c0 < o0 and c2 > c1 and c1 > c0:
+      # Very short lower shadows
+      if (
+        (c2 - l2) < avg_shadow_very_short[i - 2]
+        and (c1 - l1) < avg_shadow_very_short[i - 1]
+        and (c0 - l0) < avg_shadow_very_short[i]
+      ):
+        # Identical opening (2nd and 3rd open near previous close)
+        # TA-Lib uses Equal sum ending at i-3 (sum(j-2) for j up to i-1)
+        if (
+          o1 <= c2 + avg_equal[i - 2]
+          and o1 >= c2 - avg_equal[i - 2]
+          and o0 <= c1 + avg_equal[i - 1]
+          and o0 >= c1 - avg_equal[i - 1]
+        ):
+          out[i] = -100
+
   return out
 
 
@@ -1308,17 +1732,28 @@ def detect_in_neck_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect In-Neck."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(1, n):
-    o1, c1 = open_[i - 1], close[i - 1]
-    o2, c2 = open_[i], close[i]
-    if (c1 < o1) & (c2 > o2):  # Bear then Bull
-      # Closes at previous low (or close)
-      if abs(c2 - c1) < (abs(o1 - c1) * 0.1):  # Close to close
-        out[i] = -100
+    if np.isnan(avg_body_long[i - 1]) or np.isnan(avg_equal[i - 1]):
+      continue
+
+    o1, c1, l1 = open_[i - 1], close[i - 1], low[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    if (
+      c1 < o1
+      and (o1 - c1) > avg_body_long[i - 1]
+      and c0 > o0
+      and o0 < l1
+      and c0 <= c1 + avg_equal[i - 1]
+      and c0 >= c1
+    ):
+      out[i] = -100
   return out
 
 
@@ -1328,27 +1763,51 @@ def detect_ladder_bottom_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Ladder Bottom."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(4, n):
-    # 3 bears + stairs down
-    b1 = close[i - 4] < open_[i - 4]
-    b2 = close[i - 3] < open_[i - 3]
-    b3 = close[i - 2] < open_[i - 2]
-    stairs = (close[i - 3] < close[i - 4]) & (close[i - 2] < close[i - 3])
+    if np.isnan(avg_shadow_very_short[i]):
+      continue
 
-    # 4th bear with upper shadow
-    b4 = close[i - 1] < open_[i - 1]
-    has_shadow = (high[i - 1] - open_[i - 1]) > (abs(open_[i - 1] - close[i - 1]) * 0.5)
+    c1, o1 = close[i - 4], open_[i - 4]
+    c2, o2 = close[i - 3], open_[i - 3]
+    c3, o3 = close[i - 2], open_[i - 2]
+    c4, o4 = close[i - 1], open_[i - 1]
+    c5, o5 = close[i], open_[i]
 
-    # 5th bull gaps up
-    bull5 = close[i] > open_[i]
-    gap_up = open_[i] > high[i - 1]
+    # 1. 3 Black Candles
+    bears3 = (c1 < o1) & (c2 < o2) & (c3 < o3)
+    if not bears3:
+      continue
 
-    if b1 & b2 & b3 & b4 & stairs & has_shadow & bull5 & gap_up:
+    # 2. Lower Opens and Closes
+    lower_opens = (o2 < o1) & (o3 < o2)
+    lower_closes = (c2 < c1) & (c3 < c2)
+    if not (lower_opens & lower_closes):
+      continue
+
+    # 3. 4th Candle: Black with Upper Shadow > VeryShort
+    if not (c4 < o4):
+      continue
+
+    # Check upper shadow
+    upper_shadow4 = high[i - 1] - o4
+    if not (upper_shadow4 > avg_shadow_very_short[i - 1]):
+      continue
+
+    # 4. 5th Candle: White
+    if not (c5 > o5):
+      continue
+
+    # 5. Gap Up Logic?
+    # Open > Prior Open (Open5 > Open4)
+    # Close > Prior High (Close5 > High4)
+    if (o5 > o4) & (c5 > high[i - 1]):
       out[i] = 100
+
   return out
 
 
@@ -1358,16 +1817,29 @@ def detect_long_line_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Long Line."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-  # Needs reference to average body? For now simple range check.
   for i in range(n):
-    body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-    if (rng > 0) & (body > rng * 0.8):
-      out[i] = 100 if close[i] > open_[i] else -100
+    if np.isnan(avg_body_long[i]):
+      continue
+
+    o, h, l, c = open_[i], high[i], low[i], close[i]
+    body = abs(c - o)
+    body_top = o if o > c else c
+    body_bot = o if o < c else c
+
+    # 1. Body must be Long
+    # 2. Both shadows must be Short
+    if (
+      body > avg_body_long[i]
+      and (h - body_top) < avg_shadow_short[i]
+      and (body_bot - l) < avg_shadow_short[i]
+    ):
+      out[i] = 100 if c > o else -100
   return out
 
 
@@ -1377,12 +1849,62 @@ def detect_mat_hold_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  penetration: float = 0.5,
 ) -> NDArray[np.int32]:
   """Detect Mat Hold."""
   n = len(close)
-  return np.zeros(n, dtype=np.int32)
-  # 5 candles: Long Bull, Gap Up + 3 Small Bears inside body, Long Bull higher
-  # Simplified implementation
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(4, n):
+    if (
+      np.isnan(avg_body_long[i - 4])
+      or np.isnan(avg_body_short[i - 3])
+      or np.isnan(avg_body_short[i - 2])
+      or np.isnan(avg_body_short[i - 1])
+    ):
+      continue
+
+    o4, h4, l4, c4 = open_[i - 4], high[i - 4], low[i - 4], close[i - 4]
+    o3, h3, c3 = open_[i - 3], high[i - 3], close[i - 3]
+    o2, h2, c2 = open_[i - 2], high[i - 2], close[i - 2]
+    o1, h1, c1 = open_[i - 1], high[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    body4 = abs(c4 - o4)
+    body3 = abs(c3 - o3)
+    body2 = abs(c2 - o2)
+    body1 = abs(c1 - o1)
+
+    # TA-Lib logic:
+    # 1. 1st: Long white
+    # 2. 2nd: Small black, Gap UP (Real Body)
+    # 3. 3rd-4th: Small reaction days
+    # 4. 2nd-4th hold within 1st body (allow penetration %)
+    # 5. 2nd-4th are falling
+    # 6. 5th: white confirms
+    h3, h2, h1 = high[i - 3], high[i - 2], high[i - 1]
+    if (
+      c4 > o4
+      and body4 > avg_body_long[i - 4]
+      and c3 < o3
+      and body3 < avg_body_short[i - 3]
+      and body2 < avg_body_short[i - 2]
+      and body1 < avg_body_short[i - 1]
+      and c0 > o0
+      and min(o3, c3) > max(o4, c4)
+      and min(o2, c2) < c4
+      and min(o2, c2) > c4 - body4 * penetration
+      and min(o1, c1) < c4
+      and min(o1, c1) > c4 - body4 * penetration
+      and max(o2, c2) < o3
+      and max(o1, c1) < max(o2, c2)
+      and o0 > c1
+      and c0 > max(h3, max(h2, h1))
+    ):
+      out[i] = 100
+  return out
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
@@ -1391,17 +1913,28 @@ def detect_on_neck_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect On-Neck."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(1, n):
-    o1, c1 = open_[i - 1], close[i - 1]
-    o2, c2 = open_[i], close[i]
-    if (c1 < o1) & (c2 > o2):  # Bear then Bull
-      # Closes AT previous low (not close)
-      if abs(c2 - low[i - 1]) < (abs(o1 - c1) * 0.05):
-        out[i] = -100
+    if np.isnan(avg_body_long[i - 1]) or np.isnan(avg_equal[i - 1]):
+      continue
+
+    o1, c1, l1 = open_[i - 1], close[i - 1], low[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    if (
+      c1 < o1
+      and (o1 - c1) > avg_body_long[i - 1]
+      and c0 > o0
+      and o0 < l1
+      and c0 <= l1 + avg_equal[i - 1]
+      and c0 >= l1 - avg_equal[i - 1]
+    ):
+      out[i] = -100
   return out
 
 
@@ -1411,32 +1944,83 @@ def detect_rise_fall_three_methods_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Rise/Fall Three Methods."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(4, n):
-    # Rising 3 Methods
-    if close[i - 4] > open_[i - 4]:  # Bull
-      # 3 Small Bears inside body of C1
-      bears = (
-        (close[i - 3] < open_[i - 3])
-        & (close[i - 2] < open_[i - 2])
-        & (close[i - 1] < open_[i - 1])
-      )
-      inside = (high[i - 3] < high[i - 4]) & (low[i - 3] > low[i - 4])
-      if bears & inside & (close[i] > close[i - 4]):
-        out[i] = 100
-    # Falling 3 Methods
-    elif close[i - 4] < open_[i - 4]:  # Bear
-      bulls = (
-        (close[i - 3] > open_[i - 3])
-        & (close[i - 2] > open_[i - 2])
-        & (close[i - 1] > open_[i - 1])
-      )
-      inside = (high[i - 3] < high[i - 4]) & (low[i - 3] > low[i - 4])
-      if bulls & inside & (close[i] < close[i - 4]):
-        out[i] = -100
+    if (
+      np.isnan(avg_body_long[i - 4])
+      or np.isnan(avg_body_long[i])
+      or np.isnan(avg_body_short[i - 3])
+      or np.isnan(avg_body_short[i - 2])
+      or np.isnan(avg_body_short[i - 1])
+    ):
+      continue
+
+    o4, h4, l4, c4 = open_[i - 4], high[i - 4], low[i - 4], close[i - 4]
+    o3, c3 = open_[i - 3], close[i - 3]
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    body4 = abs(c4 - o4)
+    body3 = abs(c3 - o3)
+    body2 = abs(c2 - o2)
+    body1 = abs(c1 - o1)
+    body0 = abs(c0 - o0)
+
+    # Rising Three Methods
+    if (
+      c4 > o4
+      and body4 > avg_body_long[i - 4]
+      and c3 < o3
+      and body3 < avg_body_short[i - 3]
+      and c2 < o2
+      and body2 < avg_body_short[i - 2]
+      and c1 < o1
+      and body1 < avg_body_short[i - 1]
+      and c0 > o0
+      and body0 > avg_body_long[i]
+      and min(o3, c3) < h4
+      and max(o3, c3) > l4
+      and min(o2, c2) < h4
+      and max(o2, c2) > l4
+      and min(o1, c1) < h4
+      and max(o1, c1) > l4
+      and c3 > c2
+      and c2 > c1
+      and o0 > c1
+      and c0 > c4
+    ):
+      out[i] = 100
+
+    # Falling Three Methods
+    elif (
+      c4 < o4
+      and body4 > avg_body_long[i - 4]
+      and c3 > o3
+      and body3 < avg_body_short[i - 3]
+      and c2 > o2
+      and body2 < avg_body_short[i - 2]
+      and c1 > o1
+      and body1 < avg_body_short[i - 1]
+      and c0 < o0
+      and body0 > avg_body_long[i]
+      and min(o3, c3) < h4
+      and max(o3, c3) > l4
+      and min(o2, c2) < h4
+      and max(o2, c2) > l4
+      and min(o1, c1) < h4
+      and max(o1, c1) > l4
+      and c3 < c2
+      and c2 < c1
+      and o0 < c1
+      and c0 < c4
+    ):
+      out[i] = -100
   return out
 
 
@@ -1446,15 +2030,24 @@ def detect_short_line_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_shadow_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Short Line."""
+  """Detect Short Line (Stateful)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(n):
+    if np.isnan(avg_body_short[i]):
+      continue
     body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-    if (rng > 0) & (body < rng * 0.3):
-      out[i] = 100 if close[i] > open_[i] else -100
+    upper = high[i] - max(open_[i], close[i])
+    lower = min(open_[i], close[i]) - low[i]
+    if (
+      (body < avg_body_short[i])
+      and (upper < avg_shadow_short[i])
+      and (lower < avg_shadow_short[i])
+    ):
+      out[i] = 100 if close[i] >= open_[i] else -100
   return out
 
 
@@ -1464,21 +2057,50 @@ def detect_stalled_pattern_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Stalled Pattern (Bearish Reversal)."""
+  """Detect Stalled Pattern."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-  # Simplified: 3 bulls, each closing higher, but 3rd has tiny body
+
   for i in range(2, n):
-    bulls = (
-      (close[i - 2] > open_[i - 2])
-      & (close[i - 1] > open_[i - 1])
-      & (close[i] > open_[i])
-    )
-    higher = (close[i - 1] > close[i - 2]) & (close[i] >= close[i - 1])
-    small_body = abs(close[i] - open_[i]) < abs(close[i - 1] - open_[i - 1]) * 0.3
-    if bulls & higher & small_body:
+    if (
+      np.isnan(avg_body_long[i - 2])
+      or np.isnan(avg_body_long[i - 1])
+      or np.isnan(avg_body_short[i])
+      or np.isnan(avg_shadow_very_short[i - 1])
+      or np.isnan(avg_near[i - 1])
+      or np.isnan(avg_near[i])
+    ):
+      continue
+
+    o2, h2, l2, c2 = open_[i - 2], high[i - 2], low[i - 2], close[i - 2]
+    o1, h1, l1, c1 = open_[i - 1], high[i - 1], low[i - 1], close[i - 1]
+    o0, h0, l0, c0 = open_[i], high[i], low[i], close[i]
+
+    body2 = c2 - o2
+    body1 = c1 - o1
+    body0 = c0 - o0
+
+    if (
+      c2 > o2
+      and c1 > o1
+      and c0 > o0
+      and c0 > c1
+      and c1 > c2
+      and o1 > o2
+      and o1 <= c2 + avg_near[i - 2]
+      and body2 > avg_body_long[i - 2]
+      and body1 > avg_body_long[i - 1]
+      and (h1 - c1) < avg_shadow_very_short[i - 1]
+      and body0 < avg_body_short[i]
+      and o0 >= c1 - body0 - avg_near[i - 1]
+    ):
       out[i] = -100
+
   return out
 
 
@@ -1488,18 +2110,38 @@ def detect_stick_sandwich_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Stick Sandwich."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(2, n):
-    # Bear, Bull (higher), Bear (same close)
-    if (
-      (close[i - 2] < open_[i - 2])
-      & (close[i - 1] > open_[i - 1])
-      & (close[i] < open_[i])
-    ) and abs(close[i] - close[i - 2]) < 1e-5:
-      out[i] = 100
+    if np.isnan(avg_equal[i - 2]) or np.isnan(avg_body_short[i]):
+      continue
+
+    c1, o1 = close[i - 2], open_[i - 2]
+    c2, o2 = close[i - 1], open_[i - 1]
+    c3, o3 = close[i], open_[i]
+    l2 = low[i - 1]
+
+    is_bear1 = c1 < o1
+    is_bull2 = c2 > o2
+    is_bear3 = c3 < o3
+
+    if is_bear1 & is_bull2 & is_bear3:
+      # 2nd: long (BodyShort) relative to i-1
+      # TA-Lib behavior suggests this check is effectively absent or 0.
+      # if not (abs(c2-o2) > avg_body_short[i-1]):
+      #   continue
+
+      # 2nd low > 1st close (Strict per TA-Lib)
+      if not (l2 > c1):
+        continue
+
+      if abs(c3 - c1) <= avg_equal[i - 2]:
+        out[i] = 100
+
   return out
 
 
@@ -1509,19 +2151,35 @@ def detect_takuri_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_shadow_very_long: NDArray[np.float64],
 ) -> NDArray[np.int32]:
-  """Detect Takuri (Dragonfly-like Hammer)."""
+  """Detect Takuri Doji (Dragonfly with very long lower shadow)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
+
   for i in range(n):
-    body = abs(close[i] - open_[i])
-    rng = high[i] - low[i]
-    if rng < 1e-9:
+    if np.isnan(avg_body_doji[i]):
       continue
-    lower_shadow = min(open_[i], close[i]) - low[i]
-    # Takuri: Lower shadow is huge (> 3x body and > 75% range)
-    if (lower_shadow > body * 3) & (lower_shadow > rng * 0.75):
+
+    o = open_[i]
+    c = close[i]
+    h = high[i]
+    l = low[i]
+
+    body_top = o if o > c else c
+    real_body = abs(c - o)
+    upper_shadow = h - body_top
+    lower_shadow = min(o, c) - l
+
+    if (
+      (real_body < avg_body_doji[i])
+      and (upper_shadow < avg_shadow_very_short[i])
+      and (lower_shadow >= avg_shadow_very_long[i])
+    ):
       out[i] = 100
+
   return out
 
 
@@ -1531,18 +2189,28 @@ def detect_thrusting_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Thrusting Pattern (Bearish Trend)."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(1, n):
-    o1, c1 = open_[i - 1], close[i - 1]
-    o2, c2 = open_[i], close[i]
-    if (c1 < o1) & (c2 > o2):  # Bear then Bull
-      # Closes below middle of previous body
-      mid = (o1 + c1) * 0.5
-      if (c2 < mid) & (c2 > c1):
-        out[i] = -100
+    if np.isnan(avg_body_long[i - 1]) or np.isnan(avg_equal[i - 1]):
+      continue
+
+    o1, c1, l1 = open_[i - 1], close[i - 1], low[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    if (
+      c1 < o1
+      and (o1 - c1) > avg_body_long[i - 1]
+      and c0 > o0
+      and o0 < l1
+      and c0 >= c1 + avg_equal[i - 1]
+      and c0 <= c1 + (o1 - c1) * 0.5
+    ):
+      out[i] = -100
   return out
 
 
@@ -1552,17 +2220,96 @@ def detect_unique_three_river_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Unique 3 River."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(2, n):
-    # Long bear, Hammer-like bear with lower low, small bull inside
-    bear1 = close[i - 2] < open_[i - 2]
-    bear2 = close[i - 1] < open_[i - 1]
-    if bear1 & bear2:
-      if (low[i - 1] < low[i - 2]) & (close[i] > open_[i]) & (close[i] < close[i - 1]):
+    if np.isnan(avg_body_long[i - 2]) or np.isnan(avg_body_short[i]):
+      continue
+
+    o2, l2, c2 = open_[i - 2], low[i - 2], close[i - 2]
+    o1, l1, c1 = open_[i - 1], low[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    # TA-Lib logic:
+    # 1st: Long Black
+    # 2nd: Black Harami (Close > 1st Close, Open <= 1st Open) with Lower Low
+    # 3rd: Short White with Open > 2nd Low
+
+    body2 = abs(c2 - o2)
+    body0 = abs(c0 - o0)
+
+    if (
+      body2 > avg_body_long[i - 2]
+      and c2 < o2
+      and c1 < o1
+      and c1 > c2
+      and o1 <= o2
+      and l1 < l2
+      and body0 < avg_body_short[i]
+      and c0 > o0
+      and o0 > l1
+    ):
+      out[i] = 100
+  return out
+
+
+@jit(nopython=True, cache=True, nogil=True, fastmath=True)
+def detect_separating_lines_numba(
+  open_: NDArray[np.float64],
+  high: NDArray[np.float64],
+  low: NDArray[np.float64],
+  close: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+) -> NDArray[np.int32]:
+  """Detect Separating Lines."""
+  n = len(close)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(1, n):
+    if (
+      np.isnan(avg_equal[i - 2])
+      or np.isnan(avg_body_long[i])
+      or np.isnan(avg_shadow_very_short[i])
+    ):
+      continue
+
+    o1, c1 = open_[i - 1], close[i - 1]
+    o2, c2 = open_[i], close[i]
+    h2, l2 = high[i], low[i]
+
+    # TA-Lib Logic:
+    # 1. Opposite Colors
+    is_bull1 = c1 > o1
+    is_bull2 = c2 > o2
+    if is_bull1 == is_bull2:
+      continue
+
+    # 2. Same Open
+    # Use i-2 (Immediately preceding the pattern)
+    if not (abs(o1 - o2) <= avg_equal[i - 2]):
+      continue
+
+    # 3. 2nd is Long Body (vs Average at i)
+    if not (abs(c2 - o2) > avg_body_long[i]):
+      continue
+
+    # 4. Shadow Very Short (vs Average at i)
+    # Bearish: Bull then Bear. Open2=High, so Upper Shadow 2.
+    if is_bull1 and (not is_bull2):
+      if (h2 - o2) < avg_shadow_very_short[i]:
+        out[i] = -100
+
+    # Bullish: Bear then Bull. Open2=Low, so Lower Shadow 2.
+    elif (not is_bull1) and is_bull2:
+      if (o2 - l2) < avg_shadow_very_short[i]:
         out[i] = 100
+
   return out
 
 
@@ -1572,20 +2319,46 @@ def detect_counterattack_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_equal: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Counterattack."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(1, n):
+    if np.isnan(avg_equal[i]) or np.isnan(avg_body_long[i]):
+      continue
+
     o1, c1 = open_[i - 1], close[i - 1]
     o2, c2 = open_[i], close[i]
-    # Opposite colors, same close
-    if (c1 > o1) & (c2 < o2):  # Bull then Bear
-      if abs(c1 - c2) < 1e-5:
-        out[i] = -100
-    elif (c1 < o1) & (c2 > o2):  # Bear then Bull
-      if abs(c1 - c2) < 1e-5:
-        out[i] = 100
+
+    # 1. Opposite Colors
+    is_bull1 = c1 > o1
+    is_bull2 = c2 > o2
+    if is_bull1 == is_bull2:
+      continue
+
+    # 2. Both Long bodies (Strict TA-Lib check)
+    body1 = abs(c1 - o1)
+    body2 = abs(c2 - o2)
+    # TA-Lib uses BodyLong average from previous bars but array index logic:
+    # TA_CANDLEAVERAGE(BodyLong, ..., i-1) for 1st
+    # TA_CANDLEAVERAGE(BodyLong, ..., i) for 2nd
+    if not (body1 > avg_body_long[i - 1]):
+      continue
+    if not (body2 > avg_body_long[i]):
+      continue
+
+    # 3. Equal Closes
+    same_close = abs(c1 - c2) <= avg_equal[i - 1]
+    if not same_close:
+      continue
+
+    if is_bull2:  # Bear then Bull (Bullish Counter)
+      out[i] = 100
+    else:  # Bull then Bear (Bearish Counter)
+      out[i] = -100
+
   return out
 
 
@@ -1595,20 +2368,37 @@ def detect_doji_star_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Doji Star."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(1, n):
-    abs(close[i - 1] - open_[i - 1])
-    body2 = abs(close[i] - open_[i])
-    rng2 = high[i] - low[i]
-    is_doji2 = (rng2 > 0) & (body2 <= rng2 * 0.1)
-    if is_doji2:
-      if (close[i - 1] > open_[i - 1]) & (open_[i] > close[i - 1]):
-        out[i] = -100  # Bearish Doji Star (Gaps up)
-      elif (close[i - 1] < open_[i - 1]) & (open_[i] < close[i - 1]):
-        out[i] = 100  # Bullish (Gaps down)
+    if np.isnan(avg_body_long[i - 1]) or np.isnan(avg_body_doji[i]):
+      continue
+
+    o1, c1 = open_[i - 1], close[i - 1]
+    o2, c2 = open_[i], close[i]
+
+    body1 = abs(c1 - o1)
+    body2 = abs(c2 - o2)
+
+    # 1st candle: body long
+    # 2nd candle: doji
+    if body1 > avg_body_long[i - 1] and body2 <= avg_body_doji[i]:
+      # Gap check (RealBodyGapUp or Down)
+      top1 = o1 if o1 > c1 else c1
+      bot1 = o1 if o1 < c1 else c1
+      top2 = o2 if o2 > c2 else c2
+      bot2 = o2 if o2 < c2 else c2
+
+      # 1st Bullish & 2nd gaps up
+      if c1 > o1 and bot2 > top1:
+        out[i] = -100
+      # 1st Bearish & 2nd gaps down
+      elif c1 < o1 and top2 < bot1:
+        out[i] = 100
   return out
 
 
@@ -1618,10 +2408,68 @@ def detect_conceal_baby_swallow_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Concealing Baby Swallow."""
   n = len(close)
-  return np.zeros(n, dtype=np.int32)
+  out = np.zeros(n, dtype=np.int32)
+
+  for i in range(3, n):
+    if np.isnan(avg_shadow_very_short[i]):
+      continue
+
+    c1, o1 = close[i - 3], open_[i - 3]
+    c2, o2 = close[i - 2], open_[i - 2]
+    c3, o3 = close[i - 1], open_[i - 1]
+    c4, o4 = close[i], open_[i]
+
+    # 1. Black Marubozu
+    if not (c1 < o1):
+      continue
+    l1, h1 = low[i - 3], high[i - 3]
+    shad1_u = h1 - o1
+    shad1_l = c1 - l1
+    if not (
+      (shad1_u < avg_shadow_very_short[i - 3])
+      & (shad1_l < avg_shadow_very_short[i - 3])
+    ):
+      continue
+
+    # 2. Black Marubozu
+    if not (c2 < o2):
+      continue
+    l2, h2 = low[i - 2], high[i - 2]
+    shad2_u = h2 - o2
+    shad2_l = c2 - l2
+    if not (
+      (shad2_u < avg_shadow_very_short[i - 2])
+      & (shad2_l < avg_shadow_very_short[i - 2])
+    ):
+      continue
+
+    # 3. Black, Inverted Hammer-like (long upper shadow)
+    if not (c3 < o3):
+      continue
+    l3, h3 = low[i - 1], high[i - 1]
+    # Gap Down (Open < Prior Close)
+    if not (o3 < c2):
+      continue
+    # High invades prior body (High3 > Close2)
+    if not (h3 > c2):
+      continue
+
+    # 4. Black, Engulfing
+    if not (c4 < o4):
+      continue
+    l4, h4 = low[i], high[i]
+    # Engulfs 3rd (High4 > High3, Low4 < Low3) strict?
+    # TA-Lib: Open > High3, Close < Low3
+    if not ((o4 > h3) & (c4 < l3)):
+      continue
+
+    out[i] = 100
+
+  return out
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
@@ -1630,6 +2478,8 @@ def detect_harami_cross_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Harami Cross."""
   n = len(close)
@@ -1637,11 +2487,33 @@ def detect_harami_cross_numba(
   for i in range(1, n):
     pc, po = close[i - 1], open_[i - 1]
     cc, co = close[i], open_[i]
-    is_doji = abs(cc - co) <= (high[i] - low[i]) * 0.1
-    if is_doji:
-      # Doji inside previous body
-      if (max(cc, co) < max(pc, po)) & (min(cc, co) > min(pc, po)):
-        out[i] = 100 if pc < po else -100
+
+    # 1. First candle is BodyLong
+    p_body = abs(pc - po)
+    if p_body < avg_body_long[i - 1]:
+      continue
+
+    # 2. Second candle is Doji
+    c_body = abs(cc - co)
+    if c_body >= avg_body_doji[i]:
+      continue
+
+    # Signal based on FIRST candle color
+    is_bull = pc < po
+    is_bear = pc > po
+
+    prev_top = po if po > pc else pc
+    prev_bot = po if po < pc else pc
+    curr_top = co if co > cc else cc
+    curr_bot = co if co < cc else cc
+
+    # Doji inside previous body
+    # Grade 100: Strictly inside
+    # Grade 80: Semi-strict (allow matching edges)
+    if (curr_top < prev_top) and (curr_bot > prev_bot):
+      out[i] = 100 if pc < po else -100
+    elif (curr_top <= prev_top) and (curr_bot >= prev_bot):
+      out[i] = 80 if pc < po else -80
   return out
 
 
@@ -1651,11 +2523,54 @@ def detect_hikkake_modified_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_near: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Modified Hikkake."""
   n = len(close)
-  return np.zeros(n, dtype=np.int32)
-  # Simplified
+  out = np.zeros(n, dtype=np.int32)
+
+  pattern_idx = 0
+  pattern_result = 0
+
+  for i in range(3, n):
+    # New breakout check: double inside + breakout
+    near = avg_near[i - 2]
+    if (
+      high[i - 2] < high[i - 3]
+      and low[i - 2] > low[i - 3]
+      and high[i - 1] < high[i - 2]
+      and low[i - 1] > low[i - 2]
+      and (
+        (
+          high[i] < high[i - 1]
+          and low[i] < low[i - 1]
+          and close[i - 2] <= low[i - 2] + near
+        )
+        or (
+          high[i] > high[i - 1]
+          and low[i] > low[i - 1]
+          and close[i - 2] >= high[i - 2] - near
+        )
+      )
+    ):
+      pattern_result = 100 if high[i] < high[i - 1] else -100
+      pattern_idx = i
+      out[i] = pattern_result
+    else:
+      # Confirmation check
+      if pattern_idx != 0 and i <= pattern_idx + 3:
+        if (pattern_result > 0 and close[i] > high[pattern_idx - 1]) or (
+          pattern_result < 0 and close[i] < low[pattern_idx - 1]
+        ):
+          # Confirmed
+          out[i] = pattern_result + (100 if pattern_result > 0 else -100)
+          pattern_idx = 0
+        else:
+          out[i] = 0
+      else:
+        out[i] = 0
+
+  return out
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
@@ -1664,16 +2579,44 @@ def detect_morning_doji_star_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  penetration: float = 0.3,
 ) -> NDArray[np.int32]:
   """Detect Morning Doji Star."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(2, n):
-    # Long bear, Doji gap down, Long bull inside 1st body
-    if (close[i - 2] < open_[i - 2]) & (
-      abs(close[i - 1] - open_[i - 1]) <= (high[i - 1] - low[i - 1]) * 0.1
-    ) and (max(open_[i - 1], close[i - 1]) < close[i - 2]) & (
-      close[i] > (open_[i - 2] + close[i - 2]) * 0.5
+    if (
+      np.isnan(avg_body_long[i - 2])
+      or np.isnan(avg_body_doji[i - 1])
+      or np.isnan(avg_body_short[i])
+    ):
+      continue
+
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    # TA-Lib logic:
+    # 1st: Long Black
+    # 2nd: Doji, Gap Down (Real Body)
+    # 3rd: Longer than Short, White
+    # 3rd closes well within 1st RB (at least penetration %)
+
+    body2 = abs(c2 - o2)
+    body1 = abs(c1 - o1)
+    body0 = abs(c0 - o0)
+
+    if (
+      body2 > avg_body_long[i - 2]
+      and c2 < o2
+      and body1 <= avg_body_doji[i - 1]
+      and max(o1, c1) < min(o2, c2)
+      and body0 > avg_body_short[i]
+      and c0 > o0
+      and c0 > c2 + body2 * penetration
     ):
       out[i] = 100
   return out
@@ -1685,31 +2628,47 @@ def detect_evening_doji_star_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_body_doji: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
+  penetration: float = 0.3,
 ) -> NDArray[np.int32]:
   """Detect Evening Doji Star."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
   for i in range(2, n):
-    if (close[i - 2] > open_[i - 2]) & (
-      abs(close[i - 1] - open_[i - 1]) <= (high[i - 1] - low[i - 1]) * 0.1
-    ) and (min(open_[i - 1], close[i - 1]) > close[i - 2]) & (
-      close[i] < (open_[i - 2] + close[i - 2]) * 0.5
+    if (
+      np.isnan(avg_body_long[i - 2])
+      or np.isnan(avg_body_doji[i - 1])
+      or np.isnan(avg_body_short[i])
+    ):
+      continue
+
+    o2, c2 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o0, c0 = open_[i], close[i]
+
+    # TA-Lib logic:
+    # 1st: Long White
+    # 2nd: Doji, Gap Up (Real Body)
+    # 3rd: Longer than Short, Black
+    # 3rd closes well within 1st RB (at least penetration %)
+
+    body2 = abs(c2 - o2)
+    body1 = abs(c1 - o1)
+    body0 = abs(c0 - o0)
+
+    if (
+      body2 > avg_body_long[i - 2]
+      and c2 > o2
+      and body1 <= avg_body_doji[i - 1]
+      and min(o1, c1) > max(o2, c2)
+      and body0 > avg_body_short[i]
+      and c0 < o0
+      and c0 < c2 - body2 * penetration
     ):
       out[i] = -100
   return out
-
-
-@jit(nopython=True, cache=True, nogil=True, fastmath=True)
-def detect_kicking_by_length_numba(
-  open_: NDArray[np.float64],
-  high: NDArray[np.float64],
-  low: NDArray[np.float64],
-  close: NDArray[np.float64],
-) -> NDArray[np.int32]:
-  """Detect Kicking By Length."""
-  n = len(close)
-  return np.zeros(n, dtype=np.int32)
-  # Similar to Kicking
 
 
 @jit(nopython=True, cache=True, nogil=True, fastmath=True)
@@ -1718,70 +2677,42 @@ def detect_three_stars_in_south_numba(
   high: NDArray[np.float64],
   low: NDArray[np.float64],
   close: NDArray[np.float64],
+  avg_body_long: NDArray[np.float64],
+  avg_shadow_long: NDArray[np.float64],
+  avg_shadow_very_short: NDArray[np.float64],
+  avg_body_short: NDArray[np.float64],
 ) -> NDArray[np.int32]:
   """Detect Three Stars In The South."""
   n = len(close)
   out = np.zeros(n, dtype=np.int32)
-
-  if n < 3:
-    return out
-
-  # Rolling state variables
-  # i-2 (Day 0)
-  o0 = open_[0]
-  c0 = close[0]
-  # i-1 (Day 1)
-  o1 = open_[1]
-  h1 = high[1]
-  l1 = low[1]
-  c1 = close[1]
-  # i (Day 2) -> loaded in loop
-
-  # We also need Day 0 High/Low for validation?
-  # The original code accessed h0, l0.
-  h0 = high[0]
-  l0 = low[0]
-
   for i in range(2, n):
-    # Load current (Day 2)
-    o2 = open_[i]
-    h2 = high[i]
-    l2 = low[i]
-    c2 = close[i]
+    if np.isnan(avg_body_long[i]):
+      continue
 
-    # Check Day 0 (i-2) Black
-    if c0 < o0:
-      # Check Day 1 (i-1) Black
-      if c1 < o1:
-        # Check Day 2 (i) Black
-        if c2 < o2:
-          # All 3 black. Now detailed logic.
+    o2, l2, c2 = open_[i - 2], low[i - 2], close[i - 2]
+    o1, h1, l1, c1 = open_[i - 1], high[i - 1], low[i - 1], close[i - 1]
+    o0, h0, l0, c0 = open_[i], high[i], low[i], close[i]
 
-          # Day 0: Long lower shadow
-          # logic: shadow > body
-          body0 = o0 - c0
-          shadow0 = c0 - l0
-
-          if shadow0 > body0:
-            # Day 1: Inside Day 0's range? (Harami-like)
-            # Logic: High < Prev High AND Low > Prev Low
-            if (h1 < h0) and (l1 > l0):
-              # Day 2: Inside Day 1? Small Marubozu?
-              # Logic: High < Prev High AND Low > Prev Low
-              # And "Small Marubozu" means small range/shadows.
-              # Simplified: Small body, small shadows.
-              # Or just "Inside Day 1".
-              if (h2 < h1) and (l2 > l1):
-                # Check strict "Small Marubozu" for Day 2?
-                # Usually means Close ~= Low for black cdl.
-                # And small range.
-                # But let's stick to the previous implementation's simplified logic:
-                # "inside2 = (h2 < h1) & (l2 > l1)"
-                out[i] = 100
-
-    # Shift state
-    o0, h0, l0, c0 = o1, h1, l1, c1
-    o1, h1, l1, c1 = o2, h2, l2, c2
+    # all black
+    if (
+      c2 < o2
+      and c1 < o1
+      and c0 < o0
+      and (o2 - c2) > avg_body_long[i - 2]
+      and (c2 - l2) > avg_shadow_long[i - 2]
+      and (o1 - c1) < (o2 - c2)
+      and o1 > c2
+      and o1 <= high[i - 2]
+      and l1 < c2
+      and l1 >= l2
+      and (c1 - l1) > avg_shadow_very_short[i - 1]
+      and abs(c0 - o0) < avg_body_short[i]
+      and (c0 - l0) < avg_shadow_very_short[i]
+      and (h0 - o0) < avg_shadow_very_short[i]
+      and l0 > l1
+      and h0 < h1
+    ):
+      out[i] = 100
 
   return out
 
@@ -1798,28 +2729,36 @@ def detect_xsidegap3methods_numba(
   out = np.zeros(n, dtype=np.int32)
 
   for i in range(2, n):
-    o0, _h0, _l0, c0 = open_[i - 2], high[i - 2], low[i - 2], close[i - 2]
-    o1, _h1, _l1, c1 = open_[i - 1], high[i - 1], low[i - 1], close[i - 1]
-    o2, _h2, _l2, c2 = open_[i], high[i], low[i], close[i]
+    o0, c0 = open_[i - 2], close[i - 2]
+    o1, c1 = open_[i - 1], close[i - 1]
+    o2, c2 = open_[i], close[i]
 
     # Upside Gap Three Methods (Bullish)
-    bull1 = c0 > o0
-    bull2 = c1 > o1
-    bear3 = c2 < o2
-    gap_up = o1 > c0
-    fill_up = (o2 < c1) & (o2 > o1) & (c2 < o1) & (c2 > o0)
-
-    is_bull = bull1 & bull2 & bear3 & gap_up & fill_up
+    # TA-Lib: 1st/2nd same color, 3rd opposite. 3rd opens in 2nd, closes in 1st.
+    if (
+      c0 > o0
+      and c1 > o1
+      and c2 < o2
+      and min(o1, c1) > max(o0, c0)
+      and o2 < max(o1, c1)
+      and o2 > min(o1, c1)
+      and c2 < max(o0, c0)
+      and c2 > min(o0, c0)
+    ):
+      out[i] = 100
+      continue
 
     # Downside Gap Three Methods (Bearish)
-    bear1 = c0 < o0
-    bear2 = c1 < o1
-    bull3 = c2 > o2
-    gap_down = o1 < c0
-    fill_down = (o2 > c1) & (o2 < o1) & (c2 > o1) & (c2 < o0)
-
-    is_bear = bear1 & bear2 & bull3 & gap_down & fill_down
-
-    out[i] = (is_bull * 100) - (is_bear * 100)
+    if (
+      c0 < o0
+      and c1 < o1
+      and c2 > o2
+      and max(o1, c1) < min(o0, c0)
+      and o2 < max(o1, c1)
+      and o2 > min(o1, c1)
+      and c2 < max(o0, c0)
+      and c2 > min(o0, c0)
+    ):
+      out[i] = -100
 
   return out

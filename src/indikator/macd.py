@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 from indikator._results import MACDResult
-from indikator.numba.macd import compute_macd_numba
+from indikator.numba.macd import compute_macd_numba, compute_macdfix_numba
 from indikator.utils import to_numpy
 
 
@@ -155,6 +155,10 @@ def macdext(  # noqa: PLR0913, PLR0917
   macd_series = pd.Series(macd_line, index=data.index)
   signal_line = signal_func(macd_series, signal_period)
 
+  # Synchronize NaNs? No, TA-Lib returns valid macd even if signal is nan.
+  # nan_mask = np.isnan(signal_line)
+  # macd_line[nan_mask] = np.nan
+
   histogram = macd_line - signal_line
 
   return MACDResult(
@@ -168,8 +172,7 @@ def macdfix(
   data: Validated[pd.Series[float], Finite, NotEmpty],
   signal_period: Hyper[int, Ge[2]] = 9,
 ) -> MACDResult:
-  # Use default 26, 9 if not provided
-  # For now, hardcoding fastperiod to 12 as per the original macdfix behavior.
-  fastperiod = 12
-
-  return macd(data, fast_period=fastperiod, slow_period=26, signal_period=signal_period)
+  """Calculate MACD with fixed multipliers (0.15, 0.075)."""
+  values = to_numpy(data)
+  macd_l, signal_l, hist = compute_macdfix_numba(values, signal_period)
+  return MACDResult(data_index=data.index, macd=macd_l, signal=signal_l, histogram=hist)

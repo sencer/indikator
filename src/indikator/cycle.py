@@ -12,10 +12,10 @@ import pandas as pd
 from indikator.numba.cycle import (
   compute_ht_dcperiod_numba,
   compute_ht_dcphase_numba,
-  compute_ht_master_numba,
   compute_ht_phasor_numba,
   compute_ht_sine_numba,
   compute_ht_trendline_numba,
+  compute_ht_trendmode_numba,
 )
 from indikator.utils import to_numpy
 
@@ -126,9 +126,8 @@ def ht_trendmode(
   """
   input_arr = to_numpy(data)
 
-  # Master kernel still best for TrendMode as it might need all components?
-  # Currently returns placeholder, so it's fine.
-  _, _, _, _, trend = compute_ht_master_numba(input_arr)
+  # Optimized kernel uses stateful phase transition logic
+  trend = compute_ht_trendmode_numba(input_arr)
 
   return pd.Series(trend, index=data.index, name="ht_trendmode")
 

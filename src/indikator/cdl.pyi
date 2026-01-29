@@ -3,7 +3,7 @@
 Do not edit manually - regenerate with: nonfig-stubgen <path>
 """
 
-from typing import Protocol, TypedDict
+from typing import ClassVar, Protocol, TypedDict, override
 
 from datawarden import Finite, NotEmpty, Validated
 from nonfig import MakeableModel as _NCMakeableModel
@@ -25,9 +25,7 @@ class _cdl_doji_ConfigDict(TypedDict, total=False):
 class _cdl_doji_Config(_NCMakeableModel[_cdl_doji_Bound]):
   """Configuration class for cdl_doji.
 
-  Detect Doji pattern.
-
-  Returns 100 if detected, 0 otherwise.
+  Detect Doji pattern using TA-Lib stateful logic.
   """
 
   pass
@@ -61,8 +59,6 @@ class _cdl_hammer_Config(_NCMakeableModel[_cdl_hammer_Bound]):
   """Configuration class for cdl_hammer.
 
   Detect Hammer pattern.
-
-  Returns 100 (Bullish) if detected, 0 otherwise.
   """
 
   pass
@@ -172,10 +168,6 @@ class _cdl_shooting_star_Config(_NCMakeableModel[_cdl_shooting_star_Bound]):
   """Configuration class for cdl_shooting_star.
 
   Detect Shooting Star pattern.
-
-  Returns:
-  - -100: Bearish Shooting Star
-  - 0: None
   """
 
   pass
@@ -209,10 +201,6 @@ class _cdl_inverted_hammer_Config(_NCMakeableModel[_cdl_inverted_hammer_Bound]):
   """Configuration class for cdl_inverted_hammer.
 
   Detect Inverted Hammer pattern.
-
-  Returns:
-  - 100: Bullish Inverted Hammer
-  - 0: None
   """
 
   pass
@@ -246,10 +234,6 @@ class _cdl_hanging_man_Config(_NCMakeableModel[_cdl_hanging_man_Bound]):
   """Configuration class for cdl_hanging_man.
 
   Detect Hanging Man pattern.
-
-  Returns:
-  - -100: Bearish Hanging Man
-  - 0: None
   """
 
   pass
@@ -283,11 +267,6 @@ class _cdl_marubozu_Config(_NCMakeableModel[_cdl_marubozu_Bound]):
   """Configuration class for cdl_marubozu.
 
   Detect Marubozu pattern.
-
-  Returns:
-  - 100: Bullish (White) Marubozu
-  - -100: Bearish (Black) Marubozu
-  - 0: None
   """
 
   pass
@@ -306,6 +285,8 @@ class cdl_marubozu:
 
 class _cdl_morning_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -315,7 +296,13 @@ class _cdl_morning_star_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_morning_star_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_morning_star.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_morning_star_Config(_NCMakeableModel[_cdl_morning_star_Bound]):
   """Configuration class for cdl_morning_star.
@@ -325,24 +312,40 @@ class _cdl_morning_star_Config(_NCMakeableModel[_cdl_morning_star_Bound]):
   Returns:
   - 100: Bullish Morning Star
   - 0: None
+
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_morning_star.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_morning_star_Bound: ...
 
 class cdl_morning_star:
   Type = _cdl_morning_star_Bound
   Config = _cdl_morning_star_Config
   ConfigDict = _cdl_morning_star_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_evening_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -352,7 +355,13 @@ class _cdl_evening_star_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_evening_star_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_evening_star.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_evening_star_Config(_NCMakeableModel[_cdl_evening_star_Bound]):
   """Configuration class for cdl_evening_star.
@@ -362,20 +371,34 @@ class _cdl_evening_star_Config(_NCMakeableModel[_cdl_evening_star_Bound]):
   Returns:
   - -100: Bearish Evening Star
   - 0: None
+
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_evening_star.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_evening_star_Bound: ...
 
 class cdl_evening_star:
   Type = _cdl_evening_star_Bound
   Config = _cdl_evening_star_Config
   ConfigDict = _cdl_evening_star_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_3black_crows_Bound(Protocol):
@@ -563,6 +586,39 @@ class cdl_3line_strike:
     close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
+class _cdl_tristar_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_tristar_ConfigDict(TypedDict, total=False):
+  pass
+
+class _cdl_tristar_Config(_NCMakeableModel[_cdl_tristar_Bound]):
+  """Configuration class for cdl_tristar.
+
+  Detect Tristar.
+  """
+
+  pass
+
+class cdl_tristar:
+  Type = _cdl_tristar_Bound
+  Config = _cdl_tristar_Config
+  ConfigDict = _cdl_tristar_ConfigDict
+  def __new__(
+    cls,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
 class _cdl_piercing_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
@@ -580,10 +636,6 @@ class _cdl_piercing_Config(_NCMakeableModel[_cdl_piercing_Bound]):
   """Configuration class for cdl_piercing.
 
   Detect Piercing Pattern.
-
-  Returns:
-  - 100: Bullish Piercing
-  - 0: None
   """
 
   pass
@@ -602,6 +654,8 @@ class cdl_piercing:
 
 class _cdl_dark_cloud_cover_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -611,30 +665,46 @@ class _cdl_dark_cloud_cover_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_dark_cloud_cover_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_dark_cloud_cover.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_dark_cloud_cover_Config(_NCMakeableModel[_cdl_dark_cloud_cover_Bound]):
   """Configuration class for cdl_dark_cloud_cover.
 
-  Detect Dark Cloud Cover Pattern.
+  Detect Dark Cloud Cover.
 
-  Returns:
-  - -100: Bearish Dark Cloud Cover
-  - 0: None
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_dark_cloud_cover.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_dark_cloud_cover_Bound: ...
 
 class cdl_dark_cloud_cover:
   Type = _cdl_dark_cloud_cover_Bound
   Config = _cdl_dark_cloud_cover_Config
   ConfigDict = _cdl_dark_cloud_cover_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_kicking_Bound(Protocol):
@@ -654,10 +724,6 @@ class _cdl_kicking_Config(_NCMakeableModel[_cdl_kicking_Bound]):
   """Configuration class for cdl_kicking.
 
   Detect Kicking Pattern.
-
-  Returns:
-  - 100: Bullish Kicking
-  - -100: Bearish Kicking
   """
 
   pass
@@ -666,6 +732,105 @@ class cdl_kicking:
   Type = _cdl_kicking_Bound
   Config = _cdl_kicking_Config
   ConfigDict = _cdl_kicking_ConfigDict
+  def __new__(
+    cls,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_kicking_by_length_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_kicking_by_length_ConfigDict(TypedDict, total=False):
+  pass
+
+class _cdl_kicking_by_length_Config(_NCMakeableModel[_cdl_kicking_by_length_Bound]):
+  """Configuration class for cdl_kicking_by_length.
+
+  Detect Kicking - bull/bear determined by the longer marubozu.
+  """
+
+  pass
+
+class cdl_kicking_by_length:
+  Type = _cdl_kicking_by_length_Bound
+  Config = _cdl_kicking_by_length_Config
+  ConfigDict = _cdl_kicking_by_length_ConfigDict
+  def __new__(
+    cls,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_short_line_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_short_line_ConfigDict(TypedDict, total=False):
+  pass
+
+class _cdl_short_line_Config(_NCMakeableModel[_cdl_short_line_Bound]):
+  """Configuration class for cdl_short_line.
+
+  Detect Short Line.
+  """
+
+  pass
+
+class cdl_short_line:
+  Type = _cdl_short_line_Bound
+  Config = _cdl_short_line_Config
+  ConfigDict = _cdl_short_line_ConfigDict
+  def __new__(
+    cls,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_spinning_top_Bound(Protocol):
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    open_: Validated[pd.Series[float], Finite, NotEmpty],
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> pd.Series: ...
+
+class _cdl_spinning_top_ConfigDict(TypedDict, total=False):
+  pass
+
+class _cdl_spinning_top_Config(_NCMakeableModel[_cdl_spinning_top_Bound]):
+  """Configuration class for cdl_spinning_top.
+
+  Detect Spinning Top pattern using TA-Lib stateful logic.
+  """
+
+  pass
+
+class cdl_spinning_top:
+  Type = _cdl_spinning_top_Bound
+  Config = _cdl_spinning_top_Config
+  ConfigDict = _cdl_spinning_top_ConfigDict
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -711,79 +876,6 @@ class cdl_matching_low:
     close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
-class _cdl_spinning_top_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  def __call__(
-    self,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_spinning_top_ConfigDict(TypedDict, total=False):
-  pass
-
-class _cdl_spinning_top_Config(_NCMakeableModel[_cdl_spinning_top_Bound]):
-  """Configuration class for cdl_spinning_top.
-
-  Detect Spinning Top pattern.
-
-  Returns:
-  - 100: Bullish/Neutral Spinning Top
-  - -100: Bearish/Neutral Spinning Top
-  """
-
-  pass
-
-class cdl_spinning_top:
-  Type = _cdl_spinning_top_Bound
-  Config = _cdl_spinning_top_Config
-  ConfigDict = _cdl_spinning_top_ConfigDict
-  def __new__(
-    cls,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_rickshaw_man_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  def __call__(
-    self,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_rickshaw_man_ConfigDict(TypedDict, total=False):
-  pass
-
-class _cdl_rickshaw_man_Config(_NCMakeableModel[_cdl_rickshaw_man_Bound]):
-  """Configuration class for cdl_rickshaw_man.
-
-  Detect Rickshaw Man pattern.
-
-  Returns:
-  - 100: Detected
-  """
-
-  pass
-
-class cdl_rickshaw_man:
-  Type = _cdl_rickshaw_man_Bound
-  Config = _cdl_rickshaw_man_Config
-  ConfigDict = _cdl_rickshaw_man_ConfigDict
-  def __new__(
-    cls,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
 class _cdl_high_wave_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
@@ -800,11 +892,7 @@ class _cdl_high_wave_ConfigDict(TypedDict, total=False):
 class _cdl_high_wave_Config(_NCMakeableModel[_cdl_high_wave_Bound]):
   """Configuration class for cdl_high_wave.
 
-  Detect High Wave pattern.
-
-  Returns:
-  - 100: Bullish High Wave
-  - -100: Bearish High Wave
+  Detect High Wave pattern using TA-Lib logic.
   """
 
   pass
@@ -838,9 +926,6 @@ class _cdl_long_legged_doji_Config(_NCMakeableModel[_cdl_long_legged_doji_Bound]
   """Configuration class for cdl_long_legged_doji.
 
   Detect Long Legged Doji pattern.
-
-  Returns:
-  - 100: Detected
   """
 
   pass
@@ -857,7 +942,7 @@ class cdl_long_legged_doji:
     close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
-class _cdl_tristar_Bound(Protocol):
+class _cdl_rickshaw_man_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
   def __call__(
     self,
@@ -867,25 +952,21 @@ class _cdl_tristar_Bound(Protocol):
     close: Validated[pd.Series[float], Finite, NotEmpty],
   ) -> pd.Series: ...
 
-class _cdl_tristar_ConfigDict(TypedDict, total=False):
+class _cdl_rickshaw_man_ConfigDict(TypedDict, total=False):
   pass
 
-class _cdl_tristar_Config(_NCMakeableModel[_cdl_tristar_Bound]):
-  """Configuration class for cdl_tristar.
+class _cdl_rickshaw_man_Config(_NCMakeableModel[_cdl_rickshaw_man_Bound]):
+  """Configuration class for cdl_rickshaw_man.
 
-  Detect Tristar pattern.
-
-  Returns:
-  - 100: Bullish Tristar
-  - -100: Bearish Tristar
+  Detect Rickshaw Man.
   """
 
   pass
 
-class cdl_tristar:
-  Type = _cdl_tristar_Bound
-  Config = _cdl_tristar_Config
-  ConfigDict = _cdl_tristar_ConfigDict
+class cdl_rickshaw_man:
+  Type = _cdl_rickshaw_man_Bound
+  Config = _cdl_rickshaw_man_Config
+  ConfigDict = _cdl_rickshaw_man_ConfigDict
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -910,11 +991,7 @@ class _cdl_tasuki_gap_ConfigDict(TypedDict, total=False):
 class _cdl_tasuki_gap_Config(_NCMakeableModel[_cdl_tasuki_gap_Bound]):
   """Configuration class for cdl_tasuki_gap.
 
-  Detect Tasuki Gap pattern.
-
-  Returns:
-  - 100: Upside Tasuki Gap
-  - -100: Downside Tasuki Gap
+  Detect Tasuki Gap.
   """
 
   pass
@@ -1083,6 +1160,8 @@ class cdl_upside_gap_two_crows:
 
 class _cdl_abandoned_baby_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -1092,26 +1171,46 @@ class _cdl_abandoned_baby_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_abandoned_baby_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_abandoned_baby.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_abandoned_baby_Config(_NCMakeableModel[_cdl_abandoned_baby_Bound]):
   """Configuration class for cdl_abandoned_baby.
 
   Detect Abandoned Baby.
+
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_abandoned_baby.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_abandoned_baby_Bound: ...
 
 class cdl_abandoned_baby:
   Type = _cdl_abandoned_baby_Bound
   Config = _cdl_abandoned_baby_Config
   ConfigDict = _cdl_abandoned_baby_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_advance_block_Bound(Protocol):
@@ -1262,7 +1361,7 @@ class _cdl_dragonfly_doji_ConfigDict(TypedDict, total=False):
 class _cdl_dragonfly_doji_Config(_NCMakeableModel[_cdl_dragonfly_doji_Bound]):
   """Configuration class for cdl_dragonfly_doji.
 
-  Detect Dragonfly Doji.
+  Detect Dragonfly Doji using TA-Lib stateful logic.
   """
 
   pass
@@ -1295,7 +1394,7 @@ class _cdl_gravestone_doji_ConfigDict(TypedDict, total=False):
 class _cdl_gravestone_doji_Config(_NCMakeableModel[_cdl_gravestone_doji_Bound]):
   """Configuration class for cdl_gravestone_doji.
 
-  Detect Gravestone Doji.
+  Detect Gravestone Doji using TA-Lib stateful logic.
   """
 
   pass
@@ -1359,10 +1458,7 @@ class _cdl_homing_pigeon_ConfigDict(TypedDict, total=False):
   pass
 
 class _cdl_homing_pigeon_Config(_NCMakeableModel[_cdl_homing_pigeon_Bound]):
-  """Configuration class for cdl_homing_pigeon.
-
-  Detect Homing Pigeon.
-  """
+  """Configuration class for cdl_homing_pigeon."""
 
   pass
 
@@ -1512,6 +1608,8 @@ class cdl_long_line:
 
 class _cdl_mat_hold_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -1521,26 +1619,49 @@ class _cdl_mat_hold_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_mat_hold_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_mat_hold.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_mat_hold_Config(_NCMakeableModel[_cdl_mat_hold_Bound]):
   """Configuration class for cdl_mat_hold.
 
-  Detect Mat Hold.
+  Detect Mat Hold pattern.
+
+  Returns:
+  - 100: Bullish
+
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_mat_hold.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_mat_hold_Bound: ...
 
 class cdl_mat_hold:
   Type = _cdl_mat_hold_Bound
   Config = _cdl_mat_hold_Config
   ConfigDict = _cdl_mat_hold_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_on_neck_Bound(Protocol):
@@ -1592,7 +1713,11 @@ class _cdl_rise_fall_3methods_ConfigDict(TypedDict, total=False):
 class _cdl_rise_fall_3methods_Config(_NCMakeableModel[_cdl_rise_fall_3methods_Bound]):
   """Configuration class for cdl_rise_fall_3methods.
 
-  Detect Rise/Fall Three Methods.
+  Detect Rise/Fall Three Methods pattern.
+
+  Returns:
+  - 100: Rising Three Methods (Bullish)
+  - -100: Falling Three Methods (Bearish)
   """
 
   pass
@@ -1601,39 +1726,6 @@ class cdl_rise_fall_3methods:
   Type = _cdl_rise_fall_3methods_Bound
   Config = _cdl_rise_fall_3methods_Config
   ConfigDict = _cdl_rise_fall_3methods_ConfigDict
-  def __new__(
-    cls,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_short_line_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  def __call__(
-    self,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_short_line_ConfigDict(TypedDict, total=False):
-  pass
-
-class _cdl_short_line_Config(_NCMakeableModel[_cdl_short_line_Bound]):
-  """Configuration class for cdl_short_line.
-
-  Detect Short Line.
-  """
-
-  pass
-
-class cdl_short_line:
-  Type = _cdl_short_line_Bound
-  Config = _cdl_short_line_Config
-  ConfigDict = _cdl_short_line_ConfigDict
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -1724,7 +1816,12 @@ class _cdl_takuri_ConfigDict(TypedDict, total=False):
 class _cdl_takuri_Config(_NCMakeableModel[_cdl_takuri_Bound]):
   """Configuration class for cdl_takuri.
 
-  Detect Takuri.
+  Detect Takuri pattern using TA-Lib stateful logic.
+
+  TA-Lib Settings:
+  - BodyDoji: factor 0.1, ref HighLow
+  - ShadowVeryShort: factor 0.1, ref HighLow
+  - ShadowVeryLong: factor 3.0, ref RealBody
   """
 
   pass
@@ -1790,7 +1887,10 @@ class _cdl_unique_3river_ConfigDict(TypedDict, total=False):
 class _cdl_unique_3river_Config(_NCMakeableModel[_cdl_unique_3river_Bound]):
   """Configuration class for cdl_unique_3river.
 
-  Detect Unique 3 River.
+  Detect Unique 3 River pattern.
+
+  Returns:
+  - 100: Bullish
   """
 
   pass
@@ -1910,6 +2010,8 @@ class cdl_conceal_baby_swallow:
 
 class _cdl_harami_cross_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def body_doji_ratio(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -1919,26 +2021,46 @@ class _cdl_harami_cross_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_harami_cross_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_harami_cross.
+
+  Configuration:
+      body_doji_ratio (float)
+  """
+
+  body_doji_ratio: float
 
 class _cdl_harami_cross_Config(_NCMakeableModel[_cdl_harami_cross_Bound]):
   """Configuration class for cdl_harami_cross.
 
   Detect Harami Cross.
+
+  Configuration:
+      body_doji_ratio (float)
   """
 
-  pass
+  body_doji_ratio: float
+  def __init__(self, *, body_doji_ratio: float = ...) -> None: ...
+  """Initialize configuration for cdl_harami_cross.
+
+    Configuration:
+        body_doji_ratio (float)
+    """
+
+  @override
+  def make(self) -> _cdl_harami_cross_Bound: ...
 
 class cdl_harami_cross:
   Type = _cdl_harami_cross_Bound
   Config = _cdl_harami_cross_Config
   ConfigDict = _cdl_harami_cross_ConfigDict
+  body_doji_ratio: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    body_doji_ratio: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_hikkake_mod_Bound(Protocol):
@@ -1976,6 +2098,8 @@ class cdl_hikkake_mod:
 
 class _cdl_morning_doji_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -1985,30 +2109,52 @@ class _cdl_morning_doji_star_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_morning_doji_star_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_morning_doji_star.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_morning_doji_star_Config(_NCMakeableModel[_cdl_morning_doji_star_Bound]):
   """Configuration class for cdl_morning_doji_star.
 
-  Detect Morning Doji Star.
+  Detect Morning Doji Star pattern.
+
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_morning_doji_star.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_morning_doji_star_Bound: ...
 
 class cdl_morning_doji_star:
   Type = _cdl_morning_doji_star_Bound
   Config = _cdl_morning_doji_star_Config
   ConfigDict = _cdl_morning_doji_star_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_evening_doji_star_Bound(Protocol):
   """Bound function with hyperparameters as attributes."""
+  @property
+  def penetration(self) -> float: ...
   def __call__(
     self,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
@@ -2018,59 +2164,46 @@ class _cdl_evening_doji_star_Bound(Protocol):
   ) -> pd.Series: ...
 
 class _cdl_evening_doji_star_ConfigDict(TypedDict, total=False):
-  pass
+  """Configuration dictionary for cdl_evening_doji_star.
+
+  Configuration:
+      penetration (float)
+  """
+
+  penetration: float
 
 class _cdl_evening_doji_star_Config(_NCMakeableModel[_cdl_evening_doji_star_Bound]):
   """Configuration class for cdl_evening_doji_star.
 
-  Detect Evening Doji Star.
+  Detect Evening Doji Star pattern.
+
+  Configuration:
+      penetration (float)
   """
 
-  pass
+  penetration: float
+  def __init__(self, *, penetration: float = ...) -> None: ...
+  """Initialize configuration for cdl_evening_doji_star.
+
+    Configuration:
+        penetration (float)
+    """
+
+  @override
+  def make(self) -> _cdl_evening_doji_star_Bound: ...
 
 class cdl_evening_doji_star:
   Type = _cdl_evening_doji_star_Bound
   Config = _cdl_evening_doji_star_Config
   ConfigDict = _cdl_evening_doji_star_ConfigDict
+  penetration: ClassVar[float]
   def __new__(
     cls,
     open_: Validated[pd.Series[float], Finite, NotEmpty],
     high: Validated[pd.Series[float], Finite, NotEmpty],
     low: Validated[pd.Series[float], Finite, NotEmpty],
     close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_kicking_by_length_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  def __call__(
-    self,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> pd.Series: ...
-
-class _cdl_kicking_by_length_ConfigDict(TypedDict, total=False):
-  pass
-
-class _cdl_kicking_by_length_Config(_NCMakeableModel[_cdl_kicking_by_length_Bound]):
-  """Configuration class for cdl_kicking_by_length.
-
-  Detect Kicking By Length.
-  """
-
-  pass
-
-class cdl_kicking_by_length:
-  Type = _cdl_kicking_by_length_Bound
-  Config = _cdl_kicking_by_length_Config
-  ConfigDict = _cdl_kicking_by_length_ConfigDict
-  def __new__(
-    cls,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
+    penetration: float = ...,
   ) -> pd.Series: ...
 
 class _cdl_3stars_in_south_Bound(Protocol):

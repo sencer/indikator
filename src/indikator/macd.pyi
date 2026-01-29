@@ -248,6 +248,8 @@ class _macdfix_ConfigDict(TypedDict, total=False):
 class _macdfix_Config(_NCMakeableModel[_macdfix_Bound]):
   """Configuration class for macdfix.
 
+  Calculate MACD with fixed multipliers (0.15, 0.075).
+
   Configuration:
       signal_period (int)
   """
