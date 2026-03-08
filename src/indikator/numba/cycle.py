@@ -310,12 +310,12 @@ def compute_ht_master_numba(
       # DCPHASE/SINE/TRENDMODE (Trig Gated)
       if compute_trig:
         smooth_price_buf[sp_idx] = smoothed
-        _cur_sp_idx = sp_idx
+        cur_sp_idx = sp_idx
         sp_idx = (sp_idx + 1) % 50
 
         prev_ph = dc_phase
         rp, ip = 0.0, 0.0
-        idx_p = _cur_sp_idx
+        idx_p = cur_sp_idx
         for i in range(dcp):
           angle = (i * 2.0 * pi) / dcp
           val_p = smooth_price_buf[idx_p]

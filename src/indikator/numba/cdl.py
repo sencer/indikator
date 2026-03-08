@@ -549,10 +549,8 @@ def detect_3black_crows_numba(
     # Shadows
     rr1 = high[i - 1] - low[i - 1]
     rr2 = high[i - 2] - low[i - 2]
-    rr3 = high[i - 3] - low[i - 3]
     rr11 = high[i - 11] - low[i - 11]
     rr12 = high[i - 12] - low[i - 12]
-    rr13 = high[i - 13] - low[i - 13]
 
     # 10-period SMA ending at i, i-1, i-2
     # TA-Lib: TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal[2], i-2 )
@@ -632,13 +630,7 @@ def detect_3white_soldiers_numba(
     sum_r5_i1 = rng_sum_5 - rr1 + rr6
 
     # Body sums shifted for each candle position
-    rb_i10, rb_i11, rb_i12 = (
-      abs(close[i - 10] - open_[i - 10]),
-      abs(close[i - 11] - open_[i - 11]),
-      abs(close[i - 12] - open_[i - 12]),
-    )
-    sum_b10_i2 = body_sum_10 - abs(rb2) - abs(rb1) + rb_i11 + rb_i12
-    sum_b10_i1 = body_sum_10 - abs(rb2) + rb_i11
+    rb_i10 = abs(close[i - 10] - open_[i - 10])
     sum_b10_i0 = body_sum_10
 
     if c1 > o1 and c2 > o2 and c3 > o3:  # 3 Whites
@@ -895,7 +887,6 @@ def detect_dark_cloud_cover_numba(
     body_i = abs(close[i] - open_[i])
     if i >= 11:
       # avg_long[i] = mean(i-10..i-1)
-      avg_long_i = body_sum_10 / 10.0
 
       # avg_long[i-1] = mean(i-11..i-2)
       body_i_1 = abs(close[i - 1] - open_[i - 1])
@@ -1641,9 +1632,9 @@ def detect_advance_block_numba(
     sh_sum_12 += hl - rb
 
   for i in range(12, n):
-    o1, h1, l1, c1 = open_[i - 2], high[i - 2], low[i - 2], close[i - 2]
-    o2, h2, l2, c2 = open_[i - 1], high[i - 1], low[i - 1], close[i - 1]
-    o3, h3, l3, c3 = open_[i], high[i], low[i], close[i]
+    o1, h1, c1 = open_[i - 2], high[i - 2], close[i - 2]
+    o2, h2, c2 = open_[i - 1], high[i - 1], close[i - 1]
+    o3, h3, c3 = open_[i], high[i], close[i]
     rb1, rb2, rb3 = abs(c1 - o1), abs(c2 - o2), abs(c3 - o3)
     us1, us2, us3 = h1 - max(o1, c1), h2 - max(o2, c2), h3 - max(o3, c3)
 
@@ -2742,9 +2733,9 @@ def detect_stalled_pattern_numba(
       rng_sum_5 += rr
 
   for i in range(12, n):
-    o1, c1, h1 = open_[i - 2], close[i - 2], high[i - 2]
+    o1, c1 = open_[i - 2], close[i - 2]
     o2, c2, h2 = open_[i - 1], close[i - 1], high[i - 1]
-    o3, c3, h3 = open_[i], close[i], high[i]
+    o3, c3 = open_[i], close[i]
     rb1, rb2, rb3 = abs(c1 - o1), abs(c2 - o2), abs(c3 - o3)
 
     # Body Sum Trailing
@@ -3162,9 +3153,6 @@ def detect_counterattack_numba(
       # avg_body at i (signal): sum(i-10..i-1) / 10
 
       # Correct indices for Counterattack in TA-Lib:
-      sh_body_i = s_body - abs(
-        close[i] - open_[i]
-      )  # sum(i-11..i-1) - body[i] = sum(i-11..i-1)? No.
       # Let's fix rolling sum logic to be very precise.
 
       # REFACTORED SUM LOGIC:

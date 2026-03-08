@@ -30,6 +30,7 @@ from indikator.numba.atr import (
   compute_true_range_numba,
   compute_true_range_numba_2d,
 )
+from indikator.numba.intraday import compute_intraday_mean_numba, time_to_key
 from indikator.utils import to_numpy
 
 
@@ -149,7 +150,6 @@ def atr_intraday(
       >>> result = atr_intraday(data)
       >>> # Returns DataFrame with time-of-day adjusted ATR
   """
-  from indikator.numba.intraday import compute_intraday_mean_numba, time_to_key
 
   # Calculate true range first
   ohlc_values = cast(

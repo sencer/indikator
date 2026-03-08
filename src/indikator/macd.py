@@ -156,8 +156,6 @@ def macdext(  # noqa: PLR0913, PLR0917
   signal_line = signal_func(macd_series, signal_period)
 
   # Synchronize NaNs? No, TA-Lib returns valid macd even if signal is nan.
-  # nan_mask = np.isnan(signal_line)
-  # macd_line[nan_mask] = np.nan
 
   histogram = macd_line - signal_line
 

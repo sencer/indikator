@@ -4,6 +4,8 @@ This module calculates relative volume, which measures current trading volume
 relative to the average volume over a lookback period.
 """
 
+from typing import cast
+
 from datawarden import (
   Datetime,
   Finite,
@@ -18,6 +20,7 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._results import IndicatorResult
+from indikator.numba.intraday import compute_intraday_mean_numba, time_to_key
 from indikator.utils import to_numpy
 
 __all__ = ["rvol", "rvol_intraday"]
@@ -93,14 +96,11 @@ def rvol_intraday(
     data: Series (e.g., volume) with DatetimeIndex
     lookback_days: Number of days to look back
     min_samples: Minimum observations required
-    epsilon: Small value to prevent division by zero asd
+    epsilon: Small value to prevent division by zero
 
   Returns:
     IndicatorResult(index, rvol)
   """
-  from typing import cast
-
-  from indikator.numba.intraday import compute_intraday_mean_numba, time_to_key
 
   vol_arr = to_numpy(data)
   dt_index = cast("pd.DatetimeIndex", data.index)

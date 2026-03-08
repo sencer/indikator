@@ -12,57 +12,65 @@ import pandas as pd
 from indikator._results import IndicatorResult
 
 class _obv_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    def __call__(self, close: Validated[pd.Series[float], Finite, NotEmpty], volume: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> IndicatorResult: ...
 
 class _obv_ConfigDict(TypedDict, total=False):
-    pass
+  pass
 
 class _obv_Config(_NCMakeableModel[_obv_Bound]):
-    """Configuration class for obv.
+  """Configuration class for obv.
 
-    Calculate On Balance Volume (OBV).
+  Calculate On Balance Volume (OBV).
 
-    OBV measures buying and selling pressure as a cumulative indicator that
-    adds volume on up days and subtracts volume on down days.
+  OBV measures buying and selling pressure as a cumulative indicator that
+  adds volume on up days and subtracts volume on down days.
 
-    Formula:
-    If Close > Close_prev: OBV = OBV_prev + Volume
-    If Close < Close_prev: OBV = OBV_prev - Volume
-    If Close = Close_prev: OBV = OBV_prev
+  Formula:
+  If Close > Close_prev: OBV = OBV_prev + Volume
+  If Close < Close_prev: OBV = OBV_prev - Volume
+  If Close = Close_prev: OBV = OBV_prev
 
-    Interpretation:
-    - Volume accumulation: Rising OBV during consolidation = breakout coming
+  Interpretation:
+  - Volume accumulation: Rising OBV during consolidation = breakout coming
 
-    Features:
-    - Numba-optimized for performance
-    - Cumulative calculation (no window parameter)
-    - Handles flat price days (no volume change)
-    - Simple and effective
+  Features:
+  - Numba-optimized for performance
+  - Cumulative calculation (no window parameter)
+  - Handles flat price days (no volume change)
+  - Simple and effective
 
-    Args:
-      data: OHLCV DataFrame with 'close' and 'volume' columns
+  Args:
+    data: OHLCV DataFrame with 'close' and 'volume' columns
 
-    Returns:
-      DataFrame with 'obv' column
+  Returns:
+    DataFrame with 'obv' column
 
-    Raises:
-      ValueError: If required columns missing or data contains NaN/Inf
+  Raises:
+    ValueError: If required columns missing or data contains NaN/Inf
 
-    Example:
-      >>> import pandas as pd
-      >>> data = pd.DataFrame({
-      ...     'close': [100, 102, 101, 103, 105],
-      ...     'volume': [1000, 1200, 900, 1500, 1100]
-      ... })
-      >>> result = obv(data)
-      >>> # OBV = [1000, 2200, 1300, 2800, 3900]
-    """
+  Example:
+    >>> import pandas as pd
+    >>> data = pd.DataFrame({
+    ...     'close': [100, 102, 101, 103, 105],
+    ...     'volume': [1000, 1200, 900, 1500, 1100]
+    ... })
+    >>> result = obv(data)
+    >>> # OBV = [1000, 2200, 1300, 2800, 3900]
+  """
 
-    pass
+  pass
 
 class obv:
-    Type = _obv_Bound
-    Config = _obv_Config
-    ConfigDict = _obv_ConfigDict
-    def __new__(cls, close: Validated[pd.Series[float], Finite, NotEmpty], volume: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
+  Type = _obv_Bound
+  Config = _obv_Config
+  ConfigDict = _obv_ConfigDict
+  def __new__(
+    cls,
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> IndicatorResult: ...

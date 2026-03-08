@@ -30,7 +30,6 @@ def compute_sma_numba(
     shifted: If True, shift result by 1 (out[i+1] = sma[i])
   """
   n = len(prices)
-  out_len = n + 1 if shifted else n
   # If shifted, we might need output of size n (dropping last?) or n (shifting out first?)
   # _rolling_sma_prev expects output size N, where out[i] = sma[i-1].
   # So out[0] is NaN.

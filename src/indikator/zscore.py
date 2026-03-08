@@ -4,6 +4,8 @@ This module provides a generic Z-Score calculator that measures how many
 standard deviations a value is away from its rolling mean.
 """
 
+from typing import cast
+
 from datawarden import (
   Datetime,
   Finite,
@@ -18,6 +20,7 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._results import IndicatorResult
+from indikator.numba.intraday import compute_intraday_mean_std_numba, time_to_key
 from indikator.numba.zscore import compute_zscore_numba
 from indikator.utils import to_numpy
 
@@ -112,9 +115,6 @@ def zscore_intraday(
       >>> result = zscore_intraday(data)
       >>> # Will show high z-score on last day
   """
-  from typing import cast
-
-  from indikator.numba.intraday import compute_intraday_mean_std_numba, time_to_key
 
   values = to_numpy(data)
   dt_index = cast("pd.DatetimeIndex", data.index)

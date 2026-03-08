@@ -93,8 +93,8 @@ def cdl_doji(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Doji pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_doji_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_doji_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_doji")
 
 
@@ -107,8 +107,8 @@ def cdl_hammer(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Hammer pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_hammer_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_hammer_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_hammer")
 
 
@@ -145,9 +145,9 @@ def cdl_harami(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Harami pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2) typically 0.7x TA-Lib on 1M rows
-  result = detect_harami_parallel(o, h, l, c)
+  result = detect_harami_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_harami")
 
 
@@ -160,8 +160,8 @@ def cdl_shooting_star(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Shooting Star pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_shooting_star_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_shooting_star_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_shooting_star")
 
 
@@ -174,8 +174,8 @@ def cdl_inverted_hammer(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Inverted Hammer pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_inverted_hammer_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_inverted_hammer_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_inverted_hammer")
 
 
@@ -188,8 +188,8 @@ def cdl_hanging_man(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Hanging Man pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_hanging_man_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_hanging_man_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_hanging_man")
 
 
@@ -202,8 +202,8 @@ def cdl_marubozu(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Marubozu pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_marubozu_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_marubozu_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_marubozu")
 
 
@@ -217,8 +217,8 @@ def cdl_morning_star(
   penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Morning Star pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_morning_star_numba(o, h, l, c, penetration=penetration)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_morning_star_numba(o, h, low_arr, c, penetration=penetration)
   return pd.Series(result, index=open_.index, name="cdl_morning_star")
 
 
@@ -232,8 +232,8 @@ def cdl_evening_star(
   penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Evening Star pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_evening_star_numba(o, h, l, c, penetration=penetration)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_evening_star_numba(o, h, low_arr, c, penetration=penetration)
   return pd.Series(result, index=open_.index, name="cdl_evening_star")
 
 
@@ -251,8 +251,8 @@ def cdl_3white_soldiers(
   - 100: Bullish Three White Soldiers
   - 0: None
   """
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_3white_soldiers_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_3white_soldiers_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_3white_soldiers")
 
 
@@ -322,8 +322,8 @@ def cdl_tristar(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Tristar."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_tristar_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_tristar_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_tristar")
 
 
@@ -336,8 +336,8 @@ def cdl_piercing(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Piercing Pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_piercing_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_piercing_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_piercing")
 
 
@@ -351,8 +351,8 @@ def cdl_dark_cloud_cover(
   penetration: Hyper[float, Ge[0.0]] = 0.5,
 ) -> pd.Series:
   """Detect Dark Cloud Cover."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_dark_cloud_cover_numba(o, h, l, c, penetration=penetration)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_dark_cloud_cover_numba(o, h, low_arr, c, penetration=penetration)
   return pd.Series(result, index=open_.index, name="cdl_dark_cloud_cover")
 
 
@@ -365,8 +365,8 @@ def cdl_kicking(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Kicking Pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_kicking_numba(o, h, l, c, by_length=False)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_kicking_numba(o, h, low_arr, c, by_length=False)
   return pd.Series(result, index=open_.index, name="cdl_kicking")
 
 
@@ -379,8 +379,8 @@ def cdl_kicking_by_length(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Kicking - bull/bear determined by the longer marubozu."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_kicking_numba(o, h, l, c, by_length=True)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_kicking_numba(o, h, low_arr, c, by_length=True)
   return pd.Series(result, index=open_.index, name="cdl_kicking_by_length")
 
 
@@ -388,12 +388,7 @@ def _rolling_sma_prev(
   series: pd.Series | NDArray[np.float64], period: int, scale: float = 1.0
 ) -> NDArray[np.float64]:
   """Calculate rolling SMA of previous 'period' elements."""
-  # Optimization: Use Numba kernel instead of Pandas rolling
-  # series.rolling(period).mean().shift(1)
-  if isinstance(series, pd.Series):
-    arr = to_numpy(series)
-  else:
-    arr = series
+  arr = to_numpy(series) if isinstance(series, pd.Series) else series
 
   return compute_sma_numba(arr, period, scale=scale, shifted=True)
 
@@ -402,12 +397,7 @@ def _rolling_sma(
   series: pd.Series | NDArray[np.float64], period: int, scale: float = 1.0
 ) -> NDArray[np.float64]:
   """Calculate rolling SMA of 'period' elements (inclusive of current)."""
-  # Optimization: Use Numba kernel instead of Pandas rolling
-  # series.rolling(period).mean()
-  if isinstance(series, pd.Series):
-    arr = to_numpy(series)
-  else:
-    arr = series
+  arr = to_numpy(series) if isinstance(series, pd.Series) else series
 
   return compute_sma_numba(arr, period, scale=scale, shifted=False)
 
@@ -421,8 +411,8 @@ def cdl_short_line(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Short Line."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_short_line_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_short_line_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_short_line")
 
 
@@ -435,8 +425,8 @@ def cdl_spinning_top(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Spinning Top pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_spinning_top_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_spinning_top_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_spinning_top")
 
 
@@ -449,9 +439,9 @@ def cdl_matching_low(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Matching Low pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2)
-  result = detect_matching_low_parallel(o, h, l, c)
+  result = detect_matching_low_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_matching_low")
 
 
@@ -464,9 +454,9 @@ def cdl_high_wave(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect High Wave pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  result = detect_high_wave_parallel(o, h, l, c)
+  result = detect_high_wave_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_high_wave")
 
 
@@ -479,8 +469,8 @@ def cdl_long_legged_doji(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Long Legged Doji."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_long_legged_doji_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_long_legged_doji_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_long_legged_doji")
 
 
@@ -493,8 +483,8 @@ def cdl_rickshaw_man(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Rickshaw Man."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_rickshaw_man_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_rickshaw_man_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_rickshaw_man")
 
 
@@ -507,11 +497,11 @@ def cdl_tasuki_gap(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Tasuki Gap."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  rng = h - l
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  rng = h - low_arr
   avg_near = _rolling_sma_prev(rng, 5, scale=0.2)
 
-  result = detect_tasuki_gap_numba(o, h, l, c, avg_near=avg_near)
+  result = detect_tasuki_gap_numba(o, h, low_arr, c, avg_near=avg_near)
   return pd.Series(result, index=open_.index, name="cdl_tasuki_gap")
 
 
@@ -524,9 +514,9 @@ def cdl_separating_lines(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Separating Lines pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  result = detect_separating_lines_numba(o, h, l, c)
+  result = detect_separating_lines_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_separating_lines")
 
 
@@ -599,8 +589,8 @@ def cdl_abandoned_baby(
   penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Abandoned Baby."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_abandoned_baby_numba(o, h, l, c, penetration=penetration)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_abandoned_baby_numba(o, h, low_arr, c, penetration=penetration)
   return pd.Series(result, index=open_.index, name="cdl_abandoned_baby")
 
 
@@ -613,8 +603,8 @@ def cdl_advance_block(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Advance Block."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_advance_block_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_advance_block_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_advance_block")
 
 
@@ -627,8 +617,8 @@ def cdl_belt_hold(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Belt Hold."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_belt_hold_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_belt_hold_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_belt_hold")
 
 
@@ -641,8 +631,8 @@ def cdl_3black_crows(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Black Crows."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_3black_crows_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_3black_crows_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_3black_crows")
 
 
@@ -655,9 +645,9 @@ def cdl_breakaway(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Breakaway."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  result = detect_breakaway_numba(o, h, l, c)
+  result = detect_breakaway_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_breakaway")
   return pd.Series(result, index=open_.index, name="cdl_breakaway")
 
@@ -671,8 +661,8 @@ def cdl_closing_marubozu(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Closing Marubozu."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_closing_marubozu_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_closing_marubozu_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_closing_marubozu")
 
 
@@ -685,8 +675,8 @@ def cdl_dragonfly_doji(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Dragonfly Doji."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_dragonfly_doji_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_dragonfly_doji_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_dragonfly_doji")
 
 
@@ -699,8 +689,8 @@ def cdl_gravestone_doji(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Gravestone Doji."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_gravestone_doji_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_gravestone_doji_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_gravestone_doji")
 
 
@@ -727,8 +717,8 @@ def cdl_homing_pigeon(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Homing Pigeon."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_homing_pigeon_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_homing_pigeon_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_homing_pigeon")
 
 
@@ -741,8 +731,8 @@ def cdl_identical_3crows(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Identical Three Crows."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_identical_three_crows_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_identical_three_crows_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_identical_3crows")
 
 
@@ -755,9 +745,9 @@ def cdl_in_neck(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect In-Neck."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2)
-  result = detect_in_neck_parallel(o, h, l, c)
+  result = detect_in_neck_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_in_neck")
 
 
@@ -785,8 +775,8 @@ def cdl_long_line(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Long Line."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_long_line_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_long_line_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_long_line")
 
 
@@ -800,9 +790,9 @@ def cdl_mat_hold(
   penetration: Hyper[float, Ge[0.0]] = 0.5,
 ) -> pd.Series:
   """Detect Mat Hold pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2)
-  result = detect_mat_hold_parallel(o, h, l, c, penetration)
+  result = detect_mat_hold_parallel(o, h, low_arr, c, penetration)
   return pd.Series(result, index=open_.index, name="cdl_mat_hold")
 
 
@@ -815,9 +805,9 @@ def cdl_on_neck(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect On-Neck."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2)
-  result = detect_on_neck_parallel(o, h, l, c)
+  result = detect_on_neck_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_on_neck")
 
 
@@ -835,8 +825,8 @@ def cdl_rise_fall_3methods(
   - 100: Rising Three Methods (Bullish)
   - -100: Falling Three Methods (Bearish)
   """
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_rise_fall_three_methods_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_rise_fall_three_methods_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_rise_fall_3methods")
 
 
@@ -849,8 +839,8 @@ def cdl_stalled_pattern(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Stalled Pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_stalled_pattern_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_stalled_pattern_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_stalled_pattern")
 
 
@@ -863,9 +853,9 @@ def cdl_stick_sandwich(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Stick Sandwich."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2)
-  result = detect_stick_sandwich_parallel(o, h, l, c)
+  result = detect_stick_sandwich_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_stick_sandwich")
 
 
@@ -878,8 +868,8 @@ def cdl_takuri(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Takuri pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_takuri_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_takuri_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_takuri")
 
 
@@ -892,9 +882,9 @@ def cdl_thrusting(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Thrusting."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
   # Parallel implementation (Strategy #2)
-  result = detect_thrusting_parallel(o, h, l, c)
+  result = detect_thrusting_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_thrusting")
 
 
@@ -925,8 +915,8 @@ def cdl_counterattack(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Counterattack."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_counterattack_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_counterattack_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_counterattack")
 
 
@@ -939,8 +929,8 @@ def cdl_doji_star(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Doji Star pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_doji_star_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_doji_star_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_doji_star")
 
 
@@ -953,9 +943,9 @@ def cdl_conceal_baby_swallow(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Concealing Baby Swallow pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
 
-  result = detect_conceal_baby_swallow_numba(o, h, l, c)
+  result = detect_conceal_baby_swallow_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_conceal_baby_swallow")
 
 
@@ -968,8 +958,8 @@ def cdl_harami_cross(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Harami Cross."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_harami_cross_parallel(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_harami_cross_parallel(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_harami_cross")
 
 
@@ -1002,8 +992,8 @@ def cdl_morning_doji_star(
   penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Morning Doji Star pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_morning_doji_star_numba(o, h, l, c, penetration=penetration)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_morning_doji_star_numba(o, h, low_arr, c, penetration=penetration)
   return pd.Series(result, index=open_.index, name="cdl_morning_doji_star")
 
 
@@ -1017,8 +1007,8 @@ def cdl_evening_doji_star(
   penetration: Hyper[float, Ge[0.0]] = 0.3,
 ) -> pd.Series:
   """Detect Evening Doji Star pattern."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_evening_doji_star_numba(o, h, l, c, penetration=penetration)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_evening_doji_star_numba(o, h, low_arr, c, penetration=penetration)
   return pd.Series(result, index=open_.index, name="cdl_evening_doji_star")
 
 
@@ -1032,8 +1022,8 @@ def cdl_3stars_in_south(
   close: Validated[pd.Series[float], Finite, NotEmpty],
 ) -> pd.Series:
   """Detect Three Stars In The South."""
-  o, h, l, c = _alloc_ohlc(open_, high, low, close)
-  result = detect_three_stars_in_south_numba(o, h, l, c)
+  o, h, low_arr, c = _alloc_ohlc(open_, high, low, close)
+  result = detect_three_stars_in_south_numba(o, h, low_arr, c)
   return pd.Series(result, index=open_.index, name="cdl_3stars_in_south")
 
 

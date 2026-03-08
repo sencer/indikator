@@ -12,32 +12,42 @@ import pandas as pd
 from indikator._results import IndicatorResult
 
 class _wclprice_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    def __call__(self, high: Validated[pd.Series[float], Finite, NotEmpty], low: Validated[pd.Series[float], Finite, NotEmpty], close: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
+  """Bound function with hyperparameters as attributes."""
+  def __call__(
+    self,
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> IndicatorResult: ...
 
 class _wclprice_ConfigDict(TypedDict, total=False):
-    pass
+  pass
 
 class _wclprice_Config(_NCMakeableModel[_wclprice_Bound]):
-    """Configuration class for wclprice.
+  """Configuration class for wclprice.
 
-    Calculate Weighted Close Price.
+  Calculate Weighted Close Price.
 
-    WCLPRICE = (High + Low + 2*Close) / 4
+  WCLPRICE = (High + Low + 2*Close) / 4
 
-    Args:
-      high: High prices
-      low: Low prices
-      close: Close prices
+  Args:
+    high: High prices
+    low: Low prices
+    close: Close prices
 
-    Returns:
-      IndicatorResult
-    """
+  Returns:
+    IndicatorResult
+  """
 
-    pass
+  pass
 
 class wclprice:
-    Type = _wclprice_Bound
-    Config = _wclprice_Config
-    ConfigDict = _wclprice_ConfigDict
-    def __new__(cls, high: Validated[pd.Series[float], Finite, NotEmpty], low: Validated[pd.Series[float], Finite, NotEmpty], close: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
+  Type = _wclprice_Bound
+  Config = _wclprice_Config
+  ConfigDict = _wclprice_ConfigDict
+  def __new__(
+    cls,
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> IndicatorResult: ...

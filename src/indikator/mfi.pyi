@@ -12,85 +12,99 @@ import pandas as pd
 from indikator._results import IndicatorResult
 
 class _mfi_Bound(Protocol):
-    """Bound function with hyperparameters as attributes."""
-    @property
-    def period(self) -> int: ...
-    @property
-    def epsilon(self) -> float: ...
-    def __call__(self, high: Validated[pd.Series[float], Finite, NotEmpty], low: Validated[pd.Series[float], Finite, NotEmpty], close: Validated[pd.Series[float], Finite, NotEmpty], volume: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
+  """Bound function with hyperparameters as attributes."""
+  @property
+  def period(self) -> int: ...
+  @property
+  def epsilon(self) -> float: ...
+  def __call__(
+    self,
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
+  ) -> IndicatorResult: ...
 
 class _mfi_ConfigDict(TypedDict, total=False):
-    """Configuration dictionary for mfi.
+  """Configuration dictionary for mfi.
 
-    Configuration:
-        period (int)
-        epsilon (float)
-    """
+  Configuration:
+      period (int)
+      epsilon (float)
+  """
 
-    period: int
-    epsilon: float
+  period: int
+  epsilon: float
 
 class _mfi_Config(_NCMakeableModel[_mfi_Bound]):
-    """Configuration class for mfi.
+  """Configuration class for mfi.
 
-    Calculate Money Flow Index (MFI).
+  Calculate Money Flow Index (MFI).
 
-    MFI is a momentum indicator that uses both price and volume to measure
-    buying and selling pressure. It is also known as volume-weighted RSI.
+  MFI is a momentum indicator that uses both price and volume to measure
+  buying and selling pressure. It is also known as volume-weighted RSI.
 
-    Formula:
-    1. Typical Price = (High + Low + Close) / 3
-    2. Money Flow = Typical Price * Volume
-    3. Positive Money Flow = sum of MF when typical price increases
-    4. Negative Money Flow = sum of MF when typical price decreases
-    5. Money Flow Ratio = Positive Money Flow / Negative Money Flow
-    Typical Price = (High + Low + Close) / 3
-    Raw Money Flow = Typical Price * Volume
-    Money Ratio = Positive Money Flow / Negative Money Flow
-    MFI = 100 - (100 / (1 + Money Ratio))
+  Formula:
+  1. Typical Price = (High + Low + Close) / 3
+  2. Money Flow = Typical Price * Volume
+  3. Positive Money Flow = sum of MF when typical price increases
+  4. Negative Money Flow = sum of MF when typical price decreases
+  5. Money Flow Ratio = Positive Money Flow / Negative Money Flow
+  Typical Price = (High + Low + Close) / 3
+  Raw Money Flow = Typical Price * Volume
+  Money Ratio = Positive Money Flow / Negative Money Flow
+  MFI = 100 - (100 / (1 + Money Ratio))
 
-    Interpretation:
-    - MFI > 80: Overbought
-    - MFI < 20: Oversold
-    - Divergence: Price makes new high but MFI doesn't = reversal signal
+  Interpretation:
+  - MFI > 80: Overbought
+  - MFI < 20: Oversold
+  - Divergence: Price makes new high but MFI doesn't = reversal signal
 
-    Features:
-    - Numba-optimized for performance
-    - Handles edge cases (division by zero)
-    - Uses standard 14 period default
+  Features:
+  - Numba-optimized for performance
+  - Handles edge cases (division by zero)
+  - Uses standard 14 period default
 
-    Args:
-      high: High prices Series.
-      low: Low prices Series.
-      close: Close prices Series.
-      volume: Volume Series.
-      period: Lookback period (default: 14)
+  Args:
+    high: High prices Series.
+    low: Low prices Series.
+    close: Close prices Series.
+    volume: Volume Series.
+    period: Lookback period (default: 14)
 
-    Returns:
-      IndicatorResult(index, mfi)
+  Returns:
+    IndicatorResult(index, mfi)
+
+  Configuration:
+      period (int)
+      epsilon (float)
+  """
+
+  period: int
+  epsilon: float
+  def __init__(self, *, period: int = ..., epsilon: float = ...) -> None: ...
+  """Initialize configuration for mfi.
 
     Configuration:
         period (int)
         epsilon (float)
     """
 
-    period: int
-    epsilon: float
-    def __init__(self, *, period: int = ..., epsilon: float = ...) -> None: ...
-    """Initialize configuration for mfi.
-
-    Configuration:
-        period (int)
-        epsilon (float)
-    """
-
-    @override
-    def make(self) -> _mfi_Bound: ...
+  @override
+  def make(self) -> _mfi_Bound: ...
 
 class mfi:
-    Type = _mfi_Bound
-    Config = _mfi_Config
-    ConfigDict = _mfi_ConfigDict
-    period: ClassVar[int]
-    epsilon: ClassVar[float]
-    def __new__(cls, high: Validated[pd.Series[float], Finite, NotEmpty], low: Validated[pd.Series[float], Finite, NotEmpty], close: Validated[pd.Series[float], Finite, NotEmpty], volume: Validated[pd.Series[float], Finite, NotEmpty], period: int = ..., epsilon: float = ...) -> IndicatorResult: ...
+  Type = _mfi_Bound
+  Config = _mfi_Config
+  ConfigDict = _mfi_ConfigDict
+  period: ClassVar[int]
+  epsilon: ClassVar[float]
+  def __new__(
+    cls,
+    high: Validated[pd.Series[float], Finite, NotEmpty],
+    low: Validated[pd.Series[float], Finite, NotEmpty],
+    close: Validated[pd.Series[float], Finite, NotEmpty],
+    volume: Validated[pd.Series[float], Finite, NotEmpty],
+    period: int = ...,
+    epsilon: float = ...,
+  ) -> IndicatorResult: ...
