@@ -225,6 +225,27 @@ class MAMAResult(NamedTuple):
     )
 
 
-# --- Type Aliases ---
+class PhasorResult(NamedTuple):
+  data_index: pd.Index
+  inphase: NDArray[np.float64]
+  quadrature: NDArray[np.float64]
 
-type MAResult = IndicatorResult | MAMAResult
+  def to_pandas(self) -> pd.DataFrame:
+    return pd.DataFrame(
+      {"inphase": self.inphase, "quadrature": self.quadrature},
+      index=self.data_index,
+      copy=False,
+    )
+
+
+class SineResult(NamedTuple):
+  data_index: pd.Index
+  sine: NDArray[np.float64]
+  leadsine: NDArray[np.float64]
+
+  def to_pandas(self) -> pd.DataFrame:
+    return pd.DataFrame(
+      {"sine": self.sine, "leadsine": self.leadsine},
+      index=self.data_index,
+      copy=False,
+    )

@@ -12,45 +12,33 @@ import pandas as pd
 from indikator._results import IndicatorResult
 
 class _bop_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  def __call__(
-    self,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> IndicatorResult: ...
+    """Bound function with hyperparameters as attributes."""
+    def __call__(self, open_: Validated[pd.Series[float], Finite, NotEmpty], high: Validated[pd.Series[float], Finite, NotEmpty], low: Validated[pd.Series[float], Finite, NotEmpty], close: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
 
 class _bop_ConfigDict(TypedDict, total=False):
-  pass
+    pass
 
 class _bop_Config(_NCMakeableModel[_bop_Bound]):
-  """Configuration class for bop.
+    """Configuration class for bop.
 
-  Balance of Power (BOP).
+    Balance of Power (BOP).
 
-  BOP = (Close - Open) / (High - Low)
+    BOP = (Close - Open) / (High - Low)
 
-  Args:
-      open_: Open prices
-      high: High prices
-      low: Low prices
-      close: Close prices
+    Args:
+        open_: Open prices
+        high: High prices
+        low: Low prices
+        close: Close prices
 
-  Returns:
-      IndicatorResult: Balance of Power values
-  """
+    Returns:
+        IndicatorResult: Balance of Power values
+    """
 
-  pass
+    pass
 
 class bop:
-  Type = _bop_Bound
-  Config = _bop_Config
-  ConfigDict = _bop_ConfigDict
-  def __new__(
-    cls,
-    open_: Validated[pd.Series[float], Finite, NotEmpty],
-    high: Validated[pd.Series[float], Finite, NotEmpty],
-    low: Validated[pd.Series[float], Finite, NotEmpty],
-    close: Validated[pd.Series[float], Finite, NotEmpty],
-  ) -> IndicatorResult: ...
+    Type = _bop_Bound
+    Config = _bop_Config
+    ConfigDict = _bop_ConfigDict
+    def __new__(cls, open_: Validated[pd.Series[float], Finite, NotEmpty], high: Validated[pd.Series[float], Finite, NotEmpty], low: Validated[pd.Series[float], Finite, NotEmpty], close: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...

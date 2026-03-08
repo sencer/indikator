@@ -62,20 +62,15 @@ def compute_macd_numba(
   k_slow = 2.0 / (slow_period + 1)
   k_signal = 2.0 / (signal_period + 1)
 
-  # 1. Initialize Fast EMA at index fast_period - 1
+  # 1. Initialize Fast and Slow EMA at conceptual index slow_period - 1
+  # TA-Lib seeds both starting from the end of the slow lookback.
   fast_ema = 0.0
-  for i in range(fast_period):
+  for i in range(slow_period - fast_period, slow_period):
     fast_ema += prices[i]
   fast_ema /= fast_period
 
-  # 2. Advance Fast EMA until index slow_period - 1
-  for i in range(fast_period, slow_period):
-    fast_ema = prices[i] * k_fast + fast_ema * (1.0 - k_fast)
-
-  # 3. Initialize Slow EMA at index slow_period - 1
   slow_ema = 0.0
   for i in range(slow_period):
-    slow_seed = 0.0  # Unused in this loop context
     slow_ema += prices[i]
   slow_ema /= slow_period
 
@@ -143,17 +138,13 @@ def compute_macdfix_numba(
   k_slow = 0.075
   k_signal = 2.0 / (signal_period + 1)
 
-  # 1. Initialize Fast EMA at index 11
+  # 1. Initialize Fast and Slow EMA at conceptual index 25
+  # MACDFIX uses periods 12 and 26.
   fast_ema = 0.0
-  for i in range(12):
+  for i in range(26 - 12, 26):
     fast_ema += prices[i]
   fast_ema /= 12.0
 
-  # 2. Advance Fast EMA until index 25
-  for i in range(12, 26):
-    fast_ema = prices[i] * k_fast + fast_ema * (1.0 - k_fast)
-
-  # 3. Initialize Slow EMA at index 25
   slow_ema = 0.0
   for i in range(26):
     slow_ema += prices[i]

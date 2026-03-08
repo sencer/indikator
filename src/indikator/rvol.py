@@ -18,7 +18,6 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._results import IndicatorResult
-from indikator.intraday import intraday_aggregate
 from indikator.utils import to_numpy
 
 __all__ = ["rvol", "rvol_intraday"]
@@ -99,23 +98,28 @@ def rvol_intraday(
   Returns:
     IndicatorResult(index, rvol)
   """
+  from typing import cast
 
-  # Get historical averages for each time slot using generic aggregator
-  avg_volume_by_time = intraday_aggregate(
-    data,
-    agg_func="mean",
-    lookback_days=lookback_days,
-    min_samples=min_samples,
-  )
+  from indikator.numba.intraday import compute_intraday_mean_numba, time_to_key
 
-  # Calculate RVOL with division by zero protection
-  # Calculate RVOL with division by zero protection
   vol_arr = to_numpy(data)
-  # avg_volume_by_time is IndicatorResult
-  avg_arr = avg_volume_by_time.value
+  dt_index = cast("pd.DatetimeIndex", data.index)
 
+  # Apply lookback filter if specified
+  if lookback_days is not None:
+    cutoff_date = dt_index[-1] - pd.Timedelta(days=lookback_days)
+    mask = dt_index >= cutoff_date
+    vol_filtered = np.where(mask, vol_arr, np.nan)
+  else:
+    vol_filtered = vol_arr
+
+  time_keys = time_to_key(dt_index)
+
+  # Compute intraday mean using Numba kernel
+  avg_arr = compute_intraday_mean_numba(vol_filtered, time_keys, min_samples)
+
+  # Calculate RVOL with division by zero protection
   rvol_values = np.ones_like(vol_arr)
-
   valid_avg = (avg_arr > epsilon) & ~np.isnan(avg_arr) & ~np.isnan(vol_arr)
   rvol_values[valid_avg] = vol_arr[valid_avg] / avg_arr[valid_avg]
 

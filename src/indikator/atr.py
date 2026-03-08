@@ -25,7 +25,6 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_MIN_SAMPLES
 from indikator._results import IndicatorResult
-from indikator.intraday import intraday_aggregate
 from indikator.numba.atr import (
   compute_atr_numba,
   compute_true_range_numba,
@@ -150,33 +149,31 @@ def atr_intraday(
       >>> result = atr_intraday(data)
       >>> # Returns DataFrame with time-of-day adjusted ATR
   """
+  from indikator.numba.intraday import compute_intraday_mean_numba, time_to_key
+
   # Calculate true range first
-  # Optimization: Use bulk 2D access for speed since we have a DataFrame
-  # We need High, Low, Close columns. We can extract them as a block if they are adjacent,
-  # but safely we should select them.
-  # data[["high", "low", "close"]] guarantees order 0=H, 1=L, 2=C
   ohlc_values = cast(
     "NDArray[np.float64]",
     data[["high", "low", "close"]].to_numpy(dtype=np.float64, copy=False),
   )
-
   true_ranges = compute_true_range_numba_2d(ohlc_values)
 
-  # Add true_range to dataframe for intraday aggregation
-  data_with_tr = data.copy()
-  data_with_tr["true_range"] = true_ranges
+  # Convert datetime index to time keys (seconds since midnight)
+  dt_index = cast("pd.DatetimeIndex", data.index)
 
-  # Get historical average true range for each time slot
-  avg_tr_by_time = intraday_aggregate(
-    data_with_tr["true_range"],
-    agg_func="mean",
-    lookback_days=lookback_days,
-    min_samples=min_samples,
-  )
+  # Apply lookback filter if specified
+  if lookback_days is not None:
+    cutoff_date = dt_index[-1] - pd.Timedelta(days=lookback_days)
+    mask = dt_index >= cutoff_date
+    tr_filtered = np.where(mask, true_ranges, np.nan)
+  else:
+    tr_filtered = true_ranges
 
-  # Return only the indicator (minimal return philosophy)
-  # avg_tr_by_time is IndicatorResult
-  vals = avg_tr_by_time.value
+  time_keys = time_to_key(dt_index)
+
+  # Compute intraday mean using Numba kernel
+  vals = compute_intraday_mean_numba(tr_filtered, time_keys, min_samples)
+
   return IndicatorResult(data_index=data.index, value=vals, name="atr_intraday")
 
 

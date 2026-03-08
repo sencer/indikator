@@ -337,13 +337,6 @@ def run_benchmarks() -> None:
       lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
     ),
     (
-      "3StarsSouth",
-      cdl_3stars_in_south,
-      lambda d: (d["open"], d["high"], d["low"], d["close"]),
-      talib.CDL3STARSINSOUTH,
-      lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
-    ),
-    (
       "3Outside",
       cdl_3outside,
       lambda d: (d["open"], d["high"], d["low"], d["close"]),
@@ -355,6 +348,13 @@ def run_benchmarks() -> None:
       cdl_unique_3river,
       lambda d: (d["open"], d["high"], d["low"], d["close"]),
       talib.CDLUNIQUE3RIVER,
+      lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
+    ),
+    (
+      "3StarsSouth",
+      cdl_3stars_in_south,
+      lambda d: (d["open"], d["high"], d["low"], d["close"]),
+      talib.CDL3STARSINSOUTH,
       lambda d: (d["np_open"], d["np_high"], d["np_low"], d["np_close"]),
     ),
     (
@@ -1376,8 +1376,8 @@ def run_benchmarks() -> None:
       talib.WILLR,
       lambda d: (d["np_high"], d["np_low"], d["np_close"], 14),
     ),
-    ("Z-Score", zscore, lambda d: (d["close"], 20), None, None),
     ("Z-SCORE_INTRA", zscore_intraday, lambda d: (d["close"],), None, None),
+    ("Z-Score", zscore, lambda d: (d["close"], 20), None, None),
   ]
 
   # Filter benchmarks if requested

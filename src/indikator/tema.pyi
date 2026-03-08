@@ -12,78 +12,74 @@ import pandas as pd
 from indikator._results import IndicatorResult
 
 class _tema_Bound(Protocol):
-  """Bound function with hyperparameters as attributes."""
-  @property
-  def period(self) -> int: ...
-  def __call__(
-    self, data: Validated[pd.Series[float], Finite, NotEmpty]
-  ) -> IndicatorResult: ...
+    """Bound function with hyperparameters as attributes."""
+    @property
+    def period(self) -> int: ...
+    def __call__(self, data: Validated[pd.Series[float], Finite, NotEmpty]) -> IndicatorResult: ...
 
 class _tema_ConfigDict(TypedDict, total=False):
-  """Configuration dictionary for tema.
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-
-class _tema_Config(_NCMakeableModel[_tema_Bound]):
-  """Configuration class for tema.
-
-  Calculate Triple Exponential Moving Average (TEMA).
-
-  TEMA minimizes lag using a combination of single, double, and triple
-  smoothed EMAs with specific weights.
-
-  Formula:
-  TEMA = 3 * EMA1 - 3 * EMA2 + EMA3
-
-  Where:
-  - EMA1 = EMA(price, n)
-  - EMA2 = EMA(EMA1, n)
-  - EMA3 = EMA(EMA2, n)
-
-  Interpretation:
-  - Even faster response than DEMA
-  - Best for capturing short-term trend changes
-  - Can be combined with slower MAs for crossover strategies
-
-  Features:
-  - Fused Numba kernel: computes all three EMA stages in single loop
-  - Values stay in registers, no intermediate arrays
-
-  Args:
-    data: Input price Series (typically close prices)
-    period: Lookback period (default: 20)
-
-  Returns:
-    IndicatorResult with TEMA values
-
-  Example:
-    >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
-    >>> result = tema(prices, period=5)
-
-  Configuration:
-      period (int)
-  """
-
-  period: int
-  def __init__(self, *, period: int = ...) -> None: ...
-  """Initialize configuration for tema.
+    """Configuration dictionary for tema.
 
     Configuration:
         period (int)
     """
 
-  @override
-  def make(self) -> _tema_Bound: ...
+    period: int
+
+class _tema_Config(_NCMakeableModel[_tema_Bound]):
+    """Configuration class for tema.
+
+    Calculate Triple Exponential Moving Average (TEMA).
+
+    TEMA minimizes lag using a combination of single, double, and triple
+    smoothed EMAs with specific weights.
+
+    Formula:
+    TEMA = 3 * EMA1 - 3 * EMA2 + EMA3
+
+    Where:
+    - EMA1 = EMA(price, n)
+    - EMA2 = EMA(EMA1, n)
+    - EMA3 = EMA(EMA2, n)
+
+    Interpretation:
+    - Even faster response than DEMA
+    - Best for capturing short-term trend changes
+    - Can be combined with slower MAs for crossover strategies
+
+    Features:
+    - Fused Numba kernel: computes all three EMA stages in single loop
+    - Values stay in registers, no intermediate arrays
+
+    Args:
+      data: Input price Series (typically close prices)
+      period: Lookback period (default: 20)
+
+    Returns:
+      IndicatorResult with TEMA values
+
+    Example:
+      >>> prices = pd.Series([100, 102, 101, 103, 105, 104, 106, 108])
+      >>> result = tema(prices, period=5)
+
+    Configuration:
+        period (int)
+    """
+
+    period: int
+    def __init__(self, *, period: int = ...) -> None: ...
+    """Initialize configuration for tema.
+
+    Configuration:
+        period (int)
+    """
+
+    @override
+    def make(self) -> _tema_Bound: ...
 
 class tema:
-  Type = _tema_Bound
-  Config = _tema_Config
-  ConfigDict = _tema_ConfigDict
-  period: ClassVar[int]
-  def __new__(
-    cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...
-  ) -> IndicatorResult: ...
+    Type = _tema_Bound
+    Config = _tema_Config
+    ConfigDict = _tema_ConfigDict
+    period: ClassVar[int]
+    def __new__(cls, data: Validated[pd.Series[float], Finite, NotEmpty], period: int = ...) -> IndicatorResult: ...

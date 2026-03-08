@@ -18,7 +18,6 @@ import pandas as pd
 
 from indikator._constants import DEFAULT_EPSILON, DEFAULT_MIN_SAMPLES
 from indikator._results import IndicatorResult
-from indikator.intraday import intraday_stats
 from indikator.numba.zscore import compute_zscore_numba
 from indikator.utils import to_numpy
 
@@ -113,27 +112,36 @@ def zscore_intraday(
       >>> result = zscore_intraday(data)
       >>> # Will show high z-score on last day
   """
+  from typing import cast
 
-  # Get historical mean and std for each time slot in a single pass
-  # Get historical mean and std for each time slot in a single pass
-  stats = intraday_stats(
-    data,
-    lookback_days=lookback_days,
-    min_samples=min_samples,
+  from indikator.numba.intraday import compute_intraday_mean_std_numba, time_to_key
+
+  values = to_numpy(data)
+  dt_index = cast("pd.DatetimeIndex", data.index)
+
+  # Apply lookback filter if specified
+  if lookback_days is not None:
+    cutoff_date = dt_index[-1] - pd.Timedelta(days=lookback_days)
+    mask = dt_index >= cutoff_date
+    val_filtered = np.where(mask, values, np.nan)
+  else:
+    val_filtered = values
+
+  time_keys = time_to_key(dt_index)
+
+  # Compute intraday mean and std using Numba kernel
+  mean_by_time, std_by_time = compute_intraday_mean_std_numba(
+    val_filtered, time_keys, min_samples
   )
-  mean_by_time = stats.mean
-  std_by_time = stats.std
 
   # Calculate Z-Score with division by zero protection
   z_score_values = np.zeros(len(data))
   valid_std = std_by_time > epsilon
 
-  z_score_values[valid_std] = (data[valid_std] - mean_by_time[valid_std]) / std_by_time[
-    valid_std
-  ]
+  z_score_values[valid_std] = (
+    values[valid_std] - mean_by_time[valid_std]
+  ) / std_by_time[valid_std]
 
-  # Create result series
-  # Create result series
   return IndicatorResult(
     data_index=data.index, value=z_score_values, name="zscore_intraday"
   )

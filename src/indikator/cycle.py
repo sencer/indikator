@@ -9,6 +9,7 @@ from datawarden import (
 from nonfig import configurable
 import pandas as pd
 
+from indikator._results import IndicatorResult, PhasorResult, SineResult
 from indikator.numba.cycle import (
   compute_ht_dcperiod_numba,
   compute_ht_dcphase_numba,
@@ -24,72 +25,61 @@ from indikator.utils import to_numpy
 @validate
 def ht_dcperiod(
   data: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
+) -> IndicatorResult:
   """Hilbert Transform - Dominant Cycle Period.
 
   Args:
     data: Input price series.
 
   Returns:
-    pd.Series: Dominant Cycle Period.
+    IndicatorResult: (Dominant Cycle Period). Use .to_pandas() for Series.
   """
   input_arr = to_numpy(data)
-
-  # Use specialized kernel for Period (1.10x vs TA-Lib)
   p = compute_ht_dcperiod_numba(input_arr)
-
-  return pd.Series(p, index=data.index, name="ht_dcperiod")
+  return IndicatorResult(data_index=data.index, value=p, name="ht_dcperiod")
 
 
 @configurable
 @validate
 def ht_dcphase(
   data: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
+) -> IndicatorResult:
   """Hilbert Transform - Dominant Cycle Phase.
 
   Args:
     data: Input price series.
 
   Returns:
-    pd.Series: Dominant Cycle Phase (0 to 360 degrees).
+    IndicatorResult: (Dominant Cycle Phase). Use .to_pandas() for Series.
   """
   input_arr = to_numpy(data)
-
-  # Optimized kernel
   phase = compute_ht_dcphase_numba(input_arr)
-
-  return pd.Series(phase, index=data.index, name="ht_dcphase")
+  return IndicatorResult(data_index=data.index, value=phase, name="ht_dcphase")
 
 
 @configurable
 @validate
 def ht_phasor(
   data: Validated[pd.Series[float], Finite, NotEmpty],
-) -> tuple[pd.Series, pd.Series]:
+) -> PhasorResult:
   """Hilbert Transform - Phasor Components.
 
   Args:
     data: Input price series.
 
   Returns:
-    tuple[pd.Series, pd.Series]: (InPhase, Quadrature) components.
+    PhasorResult: (InPhase, Quadrature). Use .to_pandas() for DataFrame.
   """
   input_arr = to_numpy(data)
-
   inphase, quad = compute_ht_phasor_numba(input_arr)
-
-  return (
-    pd.Series(inphase, index=data.index, name="inphase"),
-    pd.Series(quad, index=data.index, name="quadrature"),
-  )
+  return PhasorResult(data_index=data.index, inphase=inphase, quadrature=quad)
 
 
 @configurable
 @validate
 def ht_sine(
   data: Validated[pd.Series[float], Finite, NotEmpty],
-) -> tuple[pd.Series, pd.Series]:
+) -> SineResult:
   """Hilbert Transform - SineWave.
 
   Returns the sine of the Dominant Cycle Phase and a lead sine (45 degrees advancement).
@@ -98,56 +88,44 @@ def ht_sine(
     data: Input price series.
 
   Returns:
-    tuple[pd.Series, pd.Series]: (Sine, LeadSine).
+    SineResult: (Sine, LeadSine). Use .to_pandas() for DataFrame.
   """
   input_arr = to_numpy(data)
-
-  # Optimized kernel computes sine/leadsine directly
   sine, lead_sine = compute_ht_sine_numba(input_arr)
-
-  return (
-    pd.Series(sine, index=data.index, name="sine"),
-    pd.Series(lead_sine, index=data.index, name="leadsine"),
-  )
+  return SineResult(data_index=data.index, sine=sine, leadsine=lead_sine)
 
 
 @configurable
 @validate
 def ht_trendmode(
   data: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
+) -> IndicatorResult:
   """Hilbert Transform - Trend vs Cycle Mode.
 
   Args:
     data: Input price series.
 
   Returns:
-    pd.Series: TrendMode (0 or 1). 1 indicates a trend is detected.
+    IndicatorResult: TrendMode (0 or 1). Use .to_pandas() for Series.
   """
   input_arr = to_numpy(data)
-
-  # Optimized kernel uses stateful phase transition logic
   trend = compute_ht_trendmode_numba(input_arr)
-
-  return pd.Series(trend, index=data.index, name="ht_trendmode")
+  return IndicatorResult(data_index=data.index, value=trend, name="ht_trendmode")
 
 
 @configurable
 @validate
 def ht_trendline(
   data: Validated[pd.Series[float], Finite, NotEmpty],
-) -> pd.Series:
+) -> IndicatorResult:
   """Hilbert Transform - Trendline.
 
   Args:
     data: Input price series.
 
   Returns:
-    pd.Series: Trendline.
+    IndicatorResult: Trendline. Use .to_pandas() for Series.
   """
   input_arr = to_numpy(data)
-
-  # Optimized kernel
   tl = compute_ht_trendline_numba(input_arr)
-
-  return pd.Series(tl, index=data.index, name="ht_trendline")
+  return IndicatorResult(data_index=data.index, value=tl, name="ht_trendline")

@@ -77,24 +77,16 @@ def test_cdl_doji_matches_talib():
 
 
 def test_cdl_hammer_matches_talib():
-  np.random.seed(42)
-  # Hammer: Downtrend, long lower shadow, small body near high
-  open_ = pd.Series(np.linspace(100, 80, 100), name="open")  # Downtrend
-  close = open_ - 0.5  # Small body down
-  high = open_ + 0.1  # Very small upper shadow
-  low = close - 2.0  # Long lower shadow
-
-  # Randomize to avoid identical bars
-  noise = np.random.randn(100) * 0.1
-  open_ += noise
-
-  # Inject perfect hammer
+  # Downtrend
+  open_ = pd.Series(np.linspace(150, 100, 100), name="open")
+  close = open_ - 5.0
+  high = open_.copy()
+  low = close.copy()
   i = 50
-  open_.iloc[i] = 90.0
-  close.iloc[i] = 90.2  # Small green body
-  high.iloc[i] = 90.25  # Tiny upper
-  low.iloc[i] = 88.0  # Long lower
-
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 101.0
+  high.iloc[i] = 101.1
+  low.iloc[i] = 95.0
   result = cdl_hammer(open_, high, low, close)
   assert result.iloc[50] == 100
 
@@ -184,21 +176,16 @@ def test_cdl_shooting_star_matches_talib():
 
 def test_cdl_inverted_hammer_matches_talib():
   # Downtrend
-  open_ = pd.Series(np.linspace(100, 80, 100), name="open")
-  close = open_ - 0.5
-  high = open_ + 0.1
-  low = close - 0.1
-
-  # Shape: Small body, long upper, small lower
-  # Inverted Hammer is bullish reversal found in downtrend
+  open_ = pd.Series(np.linspace(150, 100, 100), name="open")
+  close = open_ - 5.0
+  high = open_.copy()
+  low = close.copy()
   i = 50
-  open_.iloc[i] = 90.0
-  close.iloc[i] = 90.2
-  high.iloc[i] = 93.0
-  low.iloc[i] = 89.9
-
+  open_.iloc[i] = 100.0
+  close.iloc[i] = 101.0
+  high.iloc[i] = 106.0
+  low.iloc[i] = 100.0
   result = cdl_inverted_hammer(open_, high, low, close)
-
   assert result.iloc[50] == 100
 
 
@@ -296,24 +283,25 @@ def test_cdl_evening_star_matches_talib():
 
 
 def test_cdl_3black_crows_matches_talib():
-  open_ = pd.Series(np.linspace(100, 80, 100), name="open") + np.random.randn(100)
-  close = open_ - 1.0  # General downtrend
-  high = open_ + 0.1
-  low = close - 0.1
-
+  open_ = pd.Series(np.ones(100) * 200.0, name="open")
+  close = open_ + 1.0
+  high = close.copy()
+  low = open_.copy()
   i = 50
   # Crow 1
-  open_.iloc[i - 2] = 100.0
-  close.iloc[i - 2] = 98.0
-  # Crow 2 (Opens inside 1, closes lower)
-  open_.iloc[i - 1] = 99.0
-  close.iloc[i - 1] = 97.0
-  # Crow 3 (Opens inside 2, closes lower)
-  open_.iloc[i] = 98.0
-  close.iloc[i] = 96.0
-
+  open_.iloc[i - 2] = 120.0
+  close.iloc[i - 2] = 110.0
+  # Crow 2
+  open_.iloc[i - 1] = 115.0
+  close.iloc[i - 1] = 105.0
+  # Crow 3
+  open_.iloc[i] = 110.0
+  close.iloc[i] = 100.0
+  for j in range(i - 2, i + 1):
+    high.iloc[j] = open_.iloc[j]
+    low.iloc[j] = close.iloc[j]
   result = cdl_3black_crows(open_, high, low, close)
-  assert result.iloc[50] == -100
+  assert result.iloc[i] == -100
 
 
 def test_cdl_3white_soldiers_matches_talib():
@@ -339,8 +327,8 @@ def test_cdl_3white_soldiers_matches_talib():
 
 def test_cdl_3inside_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
@@ -392,29 +380,28 @@ def test_cdl_3outside_matches_talib():
 
 
 def test_cdl_3line_strike_matches_talib():
-  open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  open_ = pd.Series(np.ones(100) * 200.0, name="open")
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
-
   i = 50
-  # Bullish Strike: 3 Bears -> 1 Giant Bull
-  # 1. Bear
-  open_.iloc[i - 3] = 100.0
-  close.iloc[i - 3] = 99.0
-  # 2. Bear
-  open_.iloc[i - 2] = 99.0
-  close.iloc[i - 2] = 98.0
-  # 3. Bear
-  open_.iloc[i - 1] = 98.0
-  close.iloc[i - 1] = 97.0
-
-  # 4. Strike (Bull engulfs start)
-  open_.iloc[i] = 96.0
-  close.iloc[i] = 101.0  # Above 100
-
+  # 3 crows
+  open_.iloc[i - 3] = 120.0
+  close.iloc[i - 3] = 110.0
+  open_.iloc[i - 2] = 115.0
+  close.iloc[i - 2] = 105.0
+  open_.iloc[i - 1] = 110.0
+  close.iloc[i - 1] = 100.0
+  for j in range(i - 3, i):
+    high.iloc[j] = open_.iloc[j]
+    low.iloc[j] = close.iloc[j]
+  # Strike
+  open_.iloc[i] = 95.0
+  close.iloc[i] = 125.0
+  high.iloc[i] = 125.0
+  low.iloc[i] = 95.0
   result = cdl_3line_strike(open_, high, low, close)
-  assert result.iloc[50] == 100
+  assert result.iloc[i] == 100
 
 
 def test_cdl_piercing_matches_talib():
@@ -463,8 +450,8 @@ def test_cdl_dark_cloud_cover_matches_talib():
 
 def test_cdl_kicking_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   # Bullish Kicking: Bear -> Gap Up -> Bull (Marubozus)
@@ -506,8 +493,8 @@ def test_cdl_matching_low_matches_talib():
 
 def test_cdl_spinning_top_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
@@ -551,8 +538,8 @@ def test_cdl_tristar_matches_talib():
 def test_cdl_high_wave_matches_talib():
   # Very long shadows, short body
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
@@ -586,29 +573,21 @@ def test_cdl_separating_lines_matches_talib():
 
 
 def test_cdl_tasuki_gap_matches_talib():
+  # Background with range
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
-  # 1. Bull
+  # Gap up
   open_.iloc[i - 2] = 100.0
-  close.iloc[i - 2] = 105.0
-  high.iloc[i - 2] = 105
-  low.iloc[i - 2] = 100
-
-  # 2. Bull (Gap Up)
-  open_.iloc[i - 1] = 106.0
-  close.iloc[i - 1] = 110.0
-  high.iloc[i - 1] = 110
-  low.iloc[i - 1] = 106
-
-  # 3. Bear (Opens inside 2, Closes in gap)
-  open_.iloc[i] = 108.0
-  close.iloc[i] = 105.5  # Inside gap (105..106)
-  high.iloc[i] = 109
-  low.iloc[i] = 105.5
+  close.iloc[i - 2] = 105.0  # Large white
+  open_.iloc[i - 1] = 107.0
+  close.iloc[i - 1] = 110.0  # Gap and white
+  # Reversal
+  open_.iloc[i] = 109.0
+  close.iloc[i] = 106.0  # Inside the gap
 
   result = cdl_tasuki_gap(open_, high, low, close)
   assert result.iloc[50] == 100
@@ -641,8 +620,8 @@ def test_cdl_2crows_matches_talib():
 
 def test_cdl_dragonfly_doji_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
@@ -657,8 +636,8 @@ def test_cdl_dragonfly_doji_matches_talib():
 
 def test_cdl_gravestone_doji_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
@@ -673,18 +652,20 @@ def test_cdl_gravestone_doji_matches_talib():
 
 def test_cdl_homing_pigeon_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 10.0  # LARGE base body 10.0
+  high = close.copy()
   low = open_.copy()
-
   i = 50
-  # 1. Bear
-  open_.iloc[i - 1] = 105.0
+  # 1. Bear (Very Large)
+  open_.iloc[i - 1] = 130.0
   close.iloc[i - 1] = 100.0
-  # 2. Bear inside
-  open_.iloc[i] = 103.0
-  close.iloc[i] = 101.0
-
+  high.iloc[i - 1] = 130.0
+  low.iloc[i - 1] = 100.0
+  # 2. Bear inside (Small relative to 10.0 background)
+  open_.iloc[i] = 108.0
+  close.iloc[i] = 102.0  # Body 6.0 (< 10.0)
+  high.iloc[i] = 108.0
+  low.iloc[i] = 102.0
   result = cdl_homing_pigeon(open_, high, low, close)
   assert result.iloc[50] == 100
 
@@ -749,16 +730,14 @@ def test_cdl_on_neck_matches_talib():
 
 def test_cdl_long_line_matches_talib():
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
-
   i = 50
   open_.iloc[i] = 100.0
-  close.iloc[i] = 105.0
-  high.iloc[i] = 105.5
-  low.iloc[i] = 99.5
-
+  close.iloc[i] = 110.0
+  high.iloc[i] = 110.0
+  low.iloc[i] = 100.0
   result = cdl_long_line(open_, high, low, close)
   assert result.iloc[50] == 100
 
@@ -775,6 +754,7 @@ def test_cdl_stick_sandwich_matches_talib():
   close.iloc[i - 2] = 100.0
   open_.iloc[i - 1] = 101.0
   close.iloc[i - 1] = 106.0
+  low.iloc[i - 1] = 100.1  # Must be > close[i-2] (100.0)
   open_.iloc[i] = 105.0
   close.iloc[i] = 100.0
 
@@ -783,16 +763,17 @@ def test_cdl_stick_sandwich_matches_talib():
 
 
 def test_cdl_takuri_matches_talib():
+  # Flat background with range
   open_ = pd.Series(np.ones(100) * 100.0, name="open")
-  close = open_.copy()
-  high = open_.copy()
+  close = open_ + 1.0
+  high = close.copy()
   low = open_.copy()
 
   i = 50
   open_.iloc[i] = 100.0
-  close.iloc[i] = 99.5
-  high.iloc[i] = 100.1
-  low.iloc[i] = 95.0  # Very long lower
+  close.iloc[i] = 100.0
+  high.iloc[i] = 100.0
+  low.iloc[i] = 95.0  # Long lower
 
   result = cdl_takuri(open_, high, low, close)
   assert result.iloc[50] == 100

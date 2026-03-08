@@ -11,7 +11,7 @@ def test_ht_dcperiod_sine_wave():
   x = np.linspace(0, 40 * np.pi, 400)  # 20 cycles
   data = pd.Series(np.sin(x), name="data")
 
-  result = ht_dcperiod(data)
+  result = ht_dcperiod(data).to_pandas()
   # TA-Lib returns ~20.0.
   # Our implementation with correction factor returns ~20.04.
 
@@ -26,7 +26,7 @@ def test_ht_dcphase_sine_wave():
   x = np.linspace(0, 40 * np.pi, 400)
   data = pd.Series(np.sin(x), name="data")
 
-  result = ht_dcphase(data)
+  result = ht_dcphase(data).to_pandas()
   expected = talib.HT_DCPHASE(data.values)
 
   res_rad = np.radians(result.iloc[300:])
@@ -42,7 +42,8 @@ def test_ht_phasor_sine_wave():
   x = np.linspace(0, 40 * np.pi, 400)
   data = pd.Series(np.sin(x), name="data")
 
-  i_res, _q_res = ht_phasor(data)
+  res = ht_phasor(data)
+  i_res = pd.Series(res.inphase, index=data.index)
   i_exp, _q_exp = talib.HT_PHASOR(data.values)
 
   # InPhase matches well (Signal)
@@ -55,7 +56,9 @@ def test_ht_sine_sine_wave():
   x = np.linspace(0, 40 * np.pi, 400)
   data = pd.Series(np.sin(x), name="data")
 
-  sine_res, leadsine_res = ht_sine(data)
+  res = ht_sine(data)
+  sine_res = pd.Series(res.sine, index=data.index)
+  leadsine_res = pd.Series(res.leadsine, index=data.index)
   sine_exp, leadsine_exp = talib.HT_SINE(data.values)
 
   assert sine_res.iloc[300:].corr(pd.Series(sine_exp).iloc[300:]) > 0.95
@@ -67,7 +70,7 @@ def test_ht_trendmode_placeholder():
   np.random.seed(42)
   data = pd.Series(np.random.randn(100).cumsum(), name="data")
 
-  result = ht_trendmode(data)
+  result = ht_trendmode(data).to_pandas()
   # Just check it runs and returns 0/1 (or 0.0/1.0)
   assert len(result) == 100
   assert result.isna().sum() < 100  # Some valid values
@@ -78,7 +81,7 @@ def test_ht_dcperiod_noise_approx():
   np.random.seed(42)
   data = pd.Series(np.random.randn(500), name="data").cumsum() + 100.0
 
-  result = ht_dcperiod(data)
+  result = ht_dcperiod(data).to_pandas()
   expected = talib.HT_DCPERIOD(data.values)
 
   # Check that we are in the same ballpark (within factor of 1.5, not 2.0 or 0.5)
