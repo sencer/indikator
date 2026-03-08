@@ -249,3 +249,7 @@ class SineResult(NamedTuple):
       index=self.data_index,
       copy=False,
     )
+
+
+# Combined Result Type for Moving Averages
+type MAResult = IndicatorResult | MAMAResult

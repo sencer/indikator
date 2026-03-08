@@ -201,7 +201,7 @@ with config.Overrides(skip_validation=True):
 
 
 # Generate Data (simplified)
-def generate_data(size: int, pattern_type: int = None):
+def generate_data(size: int, pattern_type: int | None = None):
   """Generate OHLC data with realistic candlestick patterns."""
   np.random.seed(42)
 

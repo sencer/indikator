@@ -4,11 +4,12 @@ These kernels provide fast time-of-day based aggregations using fixed-size
 arrays indexed by time slot for O(1) lookups.
 """
 
-from __future__ import annotations
+from typing import Any
 
 from numba import jit
 import numpy as np
 from numpy.typing import NDArray
+import pandas as pd
 
 # Max time slots per day = 86400 seconds. We'll use a fixed array.
 MAX_TIME_SLOTS = 86400
@@ -116,13 +117,12 @@ def compute_intraday_mean_std_numba(
   return means_out, stds_out
 
 
-def time_to_key(dt_index: np.ndarray) -> NDArray[np.int64]:
+def time_to_key(dt_index: pd.DatetimeIndex | NDArray[Any]) -> NDArray[np.int64]:
   """Convert DatetimeIndex to integer time keys (seconds since midnight).
 
   This is a helper that runs in Python (not Numba) to prepare the time keys.
   Uses fast numpy view + modulo instead of property access for speed.
   """
-  import pandas as pd
 
   if isinstance(dt_index, pd.DatetimeIndex):
     # Fast path: use underlying int64 nanoseconds and modulo

@@ -385,21 +385,14 @@ def cdl_kicking_by_length(
 
 
 def _rolling_sma_prev(
-  series: pd.Series | NDArray[np.float64], period: int, scale: float = 1.0
+  series: pd.Series | NDArray[np.float64],
+  period: int,
+  scale: float = 1.0,
 ) -> NDArray[np.float64]:
   """Calculate rolling SMA of previous 'period' elements."""
   arr = to_numpy(series) if isinstance(series, pd.Series) else series
 
   return compute_sma_numba(arr, period, scale=scale, shifted=True)
-
-
-def _rolling_sma(
-  series: pd.Series | NDArray[np.float64], period: int, scale: float = 1.0
-) -> NDArray[np.float64]:
-  """Calculate rolling SMA of 'period' elements (inclusive of current)."""
-  arr = to_numpy(series) if isinstance(series, pd.Series) else series
-
-  return compute_sma_numba(arr, period, scale=scale, shifted=False)
 
 
 @configurable
@@ -545,7 +538,12 @@ def cdl_gap_side_by_side_white(
   avg_equal = avg_rng_5 * 0.05
 
   result = detect_gap_side_by_side_white_numba(
-    o, h, low_arr, c, avg_near=avg_near, avg_equal=avg_equal
+    o,
+    h,
+    low_arr,
+    c,
+    avg_near=avg_near,
+    avg_equal=avg_equal,
   )
   return pd.Series(result, index=open_.index, name="cdl_gap_side_by_side_white")
 
@@ -1047,9 +1045,15 @@ def cdl_xsidegap3methods(
 
 
 def _alloc_ohlc(
-  open_: pd.Series, high: pd.Series, low: pd.Series, close: pd.Series
+  open_: pd.Series,
+  high: pd.Series,
+  low: pd.Series,
+  close: pd.Series,
 ) -> tuple[
-  NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]
+  NDArray[np.float64],
+  NDArray[np.float64],
+  NDArray[np.float64],
+  NDArray[np.float64],
 ]:
   # Helper to reduce boilerplate
   o = to_numpy(open_)

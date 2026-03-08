@@ -184,6 +184,19 @@ max-complexity = 10  # Maximum cyclomatic complexity
     "ARG",     # Unused arguments
     "PLC2701", # Private import
 ]
+"scripts/**/*.py" = [
+    "T201",    # Allow print statements in scripts
+    "ANN",     # Don't require annotations in scripts
+    "PLR",     # Allow complexity
+    "N806",    # Allow non-lowercase variables
+    "ERA001",  # Allow commented-out code
+    "S",       # Allow security-sensitive code (S403, S404, etc.)
+    "BLE001",  # Blind exception
+    "E402",    # Module level import
+    "B023",    # Loop variable binding
+    "C901",    # Complexity
+    "ARG",     # Unused arguments
+]
 "src/indikator/_bollinger_talib.py" = [
     "PLR0914", # Too many local variables
 ]
@@ -342,6 +355,7 @@ exclude = [
     "build",
     "dist",
     "*.egg-info",
+    "scripts/**", # Skip utility scripts
     "tests/**",  # Skip type checking tests (pandas-stubs limitations)
     "benchmarks/**", # Skip benchmarks
     "notebooks/**/*.ipynb",  # Skip notebooks

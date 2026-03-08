@@ -130,6 +130,7 @@ def compute_ht_master_numba(
   dc_phase = 0.0
   sine, lead_sine = 0.0, 0.0
 
+  prev_s, prev_ls, prev_ph = 0.0, 0.0, 0.0
   hil_idx = 0
   for today in range(3, n):
     val = data[today]
