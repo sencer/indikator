@@ -530,7 +530,7 @@ wheels = [
 
 [[package]]
 name = "datawarden"
-version = "0.1.1"
+version = "0.1.2"
 source = { editable = "../datawarden" }
 dependencies = [
     { name = "filelock" },
