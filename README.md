@@ -1,21 +1,20 @@
 # Indikator
 
 ![CI](https://github.com/sencer/indikator/actions/workflows/ci.yml/badge.svg)
-[![codecov](https://codecov.io/gh/sencer/indikator/branch/master/graph/badge.svg)](https://app.codecov.io/github/sencer/indikator)
 [![PyPI](https://img.shields.io/pypi/v/indikator)](https://pypi.org/project/indikator/)
 [![Python](https://img.shields.io/pypi/pyversions/indikator)](https://pypi.org/project/indikator/)
 [![License](https://img.shields.io/github/license/sencer/indikator)](https://github.com/sencer/indikator/blob/master/LICENSE)
 
 **High-Performance Technical Indicators for Python**
 
-`indikator` is a powerful, type-safe Python library for financial market analysis. It provides a comprehensive suite of technical indicators optimized with **Numba** for high performance, validated with **datawarden**, and configurable via **nonfig**.
+`indikator` is a powerful, type-safe Python library for financial market analysis. It provides an extensive suite of technical indicators optimized with **Numba** for high performance, validated with **datawarden**, and configurable via **nonfig**.
 
 ## Key Features
 
-*   🚀 **High Performance**: Critical calculations are JIT-compiled using `Numba` for near-C speeds.
-*   🛡️ **Type-Safe & Validated**: Built with strict type checking (`basedpyright`) and runtime data validation (`validated`).
+*   🚀 **High Performance**: Critical calculations are JIT-compiled using `Numba` for near-C speeds, often outperforming TA-Lib in Python environments.
+*   🛡️ **Type-Safe & Validated**: Built with strict type checking (`basedpyright`) and runtime data validation using `datawarden`.
 *   ⚙️ **Configurable**: Flexible parameter management using `nonfig`'s hierarchical configuration system.
-*   🐼 **Pandas Integration**: Seamlessly works with pandas DataFrames and Series.
+*   🐼 **Pandas Integration**: Seamlessly works with pandas DataFrames and Series. All results can be converted to pandas objects with `.to_pandas()`.
 *   📦 **Modern Stack**: Managed with `uv`, linted with `ruff`, and tested with `pytest`.
 
 ## Installation
@@ -36,103 +35,79 @@ Indicators can be used directly as functions. They validate input data automatic
 
 ```python
 import pandas as pd
-from indikator import atr
+from indikator import rsi, sma
 
-# Load your OHLCV data
-data = pd.DataFrame({
-    'high': [...],
-    'low': [...],
-    'close': [...]
-})
+# Load your price data
+prices = pd.Series([100, 102, 101, 103, 105, 104, 106], name="close")
 
-# Calculate ATR with default parameters (window=14)
-result = atr(data)
+# Calculate RSI (returns IndicatorResult)
+result = rsi(prices, window=14)
 
-# Result is a DataFrame with 'atr' and 'true_range' columns
-print(result.head())
+# Convert to pandas Series
+rsi_series = result.to_pandas()
+print(rsi_series.head())
 ```
 
-### Configuration
+### Multi-Input Indicators
 
-You can override parameters directly or create reusable configurations using `.make()`.
+Indicators like ATR or VWAP take multiple Series or a DataFrame.
 
 ```python
-# 1. Direct override
-result = atr(data, window=20)
+from indikator import atr, vwap
 
-# 2. Reusable configuration (Factory pattern)
+# ATR takes separate high, low, close Series
+result = atr(df['high'], df['low'], df['close'], period=14)
+atr_series = result.to_pandas()
+
+# VWAP takes high, low, close, and volume
+vwap_result = vwap(df['high'], df['low'], df['close'], df['volume'])
+vwap_series = vwap_result.to_pandas()
+```
+
+### Configuration (Factory Pattern)
+
+You can create reusable configurations using `.Config().make()`. This is useful for building trading systems with fixed parameters.
+
+```python
 # Create a specialized ATR calculator
-fast_atr = atr.Config(window=5).make()
+fast_atr = atr.Config(period=5).make()
 
 # Apply it to multiple datasets
-result1 = fast_atr(data1)
-result2 = fast_atr(data2)
+result1 = fast_atr(high1, low1, close1).to_pandas()
+result2 = fast_atr(high2, low2, close2).to_pandas()
 ```
 
 ### Validation
 
-`indikator` ensures your data is correct before calculation. It checks for:
-*   Required columns (e.g., 'high', 'low', 'close')
-*   Data types (numeric)
-*   Data quality (non-empty, non-NaN where required)
+`indikator` ensures your data is correct before calculation. It checks for finite values, non-empty data, and required columns.
 
 ```python
-# This will raise a helpful error if 'high' column is missing
+import numpy as np
+
+# This will raise a ValidationError because of the infinity value
+invalid_prices = pd.Series([100, np.inf, 102])
 try:
-    atr(data[['close', 'low']])
+    rsi(invalid_prices)
 except ValueError as e:
     print(f"Validation Error: {e}")
 ```
 
 ## Available Indicators
 
-| Indicator | Description |
-|-----------|-------------|
-| **ATR** | Average True Range (Volatility) (Standard & Intraday) |
-| **Bollinger Bands** | Volatility bands based on SMA and standard deviation |
-| **Churn Factor** | Volume efficiency measure |
-| **Legs** | Zigzag/Swing point detection |
-| **MACD** | Moving Average Convergence Divergence |
-| **MFI** | Money Flow Index (Volume-weighted RSI) |
-| **OBV** | On-Balance Volume |
-| **Opening Range** | High/Low of the first N minutes |
-| **Pivots** | Support/Resistance pivot points |
-| **RSI** | Relative Strength Index |
-| **RVOL** | Relative Volume (Standard & Intraday) |
-| **Sector Correlation** | Correlation with a benchmark/sector |
-| **Slope** | Linear regression slope |
-| **VWAP** | Volume Weighted Average Price (Standard & Anchored) |
-| **Z-Score** | Standard deviation from mean (Standard & Intraday) |
+`indikator` includes a comprehensive set of indicators, including most TA-Lib equivalents and modern intraday indicators.
 
-## Development
+| Category | Indicators |
+|----------|------------|
+| **Overlap Studies** | `sma`, `ema`, `wma`, `dema`, `tema`, `trima`, `kama`, `mama`, `t3`, `bollinger_bands`, `sar`, `midpoint`, `midprice` |
+| **Momentum** | `rsi`, `stoch`, `macd`, `adx`, `cci`, `mfi`, `roc`, `willr`, `cmo`, `mom`, `ppo`, `ultosc` |
+| **Volatility** | `atr`, `natr`, `trange`, `stddev`, `var`, `zscore` |
+| **Volume** | `ad`, `adosc`, `obv`, `vwap`, `churn_factor`, `rvol` |
+| **Intraday** | `atr_intraday`, `zscore_intraday`, `rvol_intraday`, `opening_range`, `pivots`, `vwap_anchored` |
+| **Price Transform** | `avgprice`, `medprice`, `typprice`, `wclprice` |
+| **Cycle/Math** | `ht_dcperiod`, `ht_dcphase`, `ht_phasor`, `ht_sine`, `ht_trendline`, `ht_trendmode`, `sin`, `cos`, `tan`, `sqrt`, `exp`, `log10` |
+| **Pattern Recognition** | Over 60 candlestick patterns (`cdl_hammer`, `cdl_engulfing`, `cdl_doji`, etc.) |
 
-This project uses `uv` for dependency management and `poe` for task running.
-
-### Setup
-
-1.  Install `uv`:
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
-2.  Clone and sync:
-    ```bash
-    git clone https://github.com/yourusername/indikator.git
-    cd indikator
-    uv sync
-    ```
-3.  Install pre-commit hooks:
-    ```bash
-    uv run pre-commit install
-    ```
-
-### Common Tasks
-
-*   **Test**: `uv run pytest`
-*   **Lint**: `uv run ruff check`
-*   **Format**: `uv run ruff format`
-*   **Type Check**: `uv run basedpyright`
-*   **Run All Checks**: `uv run poe quality`
-*   **Generate Docs**: `uv run poe docs`
+*Check the documentation for the full list of over 150 functions.*
 
 ## License
 
