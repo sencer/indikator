@@ -8,7 +8,7 @@
 
 **High-Performance Technical Indicators for Python**
 
-`indikator` is a powerful, type-safe Python library for financial market analysis. It provides a comprehensive suite of technical indicators optimized with **Numba** for high performance, validated with **validated**, and configurable via **nonfig**.
+`indikator` is a powerful, type-safe Python library for financial market analysis. It provides a comprehensive suite of technical indicators optimized with **Numba** for high performance, validated with **datawarden**, and configurable via **nonfig**.
 
 ## Key Features
 
